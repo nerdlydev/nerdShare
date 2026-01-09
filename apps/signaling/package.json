@@ -1,0 +1,16 @@
+{
+  "name": "@nerdshare/signaling",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/server.ts"
+  },
+  "dependencies": {
+    "@nerdshare/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "latest"
+  }
+}

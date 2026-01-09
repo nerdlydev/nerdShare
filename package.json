@@ -1,0 +1,17 @@
+{
+  "name": "nerdshare",
+  "private": true,
+  "scripts": {
+    "build:shared": "bun --filter @nerdshare/shared build",
+    "dev:shared": "bun --filter @nerdshare/shared dev",
+    "dev:web": "bun --filter web dev",
+    "dev:signaling": "bun --filter @nerdshare/signaling dev"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "bun": "latest"
+  }
+}
