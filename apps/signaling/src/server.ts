@@ -1,28 +1,298 @@
-import { SignalingMessage, SignalingMessageType } from "@nerdshare/shared";
+import type { ServerWebSocket } from "bun";
+import {
+  type ClientMessage,
+  type ServerMessage,
+  SignalErrorCode,
+  ROOM_DEFAULTS,
+} from "@nerdshare/shared";
 
-const PORT = 8080;
+// ─── Types ───
+
+// Bun's ServerWebSocket is NOT the DOM WebSocket.
+// We use a generic type alias to keep the code clean.
+type WS = ServerWebSocket<undefined>;
+
+interface Room {
+  roomId: string;
+  createdAt: number;
+  expiresAt: number;
+  hostId: string;
+  hostWs: WS;
+  peers: Map<string, WS>; // userId → WebSocket
+  ttlTimer: Timer;
+}
+
+// Reverse lookup: WS → { roomId, userId }
+const socketMeta = new WeakMap<WS, { roomId: string; userId: string }>();
+
+// ─── State ───
+
+const rooms = new Map<string, Room>();
+
+// ─── Helpers ───
+
+function sendTo(ws: WS, msg: ServerMessage): void {
+  ws.send(JSON.stringify(msg));
+}
+
+function sendError(ws: WS, message: string, code?: string): void {
+  sendTo(ws, { type: "ERROR", message, code });
+}
+
+function broadcastToRoom(
+  room: Room,
+  msg: ServerMessage,
+  excludeUserId?: string,
+): void {
+  if (room.hostId !== excludeUserId) {
+    sendTo(room.hostWs, msg);
+  }
+  for (const [userId, ws] of room.peers) {
+    if (userId !== excludeUserId) {
+      sendTo(ws, msg);
+    }
+  }
+}
+
+function destroyRoom(roomId: string): void {
+  const room = rooms.get(roomId);
+  if (!room) return;
+  clearTimeout(room.ttlTimer);
+  rooms.delete(roomId);
+  console.log(`[room:${roomId}] destroyed (${rooms.size} rooms remaining)`);
+}
+
+// ─── Handlers ───
+
+function handleJoinRoom(
+  ws: WS,
+  msg: Extract<ClientMessage, { type: "JOIN_ROOM" }>,
+): void {
+  const { roomId, userId } = msg;
+  const existingRoom = rooms.get(roomId);
+
+  if (existingRoom) {
+    // ── Joining an existing room as a peer ──
+    if (Date.now() > existingRoom.expiresAt) {
+      destroyRoom(roomId);
+      sendError(ws, "Room has expired", SignalErrorCode.ROOM_EXPIRED);
+      return;
+    }
+
+    if (existingRoom.peers.size >= ROOM_DEFAULTS.MAX_PEERS) {
+      sendError(ws, "Room is full", SignalErrorCode.ROOM_FULL);
+      return;
+    }
+
+    existingRoom.peers.set(userId, ws);
+    socketMeta.set(ws, { roomId, userId });
+
+    const existingPeerIds = [
+      existingRoom.hostId,
+      ...existingRoom.peers.keys(),
+    ].filter((id) => id !== userId);
+
+    sendTo(ws, { type: "ROOM_JOINED", roomId, userId, peers: existingPeerIds });
+    broadcastToRoom(
+      existingRoom,
+      { type: "PEER_JOINED", roomId, userId },
+      userId,
+    );
+
+    console.log(
+      `[room:${roomId}] peer "${userId}" joined (${existingRoom.peers.size}/${ROOM_DEFAULTS.MAX_PEERS} peers)`,
+    );
+  } else {
+    // ── Creating a new room as the host ──
+    const ttlTimer = setTimeout(() => {
+      const room = rooms.get(roomId);
+      if (room) {
+        console.log(`[room:${roomId}] TTL expired`);
+        broadcastToRoom(room, {
+          type: "ERROR",
+          message: "Room expired",
+          code: SignalErrorCode.ROOM_EXPIRED,
+        });
+        destroyRoom(roomId);
+      }
+    }, ROOM_DEFAULTS.TTL_MS);
+
+    const room: Room = {
+      roomId,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + ROOM_DEFAULTS.TTL_MS,
+      hostId: userId,
+      hostWs: ws,
+      peers: new Map(),
+      ttlTimer,
+    };
+
+    rooms.set(roomId, room);
+    socketMeta.set(ws, { roomId, userId });
+
+    sendTo(ws, { type: "ROOM_JOINED", roomId, userId, peers: [] });
+    console.log(
+      `[room:${roomId}] created by host "${userId}" (TTL: ${ROOM_DEFAULTS.TTL_MS / 1000}s)`,
+    );
+  }
+}
+
+function handleRelay(
+  ws: WS,
+  msg: Extract<ClientMessage, { type: "OFFER" | "ANSWER" | "ICE_CANDIDATE" }>,
+): void {
+  const room = rooms.get(msg.roomId);
+  if (!room) {
+    sendError(ws, "Room not found", SignalErrorCode.ROOM_NOT_FOUND);
+    return;
+  }
+
+  let targetWs: WS | undefined;
+  if (msg.toUserId === room.hostId) {
+    targetWs = room.hostWs;
+  } else {
+    targetWs = room.peers.get(msg.toUserId);
+  }
+
+  if (!targetWs) {
+    sendError(ws, "Peer not found in room", SignalErrorCode.PEER_NOT_FOUND);
+    return;
+  }
+
+  // Forward the message as-is (server is a dumb relay)
+  sendTo(targetWs, msg as ServerMessage);
+}
+
+function handleDisconnect(ws: WS): void {
+  const meta = socketMeta.get(ws);
+  if (!meta) return;
+
+  const { roomId, userId } = meta;
+  const room = rooms.get(roomId);
+  if (!room) return;
+
+  if (userId === room.hostId) {
+    console.log(
+      `[room:${roomId}] host "${userId}" disconnected — closing room`,
+    );
+    // Notify all peers before destroying
+    for (const [peerId, peerWs] of room.peers) {
+      sendTo(peerWs, { type: "PEER_LEFT", roomId, userId: room.hostId });
+    }
+    destroyRoom(roomId);
+  } else {
+    room.peers.delete(userId);
+    broadcastToRoom(room, { type: "PEER_LEFT", roomId, userId }, userId);
+    console.log(
+      `[room:${roomId}] peer "${userId}" disconnected (${room.peers.size}/${ROOM_DEFAULTS.MAX_PEERS} peers)`,
+    );
+  }
+}
+
+function handleMessage(ws: WS, raw: string | Buffer): void {
+  const data = typeof raw === "string" ? raw : raw.toString();
+
+  if (data.length > ROOM_DEFAULTS.MAX_MESSAGE_SIZE) {
+    sendError(ws, "Message too large", SignalErrorCode.INVALID_MESSAGE);
+    return;
+  }
+
+  let msg: ClientMessage;
+  try {
+    msg = JSON.parse(data);
+  } catch {
+    sendError(ws, "Invalid JSON", SignalErrorCode.INVALID_MESSAGE);
+    return;
+  }
+
+  if (!msg || !msg.type) {
+    sendError(ws, "Missing message type", SignalErrorCode.INVALID_MESSAGE);
+    return;
+  }
+
+  switch (msg.type) {
+    case "JOIN_ROOM":
+      if (!msg.roomId || !msg.userId) {
+        sendError(
+          ws,
+          "Missing roomId or userId",
+          SignalErrorCode.INVALID_MESSAGE,
+        );
+        return;
+      }
+      handleJoinRoom(ws, msg);
+      break;
+
+    case "OFFER":
+    case "ANSWER":
+    case "ICE_CANDIDATE":
+      if (!msg.roomId || !msg.fromUserId || !msg.toUserId) {
+        sendError(
+          ws,
+          "Missing routing fields",
+          SignalErrorCode.INVALID_MESSAGE,
+        );
+        return;
+      }
+      handleRelay(ws, msg);
+      break;
+
+    default:
+      sendError(
+        ws,
+        `Unknown message type: ${(msg as any).type}`,
+        SignalErrorCode.INVALID_MESSAGE,
+      );
+  }
+}
+
+// ─── Server ───
+
+const PORT = Number(process.env.PORT) || 8080;
 
 const server = Bun.serve({
   port: PORT,
-  websocket: {
-    open(ws) {
-      console.log("Client connected");
-    },
-    message(ws, message) {
-      console.log("Received message:", message);
-      // Placeholder: echo back for now
-      ws.send(message);
-    },
-    close(ws) {
-      console.log("Client disconnected");
-    },
-  },
+
   fetch(req, server) {
+    const url = new URL(req.url);
+
+    if (url.pathname === "/health") {
+      return new Response(
+        JSON.stringify({
+          status: "ok",
+          rooms: rooms.size,
+          uptime: process.uptime(),
+        }),
+        { headers: { "Content-Type": "application/json" } },
+      );
+    }
+
     if (server.upgrade(req)) {
       return;
     }
-    return new Response("WebSocket signaling server");
+
+    return new Response("nerdShare signaling server", { status: 200 });
+  },
+
+  websocket: {
+    open(ws: WS) {
+      console.log("[ws] client connected");
+    },
+
+    message(ws: WS, message: string | Buffer) {
+      handleMessage(ws, message);
+    },
+
+    close(ws: WS) {
+      handleDisconnect(ws);
+      console.log("[ws] client disconnected");
+    },
+
+    perMessageDeflate: false,
   },
 });
 
-console.log(`Signaling server running on port ${PORT}`);
+console.log(`\n  🚀 nerdShare signaling server`);
+console.log(`  ├─ port: ${PORT}`);
+console.log(`  ├─ health: http://localhost:${PORT}/health`);
+console.log(`  └─ ready for WebSocket connections\n`);
