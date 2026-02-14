@@ -100,10 +100,23 @@ export class TransferReceiver {
 
     const blob = new Blob(this.chunks, { type: this.currentMeta.mimeType });
     this.options.onComplete?.(blob, this.currentMeta);
-    // No auto-download — the PeerView handles saving via a button
+
+    // Auto-save — user already consented by clicking Download
+    this.triggerDownload(blob, this.currentMeta.fileName);
 
     this.currentMeta = null;
     this.chunks = [];
+  }
+
+  private triggerDownload(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   }
 
   private sendControl(msg: DCControlMessage): void {

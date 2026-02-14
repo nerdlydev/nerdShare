@@ -8,6 +8,7 @@ import {
   FileIcon,
   CheckmarkCircle02Icon,
   Alert02Icon,
+  RepeatIcon,
 } from "@hugeicons/core-free-icons";
 import type { ConnectionState } from "@/lib/webrtc-manager";
 import type { TransferProgress } from "@/lib/transfer-progress";
@@ -188,21 +189,39 @@ export function HostView({
       }
       hero={
         <div>
-          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
-            {isConnected
-              ? "Now sharing your files directly from your device"
-              : "Ready to share"}
-          </h1>
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mt-6">
-            <div className="flex items-center gap-1.5 text-sm font-medium text-destructive mb-1">
-              <HugeiconsIcon icon={Alert02Icon} size={16} />
-              Please note:
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Closing this page means you stop sharing! Simply keep this page
-              open in the background to keep sharing.
-            </p>
-          </div>
+          {transferComplete ? (
+            <>
+              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
+                Transfer completed successfully!
+              </h1>
+              <p className="text-muted-foreground text-base leading-relaxed mb-6">
+                Your file has been downloaded by the receiver. You can close
+                this page or share another file.
+              </p>
+              <Button variant="outline" onClick={onLeave} className="gap-2">
+                <HugeiconsIcon icon={RepeatIcon} size={16} />
+                Share again?
+              </Button>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
+                {isConnected
+                  ? "Now sharing your files directly from your device"
+                  : "Ready to share"}
+              </h1>
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mt-6">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-destructive mb-1">
+                  <HugeiconsIcon icon={Alert02Icon} size={16} />
+                  Please note:
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Closing this page means you stop sharing! Simply keep this
+                  page open in the background to keep sharing.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       }
     />

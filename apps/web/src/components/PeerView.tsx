@@ -9,6 +9,7 @@ import {
   WifiConnected01Icon,
   CheckmarkCircle02Icon,
   Alert02Icon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import type { ConnectionState } from "@/lib/webrtc-manager";
 import type { TransferProgress } from "@/lib/transfer-progress";
@@ -29,9 +30,16 @@ interface PeerViewProps {
   dc: RTCDataChannel | null;
   logs: string[];
   addLog: (msg: string) => void;
+  onLeave: () => void;
 }
 
-export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
+export function PeerView({
+  connectionState,
+  dc,
+  logs,
+  addLog,
+  onLeave,
+}: PeerViewProps) {
   const [peerState, setPeerState] = useState<PeerState>("connecting");
   const [progress, setProgress] = useState<TransferProgress | null>(null);
   const [fileMeta, setFileMeta] = useState<{
@@ -39,6 +47,7 @@ export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
     size: number;
   } | null>(null);
   const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
+  const [isAccepting, setIsAccepting] = useState(false);
 
   const receiverRef = useRef<TransferReceiver | null>(null);
 
@@ -99,10 +108,20 @@ export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
 
   // Render the left panel based on state
   const renderPanel = () => {
+    const closeButton = (
+      <button
+        onClick={onLeave}
+        className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      >
+        <HugeiconsIcon icon={Cancel01Icon} size={18} />
+      </button>
+    );
+
     switch (peerState) {
       case "connecting":
         return (
-          <div className="bg-card/50 rounded-2xl p-8 border border-border text-center">
+          <div className="bg-card/50 rounded-2xl p-8 border border-border text-center relative">
+            {closeButton}
             <div className="w-16 h-16 mx-auto mb-4 relative">
               <HugeiconsIcon
                 icon={Loading03Icon}
@@ -119,7 +138,8 @@ export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
 
       case "waiting":
         return (
-          <div className="bg-card/50 rounded-2xl p-8 border border-border text-center">
+          <div className="bg-card/50 rounded-2xl p-8 border border-border text-center relative">
+            {closeButton}
             <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
               <HugeiconsIcon
                 icon={WifiConnected01Icon}
@@ -136,7 +156,8 @@ export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
 
       case "ready":
         return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border">
+          <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
+            {closeButton}
             {fileMeta && (
               <div className="flex items-center gap-2 mb-4">
                 <HugeiconsIcon
@@ -156,17 +177,35 @@ export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
             )}
             <Button
               className="w-full"
-              onClick={() => receiverRef.current?.acceptTransfer()}
+              disabled={isAccepting}
+              onClick={() => {
+                setIsAccepting(true);
+                receiverRef.current?.acceptTransfer();
+              }}
             >
-              <HugeiconsIcon icon={DownloadIcon} size={16} />
-              Download
+              {isAccepting ? (
+                <>
+                  <HugeiconsIcon
+                    icon={Loading03Icon}
+                    size={16}
+                    className="animate-spin-slow"
+                  />
+                  Starting download...
+                </>
+              ) : (
+                <>
+                  <HugeiconsIcon icon={DownloadIcon} size={16} />
+                  Download
+                </>
+              )}
             </Button>
           </div>
         );
 
       case "downloading":
         return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border">
+          <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
+            {closeButton}
             {fileMeta && (
               <div className="flex items-center gap-2 mb-4">
                 <HugeiconsIcon
@@ -209,7 +248,8 @@ export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
 
       case "done":
         return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border">
+          <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
+            {closeButton}
             {fileMeta && (
               <div className="flex items-center gap-2 mb-4">
                 <HugeiconsIcon
@@ -240,7 +280,8 @@ export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
 
       case "error":
         return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border text-center">
+          <div className="bg-card/50 rounded-2xl p-6 border border-border text-center relative">
+            {closeButton}
             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
               <HugeiconsIcon
                 icon={Alert02Icon}

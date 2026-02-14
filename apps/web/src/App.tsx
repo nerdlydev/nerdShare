@@ -162,6 +162,7 @@ export function App() {
       dc={dc}
       logs={logs}
       addLog={addLog}
+      onLeave={leave}
     />
   );
 }
