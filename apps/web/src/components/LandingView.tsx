@@ -1,104 +1,108 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useRef, useCallback, useState } from "react";
+import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { FileIcon, DownloadIcon } from "@hugeicons/core-free-icons";
+import {
+  InfinityCircleIcon,
+  FlashIcon,
+  DistributeVerticalCenterIcon,
+  SquareLock02Icon,
+} from "@hugeicons/core-free-icons";
 
 interface LandingViewProps {
-  onHost: () => void;
-  onJoin: (roomId: string) => void;
-  joinRoomId: string;
-  setJoinRoomId: (id: string) => void;
+  onFileSelected: (file: File) => void;
 }
 
-export function LandingView({
-  onHost,
-  onJoin,
-  joinRoomId,
-  setJoinRoomId,
-}: LandingViewProps) {
+export function LandingView({ onFileSelected }: LandingViewProps) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file) onFileSelected(file);
+    },
+    [onFileSelected],
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback(() => setIsDragOver(false), []);
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) onFileSelected(file);
+    },
+    [onFileSelected],
+  );
+
+  const features = [
+    { icon: InfinityCircleIcon, label: "No file size limit" },
+    { icon: FlashIcon, label: "Blazingly fast" },
+    { icon: DistributeVerticalCenterIcon, label: "Peer-to-peer" },
+    { icon: SquareLock02Icon, label: "End-to-end encrypted" },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      {/* Hero */}
-      <div className="text-center mb-12 animate-float">
-        <div className="text-5xl mb-4">🚀</div>
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-chart-1 bg-clip-text text-transparent">
-          nerdShare
-        </h1>
-        <p className="text-muted-foreground mt-2 text-lg">
-          Peer-to-peer file sharing. No servers. No limits.
-        </p>
-      </div>
-
-      {/* Action Cards */}
-      <div className="grid gap-6 sm:grid-cols-2 w-full max-w-xl">
-        {/* Share Card */}
-        <Card
-          className="group hover:ring-primary/30 transition-all duration-300 cursor-pointer"
-          onClick={onHost}
+    <PageLayout
+      panel={
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={() => fileInputRef.current?.click()}
+          className={`
+            border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-200
+            bg-card/50
+            ${
+              isDragOver
+                ? "border-primary bg-primary/10 animate-pulse-glow"
+                : "border-border hover:border-primary/50 hover:bg-muted/30"
+            }
+          `}
         >
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <HugeiconsIcon icon={FileIcon} className="text-primary" />
-              Share a File
-            </CardTitle>
-            <CardDescription>
-              Select a file and get a room code for your peer.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full" size="lg">
-              Start Sharing
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Receive Card */}
-        <Card className="group hover:ring-primary/30 transition-all duration-300">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <HugeiconsIcon icon={DownloadIcon} className="text-chart-1" />
-              Receive a File
-            </CardTitle>
-            <CardDescription>
-              Enter the room code from the sender.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <input
-              type="text"
-              value={joinRoomId}
-              onChange={(e) => setJoinRoomId(e.target.value)}
-              onKeyDown={(e) =>
-                e.key === "Enter" &&
-                joinRoomId.trim() &&
-                onJoin(joinRoomId.trim())
-              }
-              placeholder="Paste room code..."
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full"
-              onClick={() => joinRoomId.trim() && onJoin(joinRoomId.trim())}
-              disabled={!joinRoomId.trim()}
-            >
-              Join Room
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Footer */}
-      <p className="text-muted-foreground/50 text-xs mt-16">
-        End-to-end encrypted via WebRTC. Your files never touch a server.
-      </p>
-    </div>
+          <div className="w-10 h-10 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
+            <span className="text-primary text-lg">+</span>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Click to browse or drag files here to start sharing
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+      }
+      hero={
+        <div>
+          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
+            Share files directly from your device to anywhere
+          </h1>
+          <p className="text-muted-foreground text-base mb-8 leading-relaxed">
+            Send files of any size directly from your device without ever
+            storing anything online.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {features.map((f) => (
+              <div key={f.label} className="flex items-center gap-2.5">
+                <HugeiconsIcon
+                  icon={f.icon}
+                  size={18}
+                  className="text-primary shrink-0"
+                />
+                <span className="text-sm text-muted-foreground">{f.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      }
+    />
   );
 }

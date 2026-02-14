@@ -10,10 +10,16 @@ function generateId(): string {
   return crypto.randomUUID().split("-")[0];
 }
 
+/** Extract room ID from pathname like /r/abc123 */
+function getRoomFromPath(): string | null {
+  const match = window.location.pathname.match(/^\/r\/([a-zA-Z0-9-]+)/);
+  return match ? match[1] : null;
+}
+
 export function App() {
   const [role, setRole] = useState<"host" | "peer" | null>(null);
   const [roomId, setRoomId] = useState("");
-  const [joinRoomId, setJoinRoomId] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [userId] = useState(() => generateId());
   const [connectionState, setConnectionState] =
     useState<ConnectionState>("idle");
@@ -39,43 +45,54 @@ export function App() {
     cleanup();
     setRole(null);
     setRoomId("");
+    setSelectedFile(null);
     setConnectionState("idle");
     setLogs([]);
+    window.history.pushState(null, "", "/");
   }, [cleanup]);
 
-  const createRoom = useCallback(() => {
-    cleanup();
-    const newRoomId = generateId();
-    setRoomId(newRoomId);
-    setRole("host");
-    setLogs([]);
+  // ── Sender: file selected → create room ──
+  const handleFileSelected = useCallback(
+    (file: File) => {
+      cleanup();
+      const newRoomId = generateId();
+      setRoomId(newRoomId);
+      setSelectedFile(file);
+      setRole("host");
+      setLogs([]);
 
-    const mgr = new WebRTCManager({
-      signalingUrl: SIGNALING_URL,
-      role: "host",
-      roomId: newRoomId,
-      userId,
-      onStateChange: (s) => {
-        setConnectionState(s);
-        addLog(`state → ${s}`);
-      },
-      onDataChannelOpen: (channel) => {
-        setDc(channel);
-        addLog("✅ DataChannel open");
-      },
-      onDataChannelMessage: () => {},
-      onDataChannelClose: () => {
-        setDc(null);
-        addLog("DataChannel closed");
-      },
-      onError: (err) => addLog(`❌ ${err}`),
-    });
+      // Update URL to show the room but NOT /r/ (that's for receivers)
+      // The host stays on / with state
 
-    managerRef.current = mgr;
-    mgr.start();
-    addLog(`created room: ${newRoomId}`);
-  }, [userId, addLog, cleanup]);
+      const mgr = new WebRTCManager({
+        signalingUrl: SIGNALING_URL,
+        role: "host",
+        roomId: newRoomId,
+        userId,
+        onStateChange: (s) => {
+          setConnectionState(s);
+          addLog(`state → ${s}`);
+        },
+        onDataChannelOpen: (channel) => {
+          setDc(channel);
+          addLog("✅ DataChannel open");
+        },
+        onDataChannelMessage: () => {},
+        onDataChannelClose: () => {
+          setDc(null);
+          addLog("DataChannel closed");
+        },
+        onError: (err) => addLog(`❌ ${err}`),
+      });
 
+      managerRef.current = mgr;
+      mgr.start();
+      addLog(`created room: ${newRoomId}`);
+    },
+    [userId, addLog, cleanup],
+  );
+
+  // ── Receiver: join a room ──
   const joinRoom = useCallback(
     (id: string) => {
       cleanup();
@@ -111,22 +128,26 @@ export function App() {
     [userId, addLog, cleanup],
   );
 
+  // ── Auto-join if URL has /r/:roomId ──
+  useEffect(() => {
+    const hashRoom = getRoomFromPath();
+    if (hashRoom && !role) {
+      joinRoom(hashRoom);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Route ──
   if (!role) {
-    return (
-      <LandingView
-        onHost={createRoom}
-        onJoin={joinRoom}
-        joinRoomId={joinRoomId}
-        setJoinRoomId={setJoinRoomId}
-      />
-    );
+    return <LandingView onFileSelected={handleFileSelected} />;
   }
 
-  if (role === "host") {
+  if (role === "host" && selectedFile) {
+    const shareUrl = `${window.location.origin}/r/${roomId}`;
     return (
       <HostView
-        roomId={roomId}
+        file={selectedFile}
+        shareUrl={shareUrl}
         connectionState={connectionState}
         dc={dc}
         onLeave={leave}
@@ -137,10 +158,8 @@ export function App() {
 
   return (
     <PeerView
-      roomId={roomId}
       connectionState={connectionState}
       dc={dc}
-      onLeave={leave}
       logs={logs}
       addLog={addLog}
     />

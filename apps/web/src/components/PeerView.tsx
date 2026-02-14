@@ -1,145 +1,197 @@
-import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { DownloadIcon } from "@hugeicons/core-free-icons";
+import {
+  FileIcon,
+  DownloadIcon,
+  Loading03Icon,
+  WifiConnected01Icon,
+  CheckmarkCircle02Icon,
+  Alert02Icon,
+} from "@hugeicons/core-free-icons";
 import type { ConnectionState } from "@/lib/webrtc-manager";
 import type { TransferProgress } from "@/lib/transfer-progress";
 import { formatBytes, formatTime } from "@/lib/transfer-progress";
 import { TransferReceiver } from "@/lib/transfer-receiver";
 import type { FileMeta } from "@nerdshare/shared";
 
+type PeerState =
+  | "connecting"
+  | "waiting"
+  | "ready"
+  | "downloading"
+  | "done"
+  | "error";
+
 interface PeerViewProps {
-  roomId: string;
   connectionState: ConnectionState;
   dc: RTCDataChannel | null;
-  onLeave: () => void;
   logs: string[];
   addLog: (msg: string) => void;
 }
 
-export function PeerView({
-  roomId,
-  connectionState,
-  dc,
-  onLeave,
-  logs,
-  addLog,
-}: PeerViewProps) {
+export function PeerView({ connectionState, dc, logs, addLog }: PeerViewProps) {
+  const [peerState, setPeerState] = useState<PeerState>("connecting");
   const [progress, setProgress] = useState<TransferProgress | null>(null);
-  const [receivedFile, setReceivedFile] = useState<{
+  const [fileMeta, setFileMeta] = useState<{
     name: string;
     size: number;
   } | null>(null);
+  const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
 
+  const receiverRef = useRef<TransferReceiver | null>(null);
+
+  const isConnected = connectionState === "connected";
+
+  useEffect(() => {
+    if (isConnected) setPeerState("waiting");
+    if (connectionState === "disconnected" || connectionState === "failed") {
+      setPeerState("error");
+    }
+  }, [isConnected, connectionState]);
+
+  // Start receiver when DataChannel opens
   useEffect(() => {
     if (!dc || dc.readyState !== "open") return;
 
     const receiver = new TransferReceiver({
       dc,
-      onProgress: (p) => setProgress(p),
-      onComplete: (_blob: Blob, meta: FileMeta) => {
-        setReceivedFile({ name: meta.fileName, size: meta.fileSize });
-        addLog(`✅ received: ${meta.fileName}`);
+      onFileMeta: (meta) => {
+        setFileMeta({ name: meta.fileName, size: meta.fileSize });
+        setPeerState("ready");
+        addLog(
+          `📄 file offered: ${meta.fileName} (${formatBytes(meta.fileSize)})`,
+        );
       },
-      onError: (err) => addLog(`❌ ${err}`),
+      onProgress: (p) => {
+        setProgress(p);
+        if (p.progress > 0 && p.progress < 1) setPeerState("downloading");
+      },
+      onComplete: (blob: Blob, meta: FileMeta) => {
+        setFileMeta({ name: meta.fileName, size: meta.fileSize });
+        setDownloadBlob(blob);
+        setPeerState("done");
+        addLog(`received: ${meta.fileName}`);
+      },
+      onError: (err) => {
+        addLog(`error: ${err}`);
+        setPeerState("error");
+      },
     });
 
+    receiverRef.current = receiver;
+
     return () => {
-      void receiver;
-    }; // cleanup ref
+      receiverRef.current = null;
+    };
   }, [dc, dc?.readyState, addLog]);
 
-  const isConnected = connectionState === "connected";
-  const stateBadge: Record<
-    ConnectionState,
-    {
-      label: string;
-      variant: "default" | "secondary" | "outline" | "destructive";
-    }
-  > = {
-    idle: { label: "Idle", variant: "secondary" },
-    signaling: { label: "Signaling…", variant: "outline" },
-    connecting: { label: "Connecting…", variant: "outline" },
-    connected: { label: "Connected", variant: "default" },
-    disconnected: { label: "Disconnected", variant: "destructive" },
-    failed: { label: "Failed", variant: "destructive" },
-  };
+  const triggerDownload = useCallback(() => {
+    if (!downloadBlob || !fileMeta) return;
+    const url = URL.createObjectURL(downloadBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileMeta.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [downloadBlob, fileMeta]);
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-lg flex flex-col gap-5">
-        {/* Room Header */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3">
-                <CardTitle className="text-lg">Room</CardTitle>
-                <code className="text-primary font-mono text-base bg-primary/10 px-2 py-0.5 rounded-md">
-                  {roomId}
-                </code>
-              </div>
-              <Badge variant={stateBadge[connectionState].variant}>
-                {stateBadge[connectionState].label}
-              </Badge>
+  // Render the left panel based on state
+  const renderPanel = () => {
+    switch (peerState) {
+      case "connecting":
+        return (
+          <div className="bg-card/50 rounded-2xl p-8 border border-border text-center">
+            <div className="w-16 h-16 mx-auto mb-4 relative">
+              <HugeiconsIcon
+                icon={Loading03Icon}
+                size={48}
+                className="text-primary animate-spin-slow"
+              />
             </div>
-            <CardDescription className="mt-1">
-              You've joined as a receiver. Waiting for the host to send a file.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+            <p className="text-sm font-medium mb-1">Connecting to sender</p>
+            <p className="text-xs text-muted-foreground">
+              Trying to establish a connection with the sender
+            </p>
+          </div>
+        );
 
-        {/* Transfer Status */}
-        <Card>
-          <CardContent className="pt-5">
-            {!progress && !receivedFile && (
-              <div className="text-center py-12">
-                {isConnected ? (
-                  <>
-                    <div className="text-4xl mb-4 animate-float">📡</div>
-                    <p className="text-muted-foreground text-sm">
-                      Connected! Waiting for the host to send a file…
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-4xl mb-4">🔗</div>
-                    <p className="text-muted-foreground text-sm">
-                      Establishing connection with host…
-                    </p>
-                  </>
-                )}
+      case "waiting":
+        return (
+          <div className="bg-card/50 rounded-2xl p-8 border border-border text-center">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <HugeiconsIcon
+                icon={WifiConnected01Icon}
+                size={28}
+                className="text-primary animate-float"
+              />
+            </div>
+            <p className="text-sm font-medium mb-1">Connected</p>
+            <p className="text-xs text-muted-foreground">
+              Waiting for the sender to start the transfer…
+            </p>
+          </div>
+        );
+
+      case "ready":
+        return (
+          <div className="bg-card/50 rounded-2xl p-6 border border-border">
+            {fileMeta && (
+              <div className="flex items-center gap-2 mb-4">
+                <HugeiconsIcon
+                  icon={FileIcon}
+                  size={16}
+                  className="text-primary"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {fileMeta.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatBytes(fileMeta.size)}
+                  </p>
+                </div>
+              </div>
+            )}
+            <Button
+              className="w-full"
+              onClick={() => receiverRef.current?.acceptTransfer()}
+            >
+              <HugeiconsIcon icon={DownloadIcon} size={16} />
+              Download
+            </Button>
+          </div>
+        );
+
+      case "downloading":
+        return (
+          <div className="bg-card/50 rounded-2xl p-6 border border-border">
+            {fileMeta && (
+              <div className="flex items-center gap-2 mb-4">
+                <HugeiconsIcon
+                  icon={FileIcon}
+                  size={16}
+                  className="text-primary"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {fileMeta.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatBytes(fileMeta.size)}
+                  </p>
+                </div>
               </div>
             )}
 
-            {progress && !receivedFile && (
-              <div className="flex flex-col gap-4 py-4">
-                <div className="flex items-center gap-3">
-                  <HugeiconsIcon
-                    icon={DownloadIcon}
-                    className="text-chart-1 shrink-0"
-                    size={20}
-                  />
-                  <div>
-                    <p className="text-sm font-medium">Receiving file…</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatBytes(progress.totalBytes)} total
-                    </p>
-                  </div>
-                </div>
-
+            {progress && (
+              <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{Math.round(progress.progress * 100)}%</span>
                   <span>{formatBytes(progress.speed)}/s</span>
                 </div>
-                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full rounded-full animate-shimmer transition-all duration-150"
                     style={{
@@ -152,42 +204,94 @@ export function PeerView({
                 </p>
               </div>
             )}
+          </div>
+        );
 
-            {receivedFile && (
-              <div className="text-center py-8">
-                <div className="text-4xl mb-3">✅</div>
-                <p className="text-sm font-medium">
-                  File received & downloaded!
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {receivedFile.name} — {formatBytes(receivedFile.size)}
-                </p>
+      case "done":
+        return (
+          <div className="bg-card/50 rounded-2xl p-6 border border-border">
+            {fileMeta && (
+              <div className="flex items-center gap-2 mb-4">
+                <HugeiconsIcon
+                  icon={FileIcon}
+                  size={16}
+                  className="text-primary"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {fileMeta.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatBytes(fileMeta.size)}
+                  </p>
+                </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Debug Log */}
-        <details className="text-xs">
-          <summary className="text-muted-foreground cursor-pointer select-none mb-2">
-            Debug Log
-          </summary>
-          <div className="bg-card border border-border rounded-lg p-3 max-h-40 overflow-y-auto font-mono text-[10px] text-muted-foreground/70 space-y-0.5">
-            {logs.map((l, i) => (
-              <div key={i}>{l}</div>
-            ))}
+            <div className="flex items-center justify-center gap-1.5 text-sm text-green-400 font-medium mb-3">
+              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} />
+              Download complete!
+            </div>
+            <Button className="w-full" onClick={triggerDownload}>
+              <HugeiconsIcon icon={DownloadIcon} size={16} />
+              Download Again
+            </Button>
           </div>
-        </details>
+        );
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onLeave}
-          className="self-center text-muted-foreground"
-        >
-          Leave Room
-        </Button>
-      </div>
-    </div>
+      case "error":
+        return (
+          <div className="bg-card/50 rounded-2xl p-6 border border-border text-center">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+              <HugeiconsIcon
+                icon={Alert02Icon}
+                size={28}
+                className="text-destructive"
+              />
+            </div>
+            <p className="text-sm font-medium mb-2">
+              Sender has stopped sharing
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              The sender has either closed this transfer or is now offline.
+              Please check if the sender has an active internet connection or
+              ask for a new link.
+            </p>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <PageLayout
+      panel={
+        <div className="relative">
+          {renderPanel()}
+
+          {/* Debug log */}
+          <details className="text-xs mt-4">
+            <summary className="text-muted-foreground cursor-pointer select-none mb-1.5">
+              Debug Log
+            </summary>
+            <div className="bg-background/50 border border-border rounded-lg p-2 max-h-32 overflow-y-auto font-mono text-[10px] text-muted-foreground/70 space-y-0.5">
+              {logs.map((l, i) => (
+                <div key={i}>{l}</div>
+              ))}
+            </div>
+          </details>
+        </div>
+      }
+      hero={
+        <div>
+          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
+            Receiving files with nerdShare
+          </h1>
+          <p className="text-muted-foreground text-base leading-relaxed">
+            You are about to start a secure transfer with nerdShare, directly
+            from the sender. The file will be downloaded directly to your
+            device.
+          </p>
+        </div>
+      }
+    />
   );
 }

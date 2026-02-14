@@ -1,22 +1,23 @@
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { FileIcon, Copy01Icon } from "@hugeicons/core-free-icons";
+import {
+  Copy01Icon,
+  Cancel01Icon,
+  FileIcon,
+  CheckmarkCircle02Icon,
+  Alert02Icon,
+} from "@hugeicons/core-free-icons";
 import type { ConnectionState } from "@/lib/webrtc-manager";
 import type { TransferProgress } from "@/lib/transfer-progress";
 import { formatBytes, formatTime } from "@/lib/transfer-progress";
 import { TransferSender } from "@/lib/transfer-sender";
+import QRCode from "qrcode";
 
 interface HostViewProps {
-  roomId: string;
+  file: File;
+  shareUrl: string;
   connectionState: ConnectionState;
   dc: RTCDataChannel | null;
   onLeave: () => void;
@@ -24,43 +25,42 @@ interface HostViewProps {
 }
 
 export function HostView({
-  roomId,
+  file,
+  shareUrl,
   connectionState,
   dc,
   onLeave,
   logs,
 }: HostViewProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [progress, setProgress] = useState<TransferProgress | null>(null);
   const [isTransferring, setIsTransferring] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
   const [transferComplete, setTransferComplete] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const senderRef = useRef<TransferSender | null>(null);
+  const hasStartedRef = useRef(false);
   const [copied, setCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) setSelectedFile(file);
-  }, []);
+  const isConnected = connectionState === "connected";
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  }, []);
+  // Generate QR code
+  useEffect(() => {
+    QRCode.toDataURL(shareUrl, {
+      width: 140,
+      margin: 2,
+      color: { dark: "#ffffff", light: "#00000000" },
+    }).then(setQrDataUrl);
+  }, [shareUrl]);
 
-  const handleDragLeave = useCallback(() => setIsDragOver(false), []);
-
+  // Auto-start transfer when DataChannel opens
   const startTransfer = useCallback(async () => {
-    if (!selectedFile || !dc || isTransferring) return;
+    if (!dc || isTransferring || hasStartedRef.current) return;
+    hasStartedRef.current = true;
     setIsTransferring(true);
     setTransferComplete(false);
 
     const sender = new TransferSender({
       dc,
-      file: selectedFile,
+      file,
       onProgress: (p) => setProgress(p),
       onComplete: () => {
         setIsTransferring(false);
@@ -68,196 +68,143 @@ export function HostView({
       },
       onError: () => {
         setIsTransferring(false);
+        hasStartedRef.current = false;
       },
     });
     senderRef.current = sender;
     await sender.start();
-  }, [selectedFile, dc, isTransferring]);
+  }, [dc, file, isTransferring]);
 
-  const copyRoomId = () => {
-    navigator.clipboard.writeText(roomId);
+  useEffect(() => {
+    if (isConnected && dc && !hasStartedRef.current) {
+      startTransfer();
+    }
+  }, [isConnected, dc, startTransfer]);
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isConnected = connectionState === "connected";
-  const stateBadge: Record<
-    ConnectionState,
-    {
-      label: string;
-      variant: "default" | "secondary" | "outline" | "destructive";
-    }
-  > = {
-    idle: { label: "Idle", variant: "secondary" },
-    signaling: { label: "Signaling…", variant: "outline" },
-    connecting: { label: "Connecting…", variant: "outline" },
-    connected: { label: "Connected", variant: "default" },
-    disconnected: { label: "Disconnected", variant: "destructive" },
-    failed: { label: "Failed", variant: "destructive" },
-  };
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-lg flex flex-col gap-5">
-        {/* Room Header */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3">
-                <CardTitle className="text-lg">Room</CardTitle>
-                <code className="text-primary font-mono text-base bg-primary/10 px-2 py-0.5 rounded-md">
-                  {roomId}
-                </code>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={stateBadge[connectionState].variant}>
-                  {stateBadge[connectionState].label}
-                </Badge>
-              </div>
-            </div>
-            <CardDescription className="flex items-center gap-2 mt-1">
-              Share this code with your peer so they can connect.
-              <button
-                onClick={copyRoomId}
-                className="inline-flex items-center gap-1 text-primary hover:underline cursor-pointer text-xs"
-              >
-                <HugeiconsIcon icon={Copy01Icon} size={12} />
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </CardDescription>
-          </CardHeader>
-        </Card>
+    <PageLayout
+      panel={
+        <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
+          {/* Close button */}
+          <button
+            onClick={onLeave}
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={18} />
+          </button>
 
-        {/* Drop Zone / File Select */}
-        <Card>
-          <CardContent className="pt-5">
-            {!selectedFile ? (
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-                className={`
-                  border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200
-                  ${
-                    isDragOver
-                      ? "border-primary bg-primary/10 animate-pulse-glow"
-                      : "border-border hover:border-primary/50 hover:bg-muted/30"
-                  }
-                `}
-              >
-                <div className="text-3xl mb-3">📂</div>
-                <p className="text-sm text-muted-foreground">
-                  Drag & drop a file here, or{" "}
-                  <span className="text-primary font-medium">browse</span>
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+          {/* File info */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-0.5">
+              <HugeiconsIcon
+                icon={FileIcon}
+                size={16}
+                className="text-primary"
+              />
+              <p className="text-sm font-medium truncate">{file.name}</p>
+            </div>
+            <p className="text-xs text-muted-foreground ml-6">
+              {formatBytes(file.size)}
+            </p>
+          </div>
+
+          {/* Share link */}
+          <div className="flex items-center gap-1.5 mb-5">
+            <input
+              type="text"
+              readOnly
+              value={shareUrl}
+              className="flex-1 text-xs font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-2 text-primary truncate focus:outline-none cursor-text"
+              onClick={(e) => (e.target as HTMLInputElement).select()}
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={copyLink}
+              className="shrink-0"
+            >
+              <HugeiconsIcon icon={Copy01Icon} size={14} />
+              {copied ? "Copied!" : "Copy"}
+            </Button>
+          </div>
+
+          {/* QR Code */}
+          {qrDataUrl && (
+            <div className="flex justify-center mb-5">
+              <img src={qrDataUrl} alt="Share QR Code" className="w-28 h-28" />
+            </div>
+          )}
+
+          {/* Progress */}
+          {progress && (
+            <div className="flex flex-col gap-1.5 mb-3">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{Math.round(progress.progress * 100)}%</span>
+                <span>{formatBytes(progress.speed)}/s</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-150 ${
+                    progress.progress >= 1 ? "bg-green-500" : "animate-shimmer"
+                  }`}
+                  style={{
+                    width: `${Math.min(progress.progress * 100, 100)}%`,
+                  }}
                 />
               </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {/* File Info */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border">
-                  <HugeiconsIcon
-                    icon={FileIcon}
-                    className="text-primary shrink-0"
-                    size={20}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">
-                      {selectedFile.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatBytes(selectedFile.size)}
-                    </p>
-                  </div>
-                  {!isTransferring && !transferComplete && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedFile(null)}
-                    >
-                      Change
-                    </Button>
-                  )}
-                </div>
+              <p className="text-xs text-muted-foreground">
+                {progress.progress >= 1
+                  ? "Transfer complete!"
+                  : `${formatTime(progress.timeRemaining)} remaining`}
+              </p>
+            </div>
+          )}
 
-                {/* Progress Bar */}
-                {progress && (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{Math.round(progress.progress * 100)}%</span>
-                      <span>{formatBytes(progress.speed)}/s</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-150 ${
-                          progress.progress >= 1
-                            ? "bg-green-500"
-                            : "animate-shimmer"
-                        }`}
-                        style={{
-                          width: `${Math.min(progress.progress * 100, 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {progress.progress >= 1
-                        ? "Complete!"
-                        : `${formatTime(progress.timeRemaining)} remaining`}
-                    </p>
-                  </div>
-                )}
+          {transferComplete && (
+            <div className="flex items-center justify-center gap-1.5 text-sm text-green-400 font-medium">
+              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} />
+              Done! You can close this tab.
+            </div>
+          )}
 
-                {/* Send Button */}
-                {!transferComplete ? (
-                  <Button
-                    size="lg"
-                    className="w-full"
-                    onClick={startTransfer}
-                    disabled={!isConnected || isTransferring}
-                  >
-                    {isTransferring
-                      ? "Sending…"
-                      : isConnected
-                        ? "Send File"
-                        : "Waiting for peer…"}
-                  </Button>
-                ) : (
-                  <div className="text-center text-sm text-green-400 font-medium py-2">
-                    ✅ Transfer complete!
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Debug Log */}
-        <details className="text-xs">
-          <summary className="text-muted-foreground cursor-pointer select-none mb-2">
-            Debug Log
-          </summary>
-          <div className="bg-card border border-border rounded-lg p-3 max-h-40 overflow-y-auto font-mono text-[10px] text-muted-foreground/70 space-y-0.5">
-            {logs.map((l, i) => (
-              <div key={i}>{l}</div>
-            ))}
+          {/* Debug log */}
+          <details className="text-xs mt-4">
+            <summary className="text-muted-foreground cursor-pointer select-none mb-1.5">
+              Debug Log
+            </summary>
+            <div className="bg-background/50 border border-border rounded-lg p-2 max-h-32 overflow-y-auto font-mono text-[10px] text-muted-foreground/70 space-y-0.5">
+              {logs.map((l, i) => (
+                <div key={i}>{l}</div>
+              ))}
+            </div>
+          </details>
+        </div>
+      }
+      hero={
+        <div>
+          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
+            {isConnected
+              ? "Now sharing your files directly from your device"
+              : "Ready to share"}
+          </h1>
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mt-6">
+            <div className="flex items-center gap-1.5 text-sm font-medium text-destructive mb-1">
+              <HugeiconsIcon icon={Alert02Icon} size={16} />
+              Please note:
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Closing this page means you stop sharing! Simply keep this page
+              open in the background to keep sharing.
+            </p>
           </div>
-        </details>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onLeave}
-          className="self-center text-muted-foreground"
-        >
-          Leave Room
-        </Button>
-      </div>
-    </div>
+        </div>
+      }
+    />
   );
 }

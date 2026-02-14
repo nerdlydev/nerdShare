@@ -3,6 +3,7 @@ import type { TransferProgress } from "./transfer-progress";
 
 export interface TransferReceiverOptions {
   dc: RTCDataChannel;
+  onFileMeta?: (meta: FileMeta) => void;
   onProgress?: (progress: TransferProgress) => void;
   onComplete?: (blob: Blob, meta: FileMeta) => void;
   onError?: (error: string) => void;
@@ -15,6 +16,7 @@ export class TransferReceiver {
   private chunks: ArrayBuffer[] = [];
   private receivedBytes = 0;
   private startTime = 0;
+  private accepted = false;
 
   constructor(options: TransferReceiverOptions) {
     this.dc = options.dc;
@@ -41,8 +43,9 @@ export class TransferReceiver {
           this.currentMeta = msg;
           this.chunks = [];
           this.receivedBytes = 0;
-          this.startTime = Date.now();
-          this.sendControl({ type: "HELLO_ACK", fileId: msg.fileId });
+          this.accepted = false;
+          // Notify UI about the file — do NOT ack yet
+          this.options.onFileMeta?.(msg);
           break;
 
         case "TRANSFER_COMPLETE":
@@ -84,26 +87,23 @@ export class TransferReceiver {
     });
   }
 
+  /** Called by the UI when the user clicks "Download" */
+  acceptTransfer(): void {
+    if (!this.currentMeta || this.accepted) return;
+    this.accepted = true;
+    this.startTime = Date.now();
+    this.sendControl({ type: "HELLO_ACK", fileId: this.currentMeta.fileId });
+  }
+
   private finishTransfer(): void {
     if (!this.currentMeta) return;
 
     const blob = new Blob(this.chunks, { type: this.currentMeta.mimeType });
     this.options.onComplete?.(blob, this.currentMeta);
-    this.triggerDownload(blob, this.currentMeta.fileName);
+    // No auto-download — the PeerView handles saving via a button
 
     this.currentMeta = null;
     this.chunks = [];
-  }
-
-  private triggerDownload(blob: Blob, fileName: string): void {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 100);
   }
 
   private sendControl(msg: DCControlMessage): void {

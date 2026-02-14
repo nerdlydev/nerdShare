@@ -10,14 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@nerdshare/shared": "workspace:*",
     "@base-ui/react": "^1.0.0",
     "@fontsource-variable/noto-sans": "^5.2.10",
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react": "^1.1.4",
+    "@nerdshare/shared": "workspace:*",
     "@tailwindcss/vite": "^4.1.17",
+    "@types/qrcode": "^1.5.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "qrcode": "^1.5.4",
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
