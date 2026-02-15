@@ -29,8 +29,74 @@ interface WebRTCManagerOptions {
 
 const ICE_CONFIG: RTCConfiguration = {
   iceServers: [
+    // Google STUN servers
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
+
+    // Metered STUN
+    { urls: "stun:stun.relay.metered.ca:80" },
+
+    // Metered TURN (Account 1)
+    {
+      urls: "turn:global.relay.metered.ca:80",
+      username: "3ccc935bfa071ac1d0cada67",
+      credential: "OGSbvwK4SFUv819w",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:80?transport=tcp",
+      username: "3ccc935bfa071ac1d0cada67",
+      credential: "OGSbvwK4SFUv819w",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:443",
+      username: "3ccc935bfa071ac1d0cada67",
+      credential: "OGSbvwK4SFUv819w",
+    },
+    {
+      urls: "turns:global.relay.metered.ca:443?transport=tcp",
+      username: "3ccc935bfa071ac1d0cada67",
+      credential: "OGSbvwK4SFUv819w",
+    },
+
+    // Metered TURN (Account 2)
+    {
+      urls: "turn:global.relay.metered.ca:80",
+      username: "eedbaf0ea6a45f9345faba05",
+      credential: "trn4c73yh+2EjGp4",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:80?transport=tcp",
+      username: "eedbaf0ea6a45f9345faba05",
+      credential: "trn4c73yh+2EjGp4",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:443",
+      username: "eedbaf0ea6a45f9345faba05",
+      credential: "trn4c73yh+2EjGp4",
+    },
+    {
+      urls: "turns:global.relay.metered.ca:443?transport=tcp",
+      username: "eedbaf0ea6a45f9345faba05",
+      credential: "trn4c73yh+2EjGp4",
+    },
+
+    // ExpressTurn
+    { urls: "stun:free.expressturn.com:3478" },
+    {
+      urls: "turn:free.expressturn.com:3478?transport=tcp",
+      username: "000000002086537724",
+      credential: "PrDBkaTaCzeQDJBfGDjGGB6yDhg=",
+    },
+
+    // TeamAssist TURN
+    {
+      urls: "turn:turn.myteamassist.com",
+      username: "myteamassist",
+      credential: "myteam@123",
+    },
   ],
   iceCandidatePoolSize: 10,
 };

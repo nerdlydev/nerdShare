@@ -12,6 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { ConnectionState } from "@/lib/webrtc-manager";
 import type { TransferProgress } from "@/lib/transfer-progress";
+import type { TransferState } from "@/lib/transfer-progress";
 import { formatBytes, formatTime } from "@/lib/transfer-progress";
 import { TransferSender } from "@/lib/transfer-sender";
 import QRCode from "qrcode";
@@ -34,14 +35,18 @@ export function HostView({
   logs,
 }: HostViewProps) {
   const [progress, setProgress] = useState<TransferProgress | null>(null);
-  const [isTransferring, setIsTransferring] = useState(false);
-  const [transferComplete, setTransferComplete] = useState(false);
+  const [transferState, setTransferState] = useState<TransferState>("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const senderRef = useRef<TransferSender | null>(null);
   const hasStartedRef = useRef(false);
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   const isConnected = connectionState === "connected";
+  const isTransferring = transferState === "transferring";
+  const isPaused = transferState === "paused";
+  const isError = transferState === "error";
+  const isComplete = transferState === "complete";
 
   // Generate QR code
   useEffect(() => {
@@ -56,21 +61,18 @@ export function HostView({
   const startTransfer = useCallback(async () => {
     if (!dc || isTransferring || hasStartedRef.current) return;
     hasStartedRef.current = true;
-    setIsTransferring(true);
-    setTransferComplete(false);
+    setErrorMsg(null);
 
     const sender = new TransferSender({
       dc,
       file,
       onProgress: (p) => setProgress(p),
-      onComplete: () => {
-        setIsTransferring(false);
-        setTransferComplete(true);
-      },
-      onError: () => {
-        setIsTransferring(false);
+      onComplete: () => {},
+      onError: (err) => {
+        setErrorMsg(err);
         hasStartedRef.current = false;
       },
+      onStateChange: (state) => setTransferState(state),
     });
     senderRef.current = sender;
     await sender.start();
@@ -87,6 +89,26 @@ export function HostView({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handlePause = () => senderRef.current?.pause();
+  const handleResume = () => senderRef.current?.resume();
+  const handleRetry = async () => {
+    setErrorMsg(null);
+    await senderRef.current?.retry();
+  };
+  const handleCancel = () => {
+    senderRef.current?.cancel();
+    hasStartedRef.current = false;
+  };
+
+  // Status label for the progress section
+  const statusLabel = isPaused
+    ? "Paused"
+    : isError
+      ? "Transfer failed"
+      : isComplete
+        ? "Transfer complete!"
+        : `${formatTime(progress?.timeRemaining ?? 0)} remaining`;
 
   return (
     <PageLayout
@@ -147,27 +169,93 @@ export function HostView({
             <div className="flex flex-col gap-1.5 mb-3">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{Math.round(progress.progress * 100)}%</span>
-                <span>{formatBytes(progress.speed)}/s</span>
+                <span>
+                  {isPaused ? "—" : `${formatBytes(progress.speed)}/s`}
+                </span>
               </div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-150 ${
-                    progress.progress >= 1 ? "bg-green-500" : "animate-shimmer"
+                    isComplete
+                      ? "bg-green-500"
+                      : isError
+                        ? "bg-destructive"
+                        : isPaused
+                          ? "bg-yellow-500"
+                          : "animate-shimmer"
                   }`}
                   style={{
                     width: `${Math.min(progress.progress * 100, 100)}%`,
                   }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                {progress.progress >= 1
-                  ? "Transfer complete!"
-                  : `${formatTime(progress.timeRemaining)} remaining`}
+              <p
+                className={`text-xs ${
+                  isError
+                    ? "text-destructive"
+                    : isPaused
+                      ? "text-yellow-500"
+                      : "text-muted-foreground"
+                }`}
+              >
+                {statusLabel}
               </p>
             </div>
           )}
 
-          {transferComplete && (
+          {/* Flow control buttons */}
+          {(isTransferring || isPaused) && (
+            <div className="flex items-center gap-2 mb-3">
+              {isTransferring ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handlePause}
+                  className="gap-1.5 flex-1"
+                >
+                  ⏸ Pause
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleResume}
+                  className="gap-1.5 flex-1"
+                >
+                  ▶ Resume
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleCancel}
+                className="gap-1.5 text-destructive hover:text-destructive"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={14} />
+                Cancel
+              </Button>
+            </div>
+          )}
+
+          {/* Error state with retry */}
+          {isError && errorMsg && (
+            <div className="flex flex-col gap-2 mb-3">
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+                <p className="text-xs text-destructive">{errorMsg}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRetry}
+                className="gap-1.5"
+              >
+                <HugeiconsIcon icon={RepeatIcon} size={14} />
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {isComplete && (
             <div className="flex items-center justify-center gap-1.5 text-sm text-green-400 font-medium">
               <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} />
               Done! You can close this tab.
@@ -189,7 +277,7 @@ export function HostView({
       }
       hero={
         <div>
-          {transferComplete ? (
+          {isComplete ? (
             <>
               <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
                 Transfer completed successfully!

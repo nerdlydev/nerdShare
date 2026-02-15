@@ -22,6 +22,7 @@ type PeerState =
   | "waiting"
   | "ready"
   | "downloading"
+  | "paused"
   | "done"
   | "error";
 
@@ -48,6 +49,7 @@ export function PeerView({
   } | null>(null);
   const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
   const [isAccepting, setIsAccepting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const receiverRef = useRef<TransferReceiver | null>(null);
 
@@ -57,6 +59,7 @@ export function PeerView({
     if (isConnected) setPeerState("waiting");
     if (connectionState === "disconnected" || connectionState === "failed") {
       setPeerState("error");
+      setErrorMsg("Connection lost");
     }
   }, [isConnected, connectionState]);
 
@@ -75,17 +78,25 @@ export function PeerView({
       },
       onProgress: (p) => {
         setProgress(p);
-        if (p.progress > 0 && p.progress < 1) setPeerState("downloading");
+        if (p.progress > 0 && p.progress < 1 && peerState !== "paused") {
+          setPeerState("downloading");
+        }
       },
       onComplete: (blob: Blob, meta: FileMeta) => {
         setFileMeta({ name: meta.fileName, size: meta.fileSize });
         setDownloadBlob(blob);
         setPeerState("done");
-        addLog(`received: ${meta.fileName}`);
+        addLog(`✅ received: ${meta.fileName}`);
       },
       onError: (err) => {
-        addLog(`error: ${err}`);
+        addLog(`❌ error: ${err}`);
+        setErrorMsg(err);
         setPeerState("error");
+      },
+      onStateChange: (state) => {
+        if (state === "paused") setPeerState("paused");
+        if (state === "transferring" && peerState === "paused")
+          setPeerState("downloading");
       },
     });
 
@@ -105,6 +116,48 @@ export function PeerView({
     a.click();
     URL.revokeObjectURL(url);
   }, [downloadBlob, fileMeta]);
+
+  // File info block (reused across states)
+  const fileInfoBlock = fileMeta && (
+    <div className="flex items-center gap-2 mb-4">
+      <HugeiconsIcon icon={FileIcon} size={16} className="text-primary" />
+      <div className="min-w-0">
+        <p className="text-sm font-medium truncate">{fileMeta.name}</p>
+        <p className="text-xs text-muted-foreground">
+          {formatBytes(fileMeta.size)}
+        </p>
+      </div>
+    </div>
+  );
+
+  // Progress bar block (reused across downloading/paused states)
+  const progressBlock = progress && (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{Math.round(progress.progress * 100)}%</span>
+        <span>
+          {peerState === "paused" ? "—" : `${formatBytes(progress.speed)}/s`}
+        </span>
+      </div>
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-150 ${
+            peerState === "paused" ? "bg-yellow-500" : "animate-shimmer"
+          }`}
+          style={{
+            width: `${Math.min(progress.progress * 100, 100)}%`,
+          }}
+        />
+      </div>
+      <p
+        className={`text-xs ${peerState === "paused" ? "text-yellow-500" : "text-muted-foreground"}`}
+      >
+        {peerState === "paused"
+          ? "Sender paused the transfer"
+          : `${formatTime(progress.timeRemaining)} remaining`}
+      </p>
+    </div>
+  );
 
   // Render the left panel based on state
   const renderPanel = () => {
@@ -158,23 +211,7 @@ export function PeerView({
         return (
           <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
             {closeButton}
-            {fileMeta && (
-              <div className="flex items-center gap-2 mb-4">
-                <HugeiconsIcon
-                  icon={FileIcon}
-                  size={16}
-                  className="text-primary"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {fileMeta.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatBytes(fileMeta.size)}
-                  </p>
-                </div>
-              </div>
-            )}
+            {fileInfoBlock}
             <Button
               className="w-full"
               disabled={isAccepting}
@@ -206,43 +243,17 @@ export function PeerView({
         return (
           <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
             {closeButton}
-            {fileMeta && (
-              <div className="flex items-center gap-2 mb-4">
-                <HugeiconsIcon
-                  icon={FileIcon}
-                  size={16}
-                  className="text-primary"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {fileMeta.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatBytes(fileMeta.size)}
-                  </p>
-                </div>
-              </div>
-            )}
+            {fileInfoBlock}
+            {progressBlock}
+          </div>
+        );
 
-            {progress && (
-              <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{Math.round(progress.progress * 100)}%</span>
-                  <span>{formatBytes(progress.speed)}/s</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full animate-shimmer transition-all duration-150"
-                    style={{
-                      width: `${Math.min(progress.progress * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {formatTime(progress.timeRemaining)} remaining
-                </p>
-              </div>
-            )}
+      case "paused":
+        return (
+          <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
+            {closeButton}
+            {fileInfoBlock}
+            {progressBlock}
           </div>
         );
 
@@ -250,23 +261,7 @@ export function PeerView({
         return (
           <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
             {closeButton}
-            {fileMeta && (
-              <div className="flex items-center gap-2 mb-4">
-                <HugeiconsIcon
-                  icon={FileIcon}
-                  size={16}
-                  className="text-primary"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {fileMeta.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatBytes(fileMeta.size)}
-                  </p>
-                </div>
-              </div>
-            )}
+            {fileInfoBlock}
             <div className="flex items-center justify-center gap-1.5 text-sm text-green-400 font-medium mb-3">
               <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} />
               Download complete!
@@ -290,8 +285,23 @@ export function PeerView({
               />
             </div>
             <p className="text-sm font-medium mb-2">
-              Sender has stopped sharing
+              {errorMsg ?? "Transfer failed"}
             </p>
+            {progress && progress.progress > 0 && progress.progress < 1 && (
+              <div className="mb-3">
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-destructive transition-all duration-150"
+                    style={{
+                      width: `${Math.min(progress.progress * 100, 100)}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Received {Math.round(progress.progress * 100)}% before failure
+                </p>
+              </div>
+            )}
             <p className="text-xs text-muted-foreground leading-relaxed">
               The sender has either closed this transfer or is now offline.
               Please check if the sender has an active internet connection or

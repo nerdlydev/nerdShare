@@ -1,4 +1,12 @@
 // Shared progress type used by both sender and receiver for uniform UI rendering
+
+export type TransferState =
+  | "idle"
+  | "transferring"
+  | "paused"
+  | "error"
+  | "complete";
+
 export interface TransferProgress {
   /** 0 to 1 */
   progress: number;
@@ -9,6 +17,7 @@ export interface TransferProgress {
   /** seconds */
   timeRemaining: number;
   direction: "sending" | "receiving";
+  state: TransferState;
 }
 
 export function formatBytes(bytes: number, decimals = 1): string {

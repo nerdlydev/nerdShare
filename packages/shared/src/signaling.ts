@@ -89,4 +89,7 @@ export type DCControlMessage =
   | ({ type: "FILE_META" } & FileMeta)
   | { type: "HELLO_ACK"; fileId: string }
   | { type: "TRANSFER_COMPLETE"; fileId: string }
-  | { type: "DC_ERROR"; message: string };
+  | { type: "DC_ERROR"; message: string }
+  | { type: "PAUSE"; fileId: string }
+  | { type: "RESUME"; fileId: string }
+  | { type: "CANCEL"; fileId: string };
