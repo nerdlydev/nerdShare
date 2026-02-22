@@ -85,7 +85,7 @@ DataChannel messages are either **control** (JSON string) or **data** (binary `A
 `dc.send()` does **not** block. It buffers data internally. If you call `dc.send()` in a tight loop for a 1 GB file:
 
 ```
-❌ for (let i = 0; i < totalChunks; i++) {
+  for (let i = 0; i < totalChunks; i++) {
      dc.send(chunks[i]);  // Buffers up GBs in memory → tab crash
    }
 ```

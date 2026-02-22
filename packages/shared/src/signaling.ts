@@ -21,6 +21,8 @@ export type SignalMessage =
       toUserId: string;
       payload: string; // Base64 encoded RSA ciphertext
     }
+  | { type: "PING"; timestamp: number } // Server → Client
+  | { type: "PONG"; timestamp: number } // Client → Server
   | { type: "ERROR"; message: string; code?: string };
 
 // ─── Decrypted Payload ───
@@ -33,14 +35,20 @@ export type SignalPayload =
 // Messages the client sends TO the server
 export type ClientMessage = Extract<
   SignalMessage,
-  { type: "JOIN_ROOM" | "ENCRYPTED" }
+  { type: "JOIN_ROOM" | "ENCRYPTED" | "PONG" }
 >;
 
 // Messages the server sends TO the client
 export type ServerMessage = Extract<
   SignalMessage,
   {
-    type: "ROOM_JOINED" | "PEER_JOINED" | "PEER_LEFT" | "ENCRYPTED" | "ERROR";
+    type:
+      | "ROOM_JOINED"
+      | "PEER_JOINED"
+      | "PEER_LEFT"
+      | "ENCRYPTED"
+      | "PING"
+      | "ERROR";
   }
 >;
 

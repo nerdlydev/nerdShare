@@ -46,7 +46,7 @@
 - [ ] `bun install` succeeds, all packages link correctly
 - [ ] Shared types import in both `web` and `signaling`
 
-### ✅ Status: COMPLETE
+### Status: COMPLETE
 
 Repo scaffolded. Shared signaling types defined. Documentation written.
 
@@ -335,7 +335,7 @@ At this point:
 
 ```
 Month 1
-├─ Week 1:  Project foundation               ✅
+├─ Week 1:  Project foundation
 ├─ Week 2:  Signaling server + client
 ├─ Week 3:  WebRTC connection + DataChannel
 └─ Week 4:  File transfer core

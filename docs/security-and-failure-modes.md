@@ -36,13 +36,13 @@ File bytes → SCTP framing → DTLS encryption → ICE transport → Network
 
 #### What DTLS Does NOT Protect Against
 
-| Threat                          | Protection                                                   |
-| ------------------------------- | ------------------------------------------------------------ |
-| Eavesdropping on file data      | ✅ Protected (DTLS)                                          |
-| Tampering with file data        | ✅ Protected (DTLS integrity)                                |
-| Signaling server reads SDP      | ❌ SDP is plaintext (contains ICE candidates, not file data) |
-| Malicious peer fingerprinting   | ❌ Not addressed in MVP                                      |
-| File data stored on peer device | ❌ Out of scope (browser security model)                     |
+| Threat                          | Protection                                                |
+| ------------------------------- | --------------------------------------------------------- |
+| Eavesdropping on file data      | Protected (DTLS)                                          |
+| Tampering with file data        | Protected (DTLS integrity)                                |
+| Signaling server reads SDP      | SDP is plaintext (contains ICE candidates, not file data) |
+| Malicious peer fingerprinting   | Not addressed in MVP                                      |
+| File data stored on peer device | Out of scope (browser security model)                     |
 
 #### Phase 5+ Enhancement: End-to-End Verification
 
@@ -88,15 +88,15 @@ Host clicks: [Approve] or [Reject]
 
 ### 1.4 Privacy
 
-| Data             | On Server?                 | On Network?          |
-| ---------------- | -------------------------- | -------------------- |
-| File content     | ❌ Never                   | Encrypted (DTLS) P2P |
-| File name        | ❌ Never (sent over DC)    | Encrypted (DTLS) P2P |
-| File size        | ❌ Never (sent over DC)    | Encrypted (DTLS) P2P |
-| Room ID          | ✅ Ephemeral               | In WS messages       |
-| User ID          | ✅ Ephemeral (random UUID) | In WS messages       |
-| IP addresses     | ✅ In ICE candidates       | In SDP/ICE           |
-| SDP offer/answer | ✅ Relayed                 | In WS messages       |
+| Data             | On Server?              | On Network?          |
+| ---------------- | ----------------------- | -------------------- |
+| File content     | Never                   | Encrypted (DTLS) P2P |
+| File name        | Never (sent over DC)    | Encrypted (DTLS) P2P |
+| File size        | Never (sent over DC)    | Encrypted (DTLS) P2P |
+| Room ID          | Ephemeral               | In WS messages       |
+| User ID          | Ephemeral (random UUID) | In WS messages       |
+| IP addresses     | In ICE candidates       | In SDP/ICE           |
+| SDP offer/answer | Relayed                 | In WS messages       |
 
 **IP Address Exposure**: ICE candidates contain the peer's IP address. This is inherent to WebRTC and cannot be avoided without TURN-only mode (which breaks performance). Documented in privacy policy.
 
@@ -144,10 +144,10 @@ flowchart TD
     B -->|No| D[STUN unreachable - rare]
     C -->|Yes| E{Direct connectivity check}
     C -->|No| D
-    E -->|Success| F["✅ Direct P2P"]
+    E -->|Success| F["  Direct P2P"]
     E -->|Fail| G{TURN configured?}
     G -->|Yes| H{TURN reachable?}
-    G -->|No| I["❌ Connection failed - show error"]
+    G -->|No| I["  Connection failed - show error"]
     H -->|Yes| J["⚠️ Relayed connection via TURN"]
     H -->|No| K{TURN TCP/TLS on 443?}
     K -->|Yes| L["⚠️ Relayed via TURN TCP"]
@@ -214,10 +214,10 @@ pc.onconnectionstatechange = () => {
 
 **Impact**: New connections cannot be established. Existing DataChannel connections continue working.
 
-| Already Connected                               | Not Yet Connected            |
-| ----------------------------------------------- | ---------------------------- |
-| ✅ Transfer continues (P2P pipe is independent) | ❌ Cannot exchange SDP/ICE   |
-| ⚠️ Can't add new peers                          | ❌ Show "server unreachable" |
+| Already Connected                            | Not Yet Connected         |
+| -------------------------------------------- | ------------------------- |
+| Transfer continues (P2P pipe is independent) | Cannot exchange SDP/ICE   |
+| ⚠️ Can't add new peers                       | Show "server unreachable" |
 
 **Mitigation**:
 

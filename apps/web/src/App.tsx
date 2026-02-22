@@ -3,6 +3,7 @@ import { WebRTCManager, type ConnectionState } from "@/lib/webrtc-manager";
 import { LandingView } from "@/components/LandingView";
 import { HostView } from "@/components/HostView";
 import { PeerView } from "@/components/PeerView";
+import { LogsContext } from "@/lib/logs-context";
 
 const SIGNALING_URL = "ws://localhost:8080";
 
@@ -75,14 +76,14 @@ export function App() {
         },
         onDataChannelOpen: (channel) => {
           setDc(channel);
-          addLog("✅ DataChannel open");
+          addLog("  DataChannel open");
         },
         onDataChannelMessage: () => {},
         onDataChannelClose: () => {
           setDc(null);
           addLog("DataChannel closed");
         },
-        onError: (err) => addLog(`❌ ${err}`),
+        onError: (err) => addLog(`  ${err}`),
       });
 
       managerRef.current = mgr;
@@ -111,14 +112,14 @@ export function App() {
         },
         onDataChannelOpen: (channel) => {
           setDc(channel);
-          addLog("✅ DataChannel open");
+          addLog("  DataChannel open");
         },
         onDataChannelMessage: () => {},
         onDataChannelClose: () => {
           setDc(null);
           addLog("DataChannel closed");
         },
-        onError: (err) => addLog(`❌ ${err}`),
+        onError: (err) => addLog(`  ${err}`),
       });
 
       managerRef.current = mgr;
@@ -145,25 +146,27 @@ export function App() {
   if (role === "host" && selectedFile) {
     const shareUrl = `${window.location.origin}/r/${roomId}`;
     return (
-      <HostView
-        file={selectedFile}
-        shareUrl={shareUrl}
-        connectionState={connectionState}
-        dc={dc}
-        onLeave={leave}
-        logs={logs}
-      />
+      <LogsContext.Provider value={logs}>
+        <HostView
+          file={selectedFile}
+          shareUrl={shareUrl}
+          connectionState={connectionState}
+          dc={dc}
+          onLeave={leave}
+        />
+      </LogsContext.Provider>
     );
   }
 
   return (
-    <PeerView
-      connectionState={connectionState}
-      dc={dc}
-      logs={logs}
-      addLog={addLog}
-      onLeave={leave}
-    />
+    <LogsContext.Provider value={logs}>
+      <PeerView
+        connectionState={connectionState}
+        dc={dc}
+        addLog={addLog}
+        onLeave={leave}
+      />
+    </LogsContext.Provider>
   );
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -16,6 +16,7 @@ import type { TransferProgress } from "@/lib/transfer-progress";
 import { formatBytes, formatTime } from "@/lib/transfer-progress";
 import { TransferReceiver } from "@/lib/transfer-receiver";
 import type { FileMeta } from "@nerdshare/shared";
+import { useLogs } from "@/lib/logs-context";
 
 type PeerState =
   | "connecting"
@@ -26,18 +27,33 @@ type PeerState =
   | "done"
   | "error";
 
+// ── Isolated debug log reads from context ──
+const DebugLog = memo(function DebugLog() {
+  const logs = useLogs();
+  return (
+    <details className="text-xs mt-4">
+      <summary className="text-muted-foreground cursor-pointer select-none mb-1.5">
+        Debug Log
+      </summary>
+      <div className="bg-background/50 border border-border rounded-lg p-2 max-h-32 overflow-y-auto font-mono text-[10px] text-muted-foreground/70 space-y-0.5">
+        {logs.map((l, i) => (
+          <div key={i}>{l}</div>
+        ))}
+      </div>
+    </details>
+  );
+});
+
 interface PeerViewProps {
   connectionState: ConnectionState;
   dc: RTCDataChannel | null;
-  logs: string[];
   addLog: (msg: string) => void;
   onLeave: () => void;
 }
 
-export function PeerView({
+export const PeerView = memo(function PeerView({
   connectionState,
   dc,
-  logs,
   addLog,
   onLeave,
 }: PeerViewProps) {
@@ -318,17 +334,7 @@ export function PeerView({
         <div className="relative">
           {renderPanel()}
 
-          {/* Debug log */}
-          <details className="text-xs mt-4">
-            <summary className="text-muted-foreground cursor-pointer select-none mb-1.5">
-              Debug Log
-            </summary>
-            <div className="bg-background/50 border border-border rounded-lg p-2 max-h-32 overflow-y-auto font-mono text-[10px] text-muted-foreground/70 space-y-0.5">
-              {logs.map((l, i) => (
-                <div key={i}>{l}</div>
-              ))}
-            </div>
-          </details>
+          <DebugLog />
         </div>
       }
       hero={
@@ -345,4 +351,4 @@ export function PeerView({
       }
     />
   );
-}
+});

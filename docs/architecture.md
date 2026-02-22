@@ -89,7 +89,7 @@ const dc = pc.createDataChannel("file", {
 
 ### Responsibilities (Strict Boundary)
 
-| ✅ Does                         | ❌ Does NOT                                |
+| Does                            | Does NOT                                   |
 | ------------------------------- | ------------------------------------------ |
 | Create/manage ephemeral rooms   | Store files                                |
 | Relay SDP offer/answer          | Proxy file data                            |

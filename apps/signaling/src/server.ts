@@ -23,8 +23,14 @@ interface Room {
   ttlTimer: Timer;
 }
 
-// Reverse lookup: WS → { roomId, userId }
-const socketMeta = new WeakMap<WS, { roomId: string; userId: string }>();
+// Reverse lookup: WS → { roomId, userId, lastSeen }
+const socketMeta = new WeakMap<
+  WS,
+  { roomId: string; userId: string; lastSeen: number }
+>();
+
+// Track all active WebSocket connections for heartbeat broadcasts
+const activeSockets = new Set<WS>();
 
 // ─── State ───
 
@@ -86,7 +92,8 @@ function handleJoinRoom(
     }
 
     existingRoom.peers.set(userId, { ws, publicKey });
-    socketMeta.set(ws, { roomId, userId });
+    socketMeta.set(ws, { roomId, userId, lastSeen: Date.now() });
+    activeSockets.add(ws);
 
     const existingPeerInfos = [];
     if (existingRoom.hostId !== userId) {
@@ -146,7 +153,8 @@ function handleJoinRoom(
     };
 
     rooms.set(roomId, room);
-    socketMeta.set(ws, { roomId, userId });
+    socketMeta.set(ws, { roomId, userId, lastSeen: Date.now() });
+    activeSockets.add(ws);
 
     sendTo(ws, { type: "ROOM_JOINED", roomId, userId, peers: [] });
     console.log(
@@ -182,6 +190,7 @@ function handleRelay(
 }
 
 function handleDisconnect(ws: WS): void {
+  activeSockets.delete(ws);
   const meta = socketMeta.get(ws);
   if (!meta) return;
 
@@ -239,6 +248,12 @@ function handleMessage(ws: WS, raw: string | Buffer): void {
         return;
       }
       handleJoinRoom(ws, msg);
+      break;
+
+    case "PONG":
+      // Update lastSeen timestamp for this connection
+      const meta = socketMeta.get(ws);
+      if (meta) meta.lastSeen = Date.now();
       break;
 
     case "ENCRYPTED":
@@ -312,3 +327,37 @@ console.log(`\n   nerdShare signaling server`);
 console.log(`  ├─ port: ${PORT}`);
 console.log(`  ├─ health: http://localhost:${PORT}/health`);
 console.log(`  └─ ready for WebSocket connections\n`);
+
+// ─── Heartbeat ───
+
+const PING_INTERVAL_MS = 15_000; // Ping every 15 seconds
+const ZOMBIE_TIMEOUT_MS = 30_000; // Disconnect if silent for 30 seconds
+
+// Broadcast PING to all active sockets
+setInterval(() => {
+  const ping = JSON.stringify({ type: "PING", timestamp: Date.now() });
+  for (const ws of activeSockets) {
+    try {
+      ws.send(ping);
+    } catch {
+      activeSockets.delete(ws);
+    }
+  }
+}, PING_INTERVAL_MS);
+
+// Prune zombie connections that haven't responded
+setInterval(() => {
+  const cutoff = Date.now() - ZOMBIE_TIMEOUT_MS;
+  for (const ws of activeSockets) {
+    const meta = socketMeta.get(ws);
+    if (meta && meta.lastSeen < cutoff) {
+      console.log(
+        `[heartbeat] pruning zombie: ${meta.userId} in room ${meta.roomId}`,
+      );
+      handleDisconnect(ws);
+      try {
+        ws.close();
+      } catch {}
+    }
+  }
+}, ZOMBIE_TIMEOUT_MS);

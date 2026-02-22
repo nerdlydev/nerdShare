@@ -2,11 +2,11 @@
 
 > **Current Phase**: Phase 1 (Completed)
 > **Latest Update**: 2026-02-13
-> **Status**: ✅ P2P Pipe Verified
+> **Status**: P2P Pipe Verified
 
 ---
 
-## ✅ What We Built (Phase 1: Signaling & Connection)
+## What We Built (Phase 1: Signaling & Connection)
 
 We have successfully established the foundational "pipe" that allows two browsers to talk to each other without a server in the middle for data.
 

@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState, useEffect } from "react";
+import { useRef, useCallback, useState, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -16,6 +16,25 @@ import type { TransferState } from "@/lib/transfer-progress";
 import { formatBytes, formatTime } from "@/lib/transfer-progress";
 import { TransferSender } from "@/lib/transfer-sender";
 import QRCode from "qrcode";
+import { useLogs } from "@/lib/logs-context";
+
+// ── Isolated debug log reads from context ──
+// Only this component subscribes to log changes — HostView never re-renders.
+const DebugLog = memo(function DebugLog() {
+  const logs = useLogs();
+  return (
+    <details className="text-xs mt-4">
+      <summary className="text-muted-foreground cursor-pointer select-none mb-1.5">
+        Debug Log
+      </summary>
+      <div className="bg-background/50 border border-border rounded-lg p-2 max-h-32 overflow-y-auto font-mono text-[10px] text-muted-foreground/70 space-y-0.5">
+        {logs.map((l, i) => (
+          <div key={i}>{l}</div>
+        ))}
+      </div>
+    </details>
+  );
+});
 
 interface HostViewProps {
   file: File;
@@ -23,16 +42,14 @@ interface HostViewProps {
   connectionState: ConnectionState;
   dc: RTCDataChannel | null;
   onLeave: () => void;
-  logs: string[];
 }
 
-export function HostView({
+export const HostView = memo(function HostView({
   file,
   shareUrl,
   connectionState,
   dc,
   onLeave,
-  logs,
 }: HostViewProps) {
   const [progress, setProgress] = useState<TransferProgress | null>(null);
   const [transferState, setTransferState] = useState<TransferState>("idle");
@@ -262,17 +279,7 @@ export function HostView({
             </div>
           )}
 
-          {/* Debug log */}
-          <details className="text-xs mt-4">
-            <summary className="text-muted-foreground cursor-pointer select-none mb-1.5">
-              Debug Log
-            </summary>
-            <div className="bg-background/50 border border-border rounded-lg p-2 max-h-32 overflow-y-auto font-mono text-[10px] text-muted-foreground/70 space-y-0.5">
-              {logs.map((l, i) => (
-                <div key={i}>{l}</div>
-              ))}
-            </div>
-          </details>
+          <DebugLog />
         </div>
       }
       hero={
@@ -314,4 +321,4 @@ export function HostView({
       }
     />
   );
-}
+});

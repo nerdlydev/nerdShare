@@ -89,6 +89,13 @@ export class SignalingClient {
     this.ws.onmessage = (event) => {
       try {
         const msg: ServerMessage = JSON.parse(event.data);
+
+        // Handle PING internally — reply immediately & don't bubble to handlers
+        if (msg.type === "PING") {
+          this.send({ type: "PONG", timestamp: msg.timestamp });
+          return;
+        }
+
         this.options.onMessage(msg);
       } catch (err) {
         console.error("[signaling] failed to parse message", err);
