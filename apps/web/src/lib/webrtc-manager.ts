@@ -1,5 +1,12 @@
-import type { ServerMessage } from "@nerdshare/shared";
+import type { ServerMessage, SignalPayload } from "@nerdshare/shared";
 import { SignalingClient } from "./signaling-client";
+import {
+  generateRSAKeyPair,
+  exportPublicKey,
+  importPublicKey,
+  encryptPayload,
+  decryptPayload,
+} from "./crypto";
 
 // ─── Types ───
 
@@ -111,20 +118,29 @@ export class WebRTCManager {
   private _state: ConnectionState = "idle";
   private remotePeerId: string | null = null;
 
+  // ── Security Data ──
+  private localKeys: CryptoKeyPair | null = null;
+  private localPublicKeyStr: string | null = null;
+  private peerKeys: Map<string, CryptoKey> = new Map();
+  private isDestroyed = false;
+
   constructor(options: WebRTCManagerOptions) {
     this.options = options;
 
     this.signaling = new SignalingClient({
       url: options.signalingUrl,
-      onMessage: (msg) => this.handleSignalingMessage(msg),
+      onMessage: (msg) => {
+        this.handleSignalingMessage(msg).catch(console.error);
+      },
       onStatusChange: (status) => {
         console.log(`[webrtc] signaling status: ${status}`);
-        if (status === "connected") {
+        if (status === "connected" && this.localPublicKeyStr) {
           // Join the room once connected
           this.signaling.send({
             type: "JOIN_ROOM",
             roomId: this.options.roomId,
             userId: this.options.userId,
+            publicKey: this.localPublicKeyStr,
           });
         }
       },
@@ -141,11 +157,21 @@ export class WebRTCManager {
     return this.dc;
   }
 
-  start(): void {
-    this.signaling.connect();
+  async start(): Promise<void> {
+    try {
+      this.localKeys = await generateRSAKeyPair();
+      if (this.isDestroyed) return; // Prevent zombie connection
+      this.localPublicKeyStr = await exportPublicKey(this.localKeys.publicKey);
+      if (this.isDestroyed) return;
+      this.signaling.connect();
+    } catch (err) {
+      console.error("[webrtc] failed to initialize crypto", err);
+      this.options.onError?.("Failed to initialize security keys");
+    }
   }
 
   stop(): void {
+    this.isDestroyed = true;
     this.cleanup();
     this.signaling.disconnect();
     this.setState("idle");
@@ -153,21 +179,45 @@ export class WebRTCManager {
 
   // ── Signaling Message Handler ──
 
-  private handleSignalingMessage(msg: ServerMessage): void {
+  private async handleSignalingMessage(msg: ServerMessage): Promise<void> {
     switch (msg.type) {
       case "ROOM_JOINED":
         console.log(
-          `[webrtc] joined room "${msg.roomId}" — peers: [${msg.peers.join(", ")}]`,
+          `[webrtc] joined room "${msg.roomId}" — peers: [${msg.peers.map((p) => p.userId).join(", ")}]`,
         );
+
+        for (const peer of msg.peers) {
+          try {
+            const key = await importPublicKey(peer.publicKey);
+            this.peerKeys.set(peer.userId, key);
+          } catch (e) {
+            console.error(
+              `[webrtc] failed to import peer key for ${peer.userId}`,
+              e,
+            );
+          }
+        }
+
         // If we're the host and there are already peers, initiate connection
         if (this.options.role === "host" && msg.peers.length > 0) {
-          this.remotePeerId = msg.peers[0];
+          this.remotePeerId = msg.peers[0].userId;
           this.initiateConnection(this.remotePeerId);
         }
         break;
 
       case "PEER_JOINED":
         console.log(`[webrtc] peer joined: ${msg.userId}`);
+
+        try {
+          const key = await importPublicKey(msg.publicKey);
+          this.peerKeys.set(msg.userId, key);
+        } catch (e) {
+          console.error(
+            `[webrtc] failed to import peer key for ${msg.userId}`,
+            e,
+          );
+        }
+
         // Host initiates connection when a new peer joins
         if (this.options.role === "host") {
           this.remotePeerId = msg.userId;
@@ -177,6 +227,7 @@ export class WebRTCManager {
 
       case "PEER_LEFT":
         console.log(`[webrtc] peer left: ${msg.userId}`);
+        this.peerKeys.delete(msg.userId);
         if (msg.userId === this.remotePeerId) {
           this.cleanup();
           this.setState("disconnected");
@@ -184,25 +235,73 @@ export class WebRTCManager {
         }
         break;
 
-      case "OFFER":
-        console.log(`[webrtc] received OFFER from ${msg.fromUserId}`);
-        this.remotePeerId = msg.fromUserId;
-        this.handleOffer(msg.fromUserId, msg.sdp);
-        break;
-
-      case "ANSWER":
-        console.log(`[webrtc] received ANSWER from ${msg.fromUserId}`);
-        this.handleAnswer(msg.sdp);
-        break;
-
-      case "ICE_CANDIDATE":
-        this.handleRemoteIceCandidate(msg.candidate);
+      case "ENCRYPTED":
+        if (!this.localKeys) return;
+        try {
+          const payload = await decryptPayload(
+            this.localKeys.privateKey,
+            msg.payload,
+          );
+          await this.handleDecryptedPayload(msg.fromUserId, payload);
+        } catch (err) {
+          console.error("[webrtc] failed to decrypt signaling message", err);
+        }
         break;
 
       case "ERROR":
         console.error(`[webrtc] signaling error: ${msg.message} (${msg.code})`);
         this.options.onError?.(msg.message);
         break;
+    }
+  }
+
+  // ── Decrypted Payload Handler ──
+
+  private async handleDecryptedPayload(
+    fromUserId: string,
+    payload: SignalPayload,
+  ): Promise<void> {
+    switch (payload.type) {
+      case "OFFER":
+        console.log(`[webrtc] received encrypted OFFER from ${fromUserId}`);
+        this.remotePeerId = fromUserId;
+        await this.handleOffer(fromUserId, payload.sdp);
+        break;
+      case "ANSWER":
+        console.log(`[webrtc] received encrypted ANSWER from ${fromUserId}`);
+        await this.handleAnswer(payload.sdp);
+        break;
+      case "ICE_CANDIDATE":
+        await this.handleRemoteIceCandidate(payload.candidate);
+        break;
+    }
+  }
+
+  // ── Encrypted Sending ──
+
+  private async sendEncrypted(
+    toUserId: string,
+    payload: SignalPayload,
+  ): Promise<void> {
+    const targetKey = this.peerKeys.get(toUserId);
+    if (!targetKey) {
+      console.error(
+        `[webrtc] cannot encrypt message: missing public key for ${toUserId}`,
+      );
+      return;
+    }
+
+    try {
+      const ciphertext = await encryptPayload(targetKey, payload);
+      this.signaling.send({
+        type: "ENCRYPTED",
+        roomId: this.options.roomId,
+        fromUserId: this.options.userId,
+        toUserId,
+        payload: ciphertext,
+      });
+    } catch (err) {
+      console.error("[webrtc] failed to encrypt payload", err);
     }
   }
 
@@ -222,11 +321,8 @@ export class WebRTCManager {
       const offer = await this.pc.createOffer();
       await this.pc.setLocalDescription(offer);
 
-      this.signaling.send({
+      await this.sendEncrypted(peerId, {
         type: "OFFER",
-        roomId: this.options.roomId,
-        fromUserId: this.options.userId,
-        toUserId: peerId,
         sdp: this.pc.localDescription!,
       });
 
@@ -256,11 +352,8 @@ export class WebRTCManager {
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);
 
-      this.signaling.send({
+      await this.sendEncrypted(fromUserId, {
         type: "ANSWER",
-        roomId: this.options.roomId,
-        fromUserId: this.options.userId,
-        toUserId: fromUserId,
         sdp: this.pc.localDescription!,
       });
 
@@ -310,13 +403,10 @@ export class WebRTCManager {
     // ICE candidate trickle
     this.pc.onicecandidate = (event) => {
       if (event.candidate && this.remotePeerId) {
-        this.signaling.send({
+        this.sendEncrypted(this.remotePeerId, {
           type: "ICE_CANDIDATE",
-          roomId: this.options.roomId,
-          fromUserId: this.options.userId,
-          toUserId: this.remotePeerId,
           candidate: event.candidate.toJSON(),
-        });
+        }).catch((err) => console.error("Failed to send ICE candidate", err));
       }
     };
 

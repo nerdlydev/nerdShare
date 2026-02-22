@@ -5,51 +5,42 @@
 // ─── Signaling Messages (over WebSocket) ───
 
 export type SignalMessage =
-  | { type: "JOIN_ROOM"; roomId: string; userId: string }
-  | { type: "ROOM_JOINED"; roomId: string; userId: string; peers: string[] }
-  | { type: "PEER_JOINED"; roomId: string; userId: string }
+  | { type: "JOIN_ROOM"; roomId: string; userId: string; publicKey: string }
+  | {
+      type: "ROOM_JOINED";
+      roomId: string;
+      userId: string;
+      peers: { userId: string; publicKey: string }[];
+    }
+  | { type: "PEER_JOINED"; roomId: string; userId: string; publicKey: string }
   | { type: "PEER_LEFT"; roomId: string; userId: string }
   | {
-      type: "OFFER";
+      type: "ENCRYPTED";
       roomId: string;
       fromUserId: string;
       toUserId: string;
-      sdp: RTCSessionDescriptionInit;
-    }
-  | {
-      type: "ANSWER";
-      roomId: string;
-      fromUserId: string;
-      toUserId: string;
-      sdp: RTCSessionDescriptionInit;
-    }
-  | {
-      type: "ICE_CANDIDATE";
-      roomId: string;
-      fromUserId: string;
-      toUserId: string;
-      candidate: RTCIceCandidateInit;
+      payload: string; // Base64 encoded RSA ciphertext
     }
   | { type: "ERROR"; message: string; code?: string };
+
+// ─── Decrypted Payload ───
+// This is the actual data inside the ENCRYPTED message payload
+export type SignalPayload =
+  | { type: "OFFER"; sdp: RTCSessionDescriptionInit }
+  | { type: "ANSWER"; sdp: RTCSessionDescriptionInit }
+  | { type: "ICE_CANDIDATE"; candidate: RTCIceCandidateInit };
 
 // Messages the client sends TO the server
 export type ClientMessage = Extract<
   SignalMessage,
-  { type: "JOIN_ROOM" | "OFFER" | "ANSWER" | "ICE_CANDIDATE" }
+  { type: "JOIN_ROOM" | "ENCRYPTED" }
 >;
 
 // Messages the server sends TO the client
 export type ServerMessage = Extract<
   SignalMessage,
   {
-    type:
-      | "ROOM_JOINED"
-      | "PEER_JOINED"
-      | "PEER_LEFT"
-      | "OFFER"
-      | "ANSWER"
-      | "ICE_CANDIDATE"
-      | "ERROR";
+    type: "ROOM_JOINED" | "PEER_JOINED" | "PEER_LEFT" | "ENCRYPTED" | "ERROR";
   }
 >;
 

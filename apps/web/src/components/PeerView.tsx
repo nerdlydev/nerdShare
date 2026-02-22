@@ -73,7 +73,7 @@ export function PeerView({
         setFileMeta({ name: meta.fileName, size: meta.fileSize });
         setPeerState("ready");
         addLog(
-          `📄 file offered: ${meta.fileName} (${formatBytes(meta.fileSize)})`,
+          ` file offered: ${meta.fileName} (${formatBytes(meta.fileSize)})`,
         );
       },
       onProgress: (p) => {
@@ -86,10 +86,10 @@ export function PeerView({
         setFileMeta({ name: meta.fileName, size: meta.fileSize });
         setDownloadBlob(blob);
         setPeerState("done");
-        addLog(`✅ received: ${meta.fileName}`);
+        addLog(`received: ${meta.fileName}`);
       },
       onError: (err) => {
-        addLog(`❌ error: ${err}`);
+        addLog(` error: ${err}`);
         setErrorMsg(err);
         setPeerState("error");
       },

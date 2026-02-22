@@ -18,7 +18,8 @@ interface Room {
   expiresAt: number;
   hostId: string;
   hostWs: WS;
-  peers: Map<string, WS>; // userId → WebSocket
+  hostPublicKey: string;
+  peers: Map<string, { ws: WS; publicKey: string }>; // userId → connection
   ttlTimer: Timer;
 }
 
@@ -47,9 +48,9 @@ function broadcastToRoom(
   if (room.hostId !== excludeUserId) {
     sendTo(room.hostWs, msg);
   }
-  for (const [userId, ws] of room.peers) {
+  for (const [userId, peerInfo] of room.peers) {
     if (userId !== excludeUserId) {
-      sendTo(ws, msg);
+      sendTo(peerInfo.ws, msg);
     }
   }
 }
@@ -68,7 +69,7 @@ function handleJoinRoom(
   ws: WS,
   msg: Extract<ClientMessage, { type: "JOIN_ROOM" }>,
 ): void {
-  const { roomId, userId } = msg;
+  const { roomId, userId, publicKey } = msg;
   const existingRoom = rooms.get(roomId);
 
   if (existingRoom) {
@@ -84,18 +85,34 @@ function handleJoinRoom(
       return;
     }
 
-    existingRoom.peers.set(userId, ws);
+    existingRoom.peers.set(userId, { ws, publicKey });
     socketMeta.set(ws, { roomId, userId });
 
-    const existingPeerIds = [
-      existingRoom.hostId,
-      ...existingRoom.peers.keys(),
-    ].filter((id) => id !== userId);
+    const existingPeerInfos = [];
+    if (existingRoom.hostId !== userId) {
+      existingPeerInfos.push({
+        userId: existingRoom.hostId,
+        publicKey: existingRoom.hostPublicKey,
+      });
+    }
+    for (const [peerId, peerInfo] of existingRoom.peers) {
+      if (peerId !== userId) {
+        existingPeerInfos.push({
+          userId: peerId,
+          publicKey: peerInfo.publicKey,
+        });
+      }
+    }
 
-    sendTo(ws, { type: "ROOM_JOINED", roomId, userId, peers: existingPeerIds });
+    sendTo(ws, {
+      type: "ROOM_JOINED",
+      roomId,
+      userId,
+      peers: existingPeerInfos,
+    });
     broadcastToRoom(
       existingRoom,
-      { type: "PEER_JOINED", roomId, userId },
+      { type: "PEER_JOINED", roomId, userId, publicKey },
       userId,
     );
 
@@ -123,6 +140,7 @@ function handleJoinRoom(
       expiresAt: Date.now() + ROOM_DEFAULTS.TTL_MS,
       hostId: userId,
       hostWs: ws,
+      hostPublicKey: publicKey,
       peers: new Map(),
       ttlTimer,
     };
@@ -139,7 +157,7 @@ function handleJoinRoom(
 
 function handleRelay(
   ws: WS,
-  msg: Extract<ClientMessage, { type: "OFFER" | "ANSWER" | "ICE_CANDIDATE" }>,
+  msg: Extract<ClientMessage, { type: "ENCRYPTED" }>,
 ): void {
   const room = rooms.get(msg.roomId);
   if (!room) {
@@ -151,7 +169,7 @@ function handleRelay(
   if (msg.toUserId === room.hostId) {
     targetWs = room.hostWs;
   } else {
-    targetWs = room.peers.get(msg.toUserId);
+    targetWs = room.peers.get(msg.toUserId)?.ws;
   }
 
   if (!targetWs) {
@@ -176,8 +194,8 @@ function handleDisconnect(ws: WS): void {
       `[room:${roomId}] host "${userId}" disconnected — closing room`,
     );
     // Notify all peers before destroying
-    for (const [peerId, peerWs] of room.peers) {
-      sendTo(peerWs, { type: "PEER_LEFT", roomId, userId: room.hostId });
+    for (const [peerId, peerInfo] of room.peers) {
+      sendTo(peerInfo.ws, { type: "PEER_LEFT", roomId, userId: room.hostId });
     }
     destroyRoom(roomId);
   } else {
@@ -223,13 +241,11 @@ function handleMessage(ws: WS, raw: string | Buffer): void {
       handleJoinRoom(ws, msg);
       break;
 
-    case "OFFER":
-    case "ANSWER":
-    case "ICE_CANDIDATE":
-      if (!msg.roomId || !msg.fromUserId || !msg.toUserId) {
+    case "ENCRYPTED":
+      if (!msg.roomId || !msg.fromUserId || !msg.toUserId || !msg.payload) {
         sendError(
           ws,
-          "Missing routing fields",
+          "Missing routing fields or payload",
           SignalErrorCode.INVALID_MESSAGE,
         );
         return;
@@ -292,7 +308,7 @@ const server = Bun.serve({
   },
 });
 
-console.log(`\n  🚀 nerdShare signaling server`);
+console.log(`\n   nerdShare signaling server`);
 console.log(`  ├─ port: ${PORT}`);
 console.log(`  ├─ health: http://localhost:${PORT}/health`);
 console.log(`  └─ ready for WebSocket connections\n`);
