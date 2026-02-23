@@ -237,6 +237,12 @@ function handleMessage(ws: WS, raw: string | Buffer): void {
     return;
   }
 
+  // Update activity timestamp for any valid incoming message
+  const meta = socketMeta.get(ws);
+  if (meta) {
+    meta.lastSeen = Date.now();
+  }
+
   switch (msg.type) {
     case "JOIN_ROOM":
       if (!msg.roomId || !msg.userId) {
@@ -251,9 +257,7 @@ function handleMessage(ws: WS, raw: string | Buffer): void {
       break;
 
     case "PONG":
-      // Update lastSeen timestamp for this connection
-      const meta = socketMeta.get(ws);
-      if (meta) meta.lastSeen = Date.now();
+      // Handled by the activity update above
       break;
 
     case "ENCRYPTED":
@@ -328,31 +332,43 @@ console.log(`  ├─ port: ${PORT}`);
 console.log(`  ├─ health: http://localhost:${PORT}/health`);
 console.log(`  └─ ready for WebSocket connections\n`);
 
-// ─── Heartbeat ───
+// ─── Heartbeat & Cleanup ───
 
-const PING_INTERVAL_MS = 15_000; // Ping every 15 seconds
-const ZOMBIE_TIMEOUT_MS = 30_000; // Disconnect if silent for 30 seconds
+const BROKEN_CHECK_INTERVAL_MS = 1_000; // Check for dead sockets every second
+const PING_INTERVAL_MS = 5_000; // Ping every 5 seconds
+const ZOMBIE_TIMEOUT_MS = 15_000; // Disconnect if silent for 15 seconds
 
-// Broadcast PING to all active sockets
+// 1. Remove broken sockets (readyState != OPEN)
+setInterval(() => {
+  for (const ws of activeSockets) {
+    if (ws.readyState !== 1) {
+      // 1 = OPEN
+      console.log("[cleanup] removing broken socket");
+      handleDisconnect(ws);
+    }
+  }
+}, BROKEN_CHECK_INTERVAL_MS);
+
+// 2. Broadcast PING to keep connections warm
 setInterval(() => {
   const ping = JSON.stringify({ type: "PING", timestamp: Date.now() });
   for (const ws of activeSockets) {
     try {
       ws.send(ping);
     } catch {
-      activeSockets.delete(ws);
+      handleDisconnect(ws);
     }
   }
 }, PING_INTERVAL_MS);
 
-// Prune zombie connections that haven't responded
+// 3. Prune zombie connections (no activity)
 setInterval(() => {
   const cutoff = Date.now() - ZOMBIE_TIMEOUT_MS;
   for (const ws of activeSockets) {
     const meta = socketMeta.get(ws);
     if (meta && meta.lastSeen < cutoff) {
       console.log(
-        `[heartbeat] pruning zombie: ${meta.userId} in room ${meta.roomId}`,
+        `[cleanup] pruning zombie: ${meta.userId} in room ${meta.roomId}`,
       );
       handleDisconnect(ws);
       try {

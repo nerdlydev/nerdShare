@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build:shared": "bun --filter @nerdshare/shared build",
+    "build:wasm": "cd packages/zip-wasm && wasm-pack build --target web --out-dir ../../apps/web/src/wasm/zip",
     "dev:shared": "bun --filter @nerdshare/shared dev",
     "dev:web": "bun --filter web dev",
     "dev:signaling": "bun --filter @nerdshare/signaling dev"

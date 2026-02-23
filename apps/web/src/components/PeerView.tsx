@@ -17,6 +17,7 @@ import { formatBytes, formatTime } from "@/lib/transfer-progress";
 import { TransferReceiver } from "@/lib/transfer-receiver";
 import type { FileMeta } from "@nerdshare/shared";
 import { useLogs } from "@/lib/logs-context";
+import { useWakeLock } from "@/lib/use-wake-lock";
 
 type PeerState =
   | "connecting"
@@ -68,6 +69,7 @@ export const PeerView = memo(function PeerView({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const receiverRef = useRef<TransferReceiver | null>(null);
+  const { acquire: wakeLockAcquire, release: wakeLockRelease } = useWakeLock();
 
   const isConnected = connectionState === "connected";
 
@@ -103,16 +105,23 @@ export const PeerView = memo(function PeerView({
         setDownloadBlob(blob);
         setPeerState("done");
         addLog(`received: ${meta.fileName}`);
+        wakeLockRelease();
       },
       onError: (err) => {
         addLog(` error: ${err}`);
         setErrorMsg(err);
         setPeerState("error");
+        wakeLockRelease();
       },
       onStateChange: (state) => {
         if (state === "paused") setPeerState("paused");
-        if (state === "transferring" && peerState === "paused")
+        if (state === "transferring") {
           setPeerState("downloading");
+          wakeLockAcquire();
+        }
+        if (state === "complete" || state === "error") {
+          wakeLockRelease();
+        }
       },
     });
 

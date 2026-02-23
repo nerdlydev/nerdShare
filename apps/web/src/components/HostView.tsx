@@ -17,6 +17,7 @@ import { formatBytes, formatTime } from "@/lib/transfer-progress";
 import { TransferSender } from "@/lib/transfer-sender";
 import QRCode from "qrcode";
 import { useLogs } from "@/lib/logs-context";
+import { useWakeLock } from "@/lib/use-wake-lock";
 
 // ── Isolated debug log reads from context ──
 // Only this component subscribes to log changes — HostView never re-renders.
@@ -58,6 +59,7 @@ export const HostView = memo(function HostView({
   const hasStartedRef = useRef(false);
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const { acquire: wakeLockAcquire, release: wakeLockRelease } = useWakeLock();
 
   const isConnected = connectionState === "connected";
   const isTransferring = transferState === "transferring";
@@ -88,8 +90,13 @@ export const HostView = memo(function HostView({
       onError: (err) => {
         setErrorMsg(err);
         hasStartedRef.current = false;
+        wakeLockRelease();
       },
-      onStateChange: (state) => setTransferState(state),
+      onStateChange: (state) => {
+        setTransferState(state);
+        if (state === "transferring") wakeLockAcquire();
+        if (state === "complete" || state === "error") wakeLockRelease();
+      },
     });
     senderRef.current = sender;
     await sender.start();

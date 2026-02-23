@@ -36,3 +36,9 @@ coverage/
 # Misc
 .cache/
 tmp/
+
+# Rust
+target/
+
+# Generated WASM output (run `bun run build:wasm` to regenerate)
+apps/web/src/wasm/
