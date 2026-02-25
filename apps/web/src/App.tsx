@@ -54,9 +54,9 @@ export function App() {
 
   // ── Sender: file selected → create room ──
   const handleFileSelected = useCallback(
-    (file: File) => {
+    (file: File, providedRoomId?: string) => {
       cleanup();
-      const newRoomId = generateId();
+      const newRoomId = providedRoomId || generateId();
       setRoomId(newRoomId);
       setSelectedFile(file);
       setRole("host");
@@ -138,9 +138,53 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Listen for Incoming Nearby Connections ──
+  useEffect(() => {
+    // Only listen if we are idle (on LandingView)
+    if (role !== null) return;
+
+    const socket = new WebSocket(SIGNALING_URL);
+    let isUnmounted = false;
+
+    socket.onopen = () => {
+      if (isUnmounted) {
+        socket.close();
+        return;
+      }
+      // Just connect, we don't need to announce unless we open NearbyView
+      // But we DO need the server to read our IP to receive nearby signaling
+    };
+
+    socket.onmessage = (event) => {
+      if (isUnmounted) return;
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "NEARBY_INCOMING") {
+          // An incoming connection request from a nearby device!
+          // Auto-accept and join the room the sender created for us.
+          const { fromUserId, displayName, roomId } = msg;
+          console.log(
+            `[nearby] Incoming connection from ${displayName} (${fromUserId}) to room ${roomId}`,
+          );
+          joinRoom(roomId);
+        }
+      } catch (err) {
+        console.error("Failed to parse nearby message:", err);
+      }
+    };
+
+    return () => {
+      isUnmounted = true;
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+      // If it's CONNECTING, onopen will handle closing it to avoid the browser console error
+    };
+  }, [role, joinRoom]);
+
   // ── Route ──
   if (!role) {
-    return <LandingView onFileSelected={handleFileSelected} />;
+    return <LandingView userId={userId} onFileSelected={handleFileSelected} />;
   }
 
   if (role === "host" && selectedFile) {

@@ -5,7 +5,8 @@ export type TransferState =
   | "transferring"
   | "paused"
   | "error"
-  | "complete";
+  | "complete"
+  | "cancelled";
 
 export interface TransferProgress {
   /** 0 to 1 */

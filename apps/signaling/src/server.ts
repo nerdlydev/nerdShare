@@ -2,6 +2,7 @@ import type { ServerWebSocket } from "bun";
 import {
   type ClientMessage,
   type ServerMessage,
+  type NearbyPeer,
   SignalErrorCode,
   ROOM_DEFAULTS,
 } from "@nerdshare/shared";
@@ -10,7 +11,7 @@ import {
 
 // Bun's ServerWebSocket is NOT the DOM WebSocket.
 // We use a generic type alias to keep the code clean.
-type WS = ServerWebSocket<undefined>;
+type WS = ServerWebSocket<{ ip: string }>;
 
 interface Room {
   roomId: string;
@@ -35,6 +36,22 @@ const activeSockets = new Set<WS>();
 // ─── State ───
 
 const rooms = new Map<string, Room>();
+
+// ─── Nearby State (filedrop-style IP grouping) ───
+
+interface NearbyClient {
+  ws: WS;
+  userId: string;
+  displayName: string;
+  deviceType?: "mobile" | "desktop" | "tablet";
+  publicKey: string;
+  ip: string;
+}
+
+// userId → NearbyClient
+const nearbyClients = new Map<string, NearbyClient>();
+// ip → Set<userId>
+const nearbyGroups = new Map<string, Set<string>>();
 
 // ─── Helpers ───
 
@@ -189,8 +206,116 @@ function handleRelay(
   sendTo(targetWs, msg as ServerMessage);
 }
 
+function handleNearbyAnnounce(
+  ws: WS,
+  msg: Extract<ClientMessage, { type: "NEARBY_ANNOUNCE" }>,
+): void {
+  const ip = ws.data?.ip ?? "unknown";
+  const { userId, displayName, deviceType, publicKey } = msg;
+
+  // Register in nearbyClients
+  nearbyClients.set(userId, {
+    ws,
+    userId,
+    displayName,
+    deviceType,
+    publicKey,
+    ip,
+  });
+
+  // Add to IP group
+  if (!nearbyGroups.has(ip)) nearbyGroups.set(ip, new Set());
+  nearbyGroups.get(ip)!.add(userId);
+
+  // Broadcast updated peer list to everyone in the group
+  broadcastNearbyPeers(ip);
+  console.log(`[nearby] "${displayName}" (${userId}) announced from ${ip}`);
+}
+
+function handleNearbyConnect(
+  ws: WS,
+  msg: Extract<ClientMessage, { type: "NEARBY_CONNECT" }>,
+): void {
+  const { fromUserId, toUserId, roomId } = msg;
+  const target = nearbyClients.get(toUserId);
+  const from = nearbyClients.get(fromUserId);
+
+  if (!target) {
+    sendError(ws, "Nearby peer not found", SignalErrorCode.PEER_NOT_FOUND);
+    return;
+  }
+
+  // Notify target of incoming nearby connection request
+  target.ws.send(
+    JSON.stringify({
+      type: "NEARBY_INCOMING",
+      fromUserId,
+      displayName: from?.displayName ?? fromUserId,
+      publicKey: from?.publicKey ?? "",
+      roomId,
+    }),
+  );
+  console.log(`[nearby] connect: ${fromUserId} → ${toUserId} via ${roomId}`);
+}
+
+function broadcastNearbyPeers(ip: string): void {
+  const group = nearbyGroups.get(ip);
+  if (!group) return;
+
+  const peers: NearbyPeer[] = [];
+  for (const uid of group) {
+    const client = nearbyClients.get(uid);
+    if (client) {
+      peers.push({
+        userId: client.userId,
+        displayName: client.displayName,
+        deviceType: client.deviceType,
+        publicKey: client.publicKey,
+      });
+    }
+  }
+
+  // Send each client the list of OTHER peers in the group
+  for (const uid of group) {
+    const client = nearbyClients.get(uid);
+    if (client) {
+      const peersForClient = peers.filter((p) => p.userId !== uid);
+      client.ws.send(
+        JSON.stringify({ type: "NEARBY_PEERS", peers: peersForClient }),
+      );
+    }
+  }
+}
+
+function removeNearbyClient(userId: string): void {
+  const client = nearbyClients.get(userId);
+  if (!client) return;
+
+  const group = nearbyGroups.get(client.ip);
+  if (group) {
+    group.delete(userId);
+    if (group.size === 0) {
+      nearbyGroups.delete(client.ip);
+    } else {
+      broadcastNearbyPeers(client.ip);
+    }
+  }
+
+  nearbyClients.delete(userId);
+  console.log(`[nearby] "${client.displayName}" left`);
+}
+
 function handleDisconnect(ws: WS): void {
   activeSockets.delete(ws);
+
+  // Clean up nearby presence
+  for (const [uid, client] of nearbyClients) {
+    if (client.ws === ws) {
+      removeNearbyClient(uid);
+      break;
+    }
+  }
+
   const meta = socketMeta.get(ws);
   if (!meta) return;
 
@@ -203,7 +328,7 @@ function handleDisconnect(ws: WS): void {
       `[room:${roomId}] host "${userId}" disconnected — closing room`,
     );
     // Notify all peers before destroying
-    for (const [peerId, peerInfo] of room.peers) {
+    for (const [, peerInfo] of room.peers) {
       sendTo(peerInfo.ws, { type: "PEER_LEFT", roomId, userId: room.hostId });
     }
     destroyRoom(roomId);
@@ -272,6 +397,30 @@ function handleMessage(ws: WS, raw: string | Buffer): void {
       handleRelay(ws, msg);
       break;
 
+    case "NEARBY_ANNOUNCE":
+      if (!msg.userId || !msg.displayName) {
+        sendError(
+          ws,
+          "Missing userId or displayName",
+          SignalErrorCode.INVALID_MESSAGE,
+        );
+        return;
+      }
+      handleNearbyAnnounce(ws, msg);
+      break;
+
+    case "NEARBY_CONNECT":
+      if (!msg.fromUserId || !msg.toUserId) {
+        sendError(
+          ws,
+          "Missing fromUserId or toUserId",
+          SignalErrorCode.INVALID_MESSAGE,
+        );
+        return;
+      }
+      handleNearbyConnect(ws, msg);
+      break;
+
     default:
       sendError(
         ws,
@@ -285,7 +434,7 @@ function handleMessage(ws: WS, raw: string | Buffer): void {
 
 const PORT = Number(process.env.PORT) || 8080;
 
-const server = Bun.serve({
+const server = Bun.serve<{ ip: string }>({
   port: PORT,
 
   fetch(req, server) {
@@ -296,13 +445,20 @@ const server = Bun.serve({
         JSON.stringify({
           status: "ok",
           rooms: rooms.size,
+          nearbyClients: nearbyClients.size,
           uptime: process.uptime(),
         }),
         { headers: { "Content-Type": "application/json" } },
       );
     }
 
-    if (server.upgrade(req)) {
+    // Read client IP for nearby grouping
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+      server.requestIP(req)?.address ??
+      "unknown";
+
+    if (server.upgrade(req, { data: { ip } })) {
       return;
     }
 
@@ -310,16 +466,16 @@ const server = Bun.serve({
   },
 
   websocket: {
-    open(ws: WS) {
+    open(ws) {
       console.log("[ws] client connected");
     },
 
-    message(ws: WS, message: string | Buffer) {
-      handleMessage(ws, message);
+    message(ws, message: string | Buffer) {
+      handleMessage(ws as WS, message);
     },
 
-    close(ws: WS) {
-      handleDisconnect(ws);
+    close(ws) {
+      handleDisconnect(ws as WS);
       console.log("[ws] client disconnected");
     },
 

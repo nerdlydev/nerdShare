@@ -77,7 +77,7 @@ export class TransferSender {
       await this.waitForAck(this.fileId);
       await this.sendChunks(0);
     } catch (err) {
-      if (this._state === "idle") return; // cancelled
+      if (this._state === "cancelled") return; // cancelled
       const msg = err instanceof Error ? err.message : String(err);
       this.setState("error");
       this.options.onError?.(msg);
@@ -92,7 +92,7 @@ export class TransferSender {
     try {
       await this.sendChunks(this.lastSentChunk + 1);
     } catch (err) {
-      if (this._state === "idle") return;
+      if ((this._state as TransferState) === "cancelled") return;
       const msg = err instanceof Error ? err.message : String(err);
       this.setState("error");
       this.options.onError?.(msg);
@@ -145,7 +145,7 @@ export class TransferSender {
       if (this.pausePromise) {
         await this.pausePromise;
         // After resume, re-check if cancelled during pause
-        if (this._state === "idle") return;
+        if (this._state === "cancelled") return;
       }
 
       // Backpressure: wait if DC buffer is getting full

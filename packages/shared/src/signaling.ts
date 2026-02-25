@@ -4,6 +4,14 @@
 
 // ─── Signaling Messages (over WebSocket) ───
 
+// ─── Nearby Peer ───
+export interface NearbyPeer {
+  userId: string;
+  displayName: string;
+  deviceType?: "mobile" | "desktop" | "tablet";
+  publicKey: string;
+}
+
 export type SignalMessage =
   | { type: "JOIN_ROOM"; roomId: string; userId: string; publicKey: string }
   | {
@@ -23,7 +31,29 @@ export type SignalMessage =
     }
   | { type: "PING"; timestamp: number } // Server → Client
   | { type: "PONG"; timestamp: number } // Client → Server
-  | { type: "ERROR"; message: string; code?: string };
+  | { type: "ERROR"; message: string; code?: string }
+  // ─── Nearby ───
+  | {
+      type: "NEARBY_ANNOUNCE";
+      userId: string;
+      displayName: string;
+      deviceType?: "mobile" | "desktop" | "tablet";
+      publicKey: string;
+    }
+  | { type: "NEARBY_PEERS"; peers: NearbyPeer[] }
+  | {
+      type: "NEARBY_CONNECT";
+      fromUserId: string;
+      toUserId: string;
+      roomId: string;
+    }
+  | {
+      type: "NEARBY_INCOMING";
+      fromUserId: string;
+      displayName: string;
+      publicKey: string;
+      roomId: string;
+    };
 
 // ─── Decrypted Payload ───
 // This is the actual data inside the ENCRYPTED message payload
@@ -35,7 +65,14 @@ export type SignalPayload =
 // Messages the client sends TO the server
 export type ClientMessage = Extract<
   SignalMessage,
-  { type: "JOIN_ROOM" | "ENCRYPTED" | "PONG" }
+  {
+    type:
+      | "JOIN_ROOM"
+      | "ENCRYPTED"
+      | "PONG"
+      | "NEARBY_ANNOUNCE"
+      | "NEARBY_CONNECT";
+  }
 >;
 
 // Messages the server sends TO the client
@@ -48,7 +85,9 @@ export type ServerMessage = Extract<
       | "PEER_LEFT"
       | "ENCRYPTED"
       | "PING"
-      | "ERROR";
+      | "ERROR"
+      | "NEARBY_PEERS"
+      | "NEARBY_INCOMING";
   }
 >;
 

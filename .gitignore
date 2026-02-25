@@ -37,6 +37,9 @@ coverage/
 .cache/
 tmp/
 
+# External repos / not part of this monorepo
+filedrop/
+
 # Rust
 target/
 

@@ -1,5 +1,7 @@
 import { useRef, useCallback, useState } from "react";
+import { useClientName } from "@/lib/use-client-name";
 import { PageLayout } from "@/components/PageLayout";
+import { NearbyView } from "@/components/NearbyView";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InfinityCircleIcon,
@@ -8,6 +10,7 @@ import {
   SquareLock02Icon,
   Folder01Icon,
   File01Icon,
+  Wifi01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   folderToZip,
@@ -27,10 +30,13 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface LandingViewProps {
-  onFileSelected: (file: File) => void;
+  userId: string;
+  onFileSelected: (file: File, toUserId?: string) => void;
 }
 
-export function LandingView({ onFileSelected }: LandingViewProps) {
+export function LandingView({ userId, onFileSelected }: LandingViewProps) {
+  const displayName = useClientName();
+  const [showNearby, setShowNearby] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [zipProgress, setZipProgress] = useState<{
@@ -181,6 +187,27 @@ export function LandingView({ onFileSelected }: LandingViewProps) {
     { icon: SquareLock02Icon, label: "End-to-end encrypted" },
   ];
 
+  if (showNearby) {
+    return (
+      <NearbyView
+        userId={userId}
+        onBack={() => setShowNearby(false)}
+        onConnect={(targetUserId) => {
+          // Trigger file picker, then send to specific user
+          const input = document.createElement("input");
+          input.type = "file";
+          input.onchange = (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (file) {
+              onFileSelected(file, targetUserId);
+            }
+          };
+          input.click();
+        }}
+      />
+    );
+  }
+
   return (
     <>
       {/* Firefox fallback: themed confirmation dialog */}
@@ -208,6 +235,10 @@ export function LandingView({ onFileSelected }: LandingViewProps) {
       <PageLayout
         panel={
           <div className="space-y-3">
+            <h2 className="text-xl font-medium text-foreground text-center mb-2">
+              Hey, {displayName} 👋
+            </h2>
+
             {/* Drop zone */}
             <div
               onDrop={handleDrop}
@@ -248,30 +279,51 @@ export function LandingView({ onFileSelected }: LandingViewProps) {
 
             {/* Action buttons */}
             {!zipping && (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card/50 px-4 py-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all duration-150"
+                  >
+                    <HugeiconsIcon
+                      icon={File01Icon}
+                      size={16}
+                      className="shrink-0"
+                    />
+                    Select file
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFolderClick}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card/50 px-4 py-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all duration-150"
+                  >
+                    <HugeiconsIcon
+                      icon={Folder01Icon}
+                      size={16}
+                      className="shrink-0"
+                    />
+                    Select folder
+                  </button>
+                </div>
+                <div className="relative flex items-center py-2">
+                  <div className="flex-grow border-t border-border"></div>
+                  <span className="flex-shrink-0 mx-4 text-xs text-muted-foreground uppercase tracking-wider">
+                    Or
+                  </span>
+                  <div className="flex-grow border-t border-border"></div>
+                </div>
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card/50 px-4 py-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all duration-150"
+                  onClick={() => setShowNearby(true)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-border bg-primary/5 hover:bg-primary/10 px-4 py-3 text-sm text-primary transition-all duration-150 font-medium"
                 >
                   <HugeiconsIcon
-                    icon={File01Icon}
+                    icon={Wifi01Icon}
                     size={16}
                     className="shrink-0"
                   />
-                  Select file
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFolderClick}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card/50 px-4 py-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all duration-150"
-                >
-                  <HugeiconsIcon
-                    icon={Folder01Icon}
-                    size={16}
-                    className="shrink-0"
-                  />
-                  Select folder
+                  Nearby Devices
                 </button>
               </div>
             )}
