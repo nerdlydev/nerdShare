@@ -73,8 +73,7 @@ export class TransferSender {
     };
 
     try {
-      this.sendControl({ type: "FILE_META", ...meta });
-      await this.waitForAck(this.fileId);
+      await this.negotiateHandshake(meta);
       await this.sendChunks(0);
     } catch (err) {
       if (this._state === "cancelled") return; // cancelled
@@ -212,19 +211,29 @@ export class TransferSender {
     }
   }
 
-  private waitForAck(fileId: string): Promise<void> {
+  private negotiateHandshake(meta: FileMeta): Promise<void> {
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.dc.removeEventListener("message", onMessage);
-        reject(new Error("Timeout waiting for HELLO_ACK"));
-      }, 10000);
+      let attempts = 0;
+
+      const pingInterval = setInterval(() => {
+        if (this.dc.readyState === "open") {
+          this.dc.send(JSON.stringify({ type: "FILE_META", ...meta }));
+        }
+        attempts++;
+        if (attempts > 20) {
+          // 10 seconds total
+          clearInterval(pingInterval);
+          this.dc.removeEventListener("message", onMessage);
+          reject(new Error("Timeout waiting for HELLO_ACK"));
+        }
+      }, 500);
 
       const onMessage = (event: MessageEvent) => {
         if (typeof event.data !== "string") return;
         try {
           const msg: DCControlMessage = JSON.parse(event.data);
-          if (msg.type === "HELLO_ACK" && msg.fileId === fileId) {
-            clearTimeout(timeout);
+          if (msg.type === "HELLO_ACK" && msg.fileId === this.fileId) {
+            clearInterval(pingInterval);
             this.dc.removeEventListener("message", onMessage);
             resolve();
           }
@@ -232,6 +241,11 @@ export class TransferSender {
       };
 
       this.dc.addEventListener("message", onMessage);
+
+      // Fire first ping immediately
+      if (this.dc.readyState === "open") {
+        this.dc.send(JSON.stringify({ type: "FILE_META", ...meta }));
+      }
     });
   }
 

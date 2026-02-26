@@ -8,7 +8,6 @@ import {
   Loading03Icon,
   WifiConnected01Icon,
   CheckmarkCircle02Icon,
-  Alert02Icon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import type { ConnectionState } from "@/lib/webrtc-manager";
@@ -66,7 +65,6 @@ export const PeerView = memo(function PeerView({
   } | null>(null);
   const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
   const [isAccepting, setIsAccepting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const receiverRef = useRef<TransferReceiver | null>(null);
   const { acquire: wakeLockAcquire, release: wakeLockRelease } = useWakeLock();
@@ -76,8 +74,9 @@ export const PeerView = memo(function PeerView({
   useEffect(() => {
     if (isConnected) setPeerState("waiting");
     if (connectionState === "disconnected" || connectionState === "failed") {
-      setPeerState("error");
-      setErrorMsg("Connection lost");
+      console.warn(
+        `[PeerView] Connection state: ${connectionState}. Failing silently.`,
+      );
     }
   }, [isConnected, connectionState]);
 
@@ -109,8 +108,7 @@ export const PeerView = memo(function PeerView({
       },
       onError: (err) => {
         addLog(` error: ${err}`);
-        setErrorMsg(err);
-        setPeerState("error");
+        console.error(`[PeerView] Transfer error: ${err} - Failing silently.`);
         wakeLockRelease();
       },
       onStateChange: (state) => {
@@ -119,8 +117,12 @@ export const PeerView = memo(function PeerView({
           setPeerState("downloading");
           wakeLockAcquire();
         }
-        if (state === "complete" || state === "error") {
+        if (state === "complete") {
           wakeLockRelease();
+        }
+        if (state === "error") {
+          wakeLockRelease();
+          console.error("[PeerView] State changed to error, failing silently.");
         }
       },
     });
@@ -299,41 +301,7 @@ export const PeerView = memo(function PeerView({
         );
 
       case "error":
-        return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border text-center relative">
-            {closeButton}
-            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-              <HugeiconsIcon
-                icon={Alert02Icon}
-                size={28}
-                className="text-destructive"
-              />
-            </div>
-            <p className="text-sm font-medium mb-2">
-              {errorMsg ?? "Transfer failed"}
-            </p>
-            {progress && progress.progress > 0 && progress.progress < 1 && (
-              <div className="mb-3">
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-destructive transition-all duration-150"
-                    style={{
-                      width: `${Math.min(progress.progress * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Received {Math.round(progress.progress * 100)}% before failure
-                </p>
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              The sender has either closed this transfer or is now offline.
-              Please check if the sender has an active internet connection or
-              ask for a new link.
-            </p>
-          </div>
-        );
+        return null; // Fail silently, maintain UI state where possible, but if forced into error state, render nothing new.
     }
   };
 

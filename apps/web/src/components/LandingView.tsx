@@ -29,12 +29,23 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { type NearbyPeer } from "@nerdshare/shared";
+
 interface LandingViewProps {
   userId: string;
-  onFileSelected: (file: File, toUserId?: string) => void;
+  peers: NearbyPeer[];
+  onFileSelected: (
+    file: File,
+    providedRoomId?: string,
+    isNearbyTransfer?: boolean,
+  ) => void;
 }
 
-export function LandingView({ userId, onFileSelected }: LandingViewProps) {
+export function LandingView({
+  userId,
+  peers,
+  onFileSelected,
+}: LandingViewProps) {
   const displayName = useClientName();
   const [showNearby, setShowNearby] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -191,18 +202,10 @@ export function LandingView({ userId, onFileSelected }: LandingViewProps) {
     return (
       <NearbyView
         userId={userId}
+        peers={peers}
         onBack={() => setShowNearby(false)}
-        onConnect={(targetUserId) => {
-          // Trigger file picker, then send to specific user
-          const input = document.createElement("input");
-          input.type = "file";
-          input.onchange = (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (file) {
-              onFileSelected(file, targetUserId);
-            }
-          };
-          input.click();
+        onConnect={(_, roomId, file) => {
+          onFileSelected(file, roomId, true);
         }}
       />
     );

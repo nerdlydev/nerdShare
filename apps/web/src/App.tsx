@@ -1,9 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { WebRTCManager, type ConnectionState } from "@/lib/webrtc-manager";
 import { LandingView } from "@/components/LandingView";
 import { HostView } from "@/components/HostView";
 import { PeerView } from "@/components/PeerView";
 import { LogsContext } from "@/lib/logs-context";
+import { useNearbyPeers } from "@/lib/use-nearby-peers";
+import { useClientName } from "@/lib/use-client-name";
 
 const SIGNALING_URL = "ws://localhost:8080";
 
@@ -20,8 +22,17 @@ function getRoomFromPath(): string | null {
 export function App() {
   const [role, setRole] = useState<"host" | "peer" | null>(null);
   const [roomId, setRoomId] = useState("");
+  const [isNearby, setIsNearby] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [userId] = useState(() => generateId());
+
+  const displayName = useClientName();
+  const deviceType = useMemo(() => {
+    const ua = navigator.userAgent;
+    if (ua.includes("iPhone") || ua.includes("Android")) return "mobile";
+    if (ua.includes("iPad")) return "tablet";
+    return "desktop";
+  }, []);
   const [connectionState, setConnectionState] =
     useState<ConnectionState>("idle");
   const [logs, setLogs] = useState<string[]>([]);
@@ -46,6 +57,7 @@ export function App() {
     cleanup();
     setRole(null);
     setRoomId("");
+    setIsNearby(false);
     setSelectedFile(null);
     setConnectionState("idle");
     setLogs([]);
@@ -54,10 +66,11 @@ export function App() {
 
   // ── Sender: file selected → create room ──
   const handleFileSelected = useCallback(
-    (file: File, providedRoomId?: string) => {
+    (file: File, providedRoomId?: string, isNearbyTransfer = false) => {
       cleanup();
       const newRoomId = providedRoomId || generateId();
       setRoomId(newRoomId);
+      setIsNearby(isNearbyTransfer);
       setSelectedFile(file);
       setRole("host");
       setLogs([]);
@@ -138,53 +151,37 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Listen for Incoming Nearby Connections ──
-  useEffect(() => {
-    // Only listen if we are idle (on LandingView)
-    if (role !== null) return;
+  // ── Listen for Incoming Nearby Connections & Announce Presence ──
+  const handleIncomingNearby = useCallback(
+    (msg: any) => {
+      const { fromUserId, displayName, roomId } = msg;
 
-    const socket = new WebSocket(SIGNALING_URL);
-    let isUnmounted = false;
+      console.log(
+        `[nearby] Incoming connection from ${displayName || "Unknown"} (${fromUserId}) to room ${roomId}`,
+      );
+      setIsNearby(true);
+      joinRoom(roomId);
+    },
+    [joinRoom],
+  );
 
-    socket.onopen = () => {
-      if (isUnmounted) {
-        socket.close();
-        return;
-      }
-      // Just connect, we don't need to announce unless we open NearbyView
-      // But we DO need the server to read our IP to receive nearby signaling
-    };
-
-    socket.onmessage = (event) => {
-      if (isUnmounted) return;
-      try {
-        const msg = JSON.parse(event.data);
-        if (msg.type === "NEARBY_INCOMING") {
-          // An incoming connection request from a nearby device!
-          // Auto-accept and join the room the sender created for us.
-          const { fromUserId, displayName, roomId } = msg;
-          console.log(
-            `[nearby] Incoming connection from ${displayName} (${fromUserId}) to room ${roomId}`,
-          );
-          joinRoom(roomId);
-        }
-      } catch (err) {
-        console.error("Failed to parse nearby message:", err);
-      }
-    };
-
-    return () => {
-      isUnmounted = true;
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
-      }
-      // If it's CONNECTING, onopen will handle closing it to avoid the browser console error
-    };
-  }, [role, joinRoom]);
+  const peers = useNearbyPeers({
+    userId,
+    displayName,
+    deviceType,
+    enabled: role === null, // Only announce and search when sitting on the Landing Page
+    onIncomingRequest: handleIncomingNearby,
+  });
 
   // ── Route ──
   if (!role) {
-    return <LandingView userId={userId} onFileSelected={handleFileSelected} />;
+    return (
+      <LandingView
+        userId={userId}
+        peers={peers}
+        onFileSelected={handleFileSelected}
+      />
+    );
   }
 
   if (role === "host" && selectedFile) {
@@ -194,6 +191,7 @@ export function App() {
         <HostView
           file={selectedFile}
           shareUrl={shareUrl}
+          isNearby={isNearby}
           connectionState={connectionState}
           dc={dc}
           onLeave={leave}

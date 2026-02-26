@@ -40,6 +40,7 @@ const DebugLog = memo(function DebugLog() {
 interface HostViewProps {
   file: File;
   shareUrl: string;
+  isNearby?: boolean;
   connectionState: ConnectionState;
   dc: RTCDataChannel | null;
   onLeave: () => void;
@@ -48,13 +49,13 @@ interface HostViewProps {
 export const HostView = memo(function HostView({
   file,
   shareUrl,
+  isNearby = false,
   connectionState,
   dc,
   onLeave,
 }: HostViewProps) {
   const [progress, setProgress] = useState<TransferProgress | null>(null);
   const [transferState, setTransferState] = useState<TransferState>("idle");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const senderRef = useRef<TransferSender | null>(null);
   const hasStartedRef = useRef(false);
   const [copied, setCopied] = useState(false);
@@ -80,7 +81,6 @@ export const HostView = memo(function HostView({
   const startTransfer = useCallback(async () => {
     if (!dc || isTransferring || hasStartedRef.current) return;
     hasStartedRef.current = true;
-    setErrorMsg(null);
 
     const sender = new TransferSender({
       dc,
@@ -88,12 +88,16 @@ export const HostView = memo(function HostView({
       onProgress: (p) => setProgress(p),
       onComplete: () => {},
       onError: (err) => {
-        setErrorMsg(err);
+        console.error(`[HostView] Transfer error: ${err} - Failing silently.`);
         hasStartedRef.current = false;
         wakeLockRelease();
       },
       onStateChange: (state) => {
-        setTransferState(state);
+        if (state !== "error") {
+          setTransferState(state);
+        } else {
+          console.error("[HostView] State changed to error, failing silently.");
+        }
         if (state === "transferring") wakeLockAcquire();
         if (state === "complete" || state === "error") wakeLockRelease();
       },
@@ -116,10 +120,6 @@ export const HostView = memo(function HostView({
 
   const handlePause = () => senderRef.current?.pause();
   const handleResume = () => senderRef.current?.resume();
-  const handleRetry = async () => {
-    setErrorMsg(null);
-    await senderRef.current?.retry();
-  };
   const handleCancel = () => {
     senderRef.current?.cancel();
     hasStartedRef.current = false;
@@ -161,28 +161,30 @@ export const HostView = memo(function HostView({
             </p>
           </div>
 
-          {/* Share link */}
-          <div className="flex items-center gap-1.5 mb-5">
-            <input
-              type="text"
-              readOnly
-              value={shareUrl}
-              className="flex-1 text-xs font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-2 text-primary truncate focus:outline-none cursor-text"
-              onClick={(e) => (e.target as HTMLInputElement).select()}
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={copyLink}
-              className="shrink-0"
-            >
-              <HugeiconsIcon icon={Copy01Icon} size={14} />
-              {copied ? "Copied!" : "Copy"}
-            </Button>
-          </div>
+          {/* Share link (Hidden in Nearby mode) */}
+          {!isNearby && (
+            <div className="flex items-center gap-1.5 mb-5">
+              <input
+                type="text"
+                readOnly
+                value={shareUrl}
+                className="flex-1 text-xs font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-2 text-primary truncate focus:outline-none cursor-text"
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={copyLink}
+                className="shrink-0"
+              >
+                <HugeiconsIcon icon={Copy01Icon} size={14} />
+                {copied ? "Copied!" : "Copy"}
+              </Button>
+            </div>
+          )}
 
-          {/* QR Code */}
-          {qrDataUrl && (
+          {/* QR Code (Hidden in Nearby mode) */}
+          {!isNearby && qrDataUrl && (
             <div className="flex justify-center mb-5">
               <img src={qrDataUrl} alt="Share QR Code" className="w-28 h-28" />
             </div>
@@ -257,24 +259,6 @@ export const HostView = memo(function HostView({
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={14} />
                 Cancel
-              </Button>
-            </div>
-          )}
-
-          {/* Error state with retry */}
-          {isError && errorMsg && (
-            <div className="flex flex-col gap-2 mb-3">
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
-                <p className="text-xs text-destructive">{errorMsg}</p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRetry}
-                className="gap-1.5"
-              >
-                <HugeiconsIcon icon={RepeatIcon} size={14} />
-                Retry
               </Button>
             </div>
           )}

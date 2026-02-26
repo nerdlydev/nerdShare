@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SmartPhone01Icon,
@@ -6,30 +6,21 @@ import {
   Wifi01Icon,
   ArrowLeft01Icon,
 } from "@hugeicons/core-free-icons";
-import { type NearbyPeer, type ServerMessage } from "@nerdshare/shared";
-import { useClientName } from "@/lib/use-client-name";
+import { type NearbyPeer } from "@nerdshare/shared";
 
 interface NearbyViewProps {
   userId: string;
+  peers: NearbyPeer[];
   onBack: () => void;
-  onConnect: (peerId: string, roomId: string) => void;
+  onConnect: (peerId: string, roomId: string, file: File) => void;
 }
 
-export function NearbyView({ userId, onBack, onConnect }: NearbyViewProps) {
-  const [peers, setPeers] = useState<NearbyPeer[]>([]);
-  const [ws, setWs] = useState<WebSocket | null>(null);
-
-  // Derive the device type from user agent for the icon
-  const deviceType = (() => {
-    const ua = navigator.userAgent;
-    if (ua.includes("iPhone") || ua.includes("Android")) return "mobile";
-    if (ua.includes("iPad")) return "tablet";
-    return "desktop";
-  })();
-
-  // Generate or load a persistent fun name for this device
-  const displayName = useClientName();
-
+export function NearbyView({
+  userId,
+  peers,
+  onBack,
+  onConnect,
+}: NearbyViewProps) {
   const getIcon = (type?: string) => {
     if (type === "mobile" || type === "tablet") {
       return SmartPhone01Icon;
@@ -37,56 +28,16 @@ export function NearbyView({ userId, onBack, onConnect }: NearbyViewProps) {
     return LaptopProgrammingIcon;
   };
 
-  useEffect(() => {
-    // We connect to the signaling server just for nearby discovery here.
-    // WebRTCManager handles the actual P2P connection later.
-    const socket = new WebSocket("ws://localhost:8080");
-    let isUnmounted = false;
-
-    socket.onopen = () => {
-      if (isUnmounted) {
-        socket.close();
-        return;
-      }
-      setWs(socket);
-      // Announce presence
-      socket.send(
-        JSON.stringify({
-          type: "NEARBY_ANNOUNCE",
-          userId,
-          displayName,
-          deviceType,
-          publicKey: "not-implemented-yet", // Required by type, not used for nearby discovery itself
-        }),
-      );
-    };
-
-    socket.onmessage = (event) => {
-      if (isUnmounted) return;
-      try {
-        const msg = JSON.parse(event.data) as ServerMessage;
-        if (msg.type === "NEARBY_PEERS") {
-          setPeers(msg.peers);
-        }
-      } catch (err) {
-        console.error("Failed to parse message", err);
-      }
-    };
-
-    return () => {
-      isUnmounted = true;
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
-      }
-    };
-  }, [userId, displayName]);
-
   const handleConnect = useCallback(
-    (targetUserId: string) => {
-      if (ws?.readyState === WebSocket.OPEN) {
-        // Generate the room ID the host will use
-        const roomId = crypto.randomUUID().split("-")[0];
-        ws.send(
+    (targetUserId: string, file: File) => {
+      // 1. Generate a roomId for the actual WebRTC transfer
+      const roomId = crypto.randomUUID().split("-")[0];
+
+      // 2. We need a short-lived WS connection just to push the NEARBY_CONNECT message.
+      const socket = new WebSocket("ws://localhost:8080");
+
+      socket.onopen = () => {
+        socket.send(
           JSON.stringify({
             type: "NEARBY_CONNECT",
             fromUserId: userId,
@@ -94,10 +45,13 @@ export function NearbyView({ userId, onBack, onConnect }: NearbyViewProps) {
             roomId,
           }),
         );
-        onConnect(targetUserId, roomId);
-      }
+        setTimeout(() => socket.close(), 500); // Allow buffer to flush before closing
+      };
+
+      // 3. Immediately transition the local app into "host" mode for this new roomId
+      onConnect(targetUserId, roomId, file);
     },
-    [ws, userId, onConnect],
+    [userId, onConnect],
   );
 
   return (
@@ -142,7 +96,7 @@ export function NearbyView({ userId, onBack, onConnect }: NearbyViewProps) {
             </p>
           </div>
         ) : (
-          peers.map((peer) => (
+          peers.map((peer: NearbyPeer) => (
             <div
               key={peer.userId}
               className="flex items-center justify-between p-4 rounded-2xl border border-border bg-card/50 hover:bg-card hover:border-primary/30 transition-all group"
@@ -162,7 +116,18 @@ export function NearbyView({ userId, onBack, onConnect }: NearbyViewProps) {
               </div>
 
               <button
-                onClick={() => handleConnect(peer.userId)}
+                key={peer.userId}
+                onClick={() => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      handleConnect(peer.userId, file);
+                    }
+                  };
+                  input.click();
+                }}
                 className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
               >
                 Send file

@@ -85,6 +85,18 @@ export class TransferReceiver {
 
       switch (msg.type) {
         case "FILE_META":
+          if (this.currentMeta && this.currentMeta.fileId === msg.fileId) {
+            // Sender might be aggressively retrying the handshake.
+            if (this.accepted) {
+              // We already accepted it, resend the ACK in case it got dropped.
+              this.sendControl({
+                type: "HELLO_ACK",
+                fileId: this.currentMeta.fileId,
+              });
+            }
+            break; // Ignore duplicate metadata ping
+          }
+
           this.currentMeta = msg;
           this.chunks = [];
           this.receivedBytes = 0;
