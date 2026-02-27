@@ -15,6 +15,18 @@ export function PageLayout({ panel, hero }: PageLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col lg:grid lg:grid-cols-[minmax(340px,420px)_1fr] relative">
+      {/* Brand Logo — top left corner */}
+      <div className="absolute top-4 left-4 lg:left-8 z-50 flex items-center gap-2.5">
+        <img
+          src="/logo-source.png"
+          alt="nerdShare"
+          className="w-8 h-8 rounded-lg"
+        />
+        <span className="font-bold text-lg tracking-tight select-none">
+          nerdShare
+        </span>
+      </div>
+
       {/* Theme toggle — top right corner */}
       <button
         ref={ref as React.RefObject<HTMLButtonElement>}
