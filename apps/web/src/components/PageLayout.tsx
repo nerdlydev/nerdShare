@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useViteTheme } from "@space-man/react-theme-animation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Sun02Icon, Moon02Icon } from "@hugeicons/core-free-icons";
+import { FloatingFooter } from "@/components/FloatingFooter";
 
 interface PageLayoutProps {
   /** Interactive card panel (left on desktop, top on mobile) */
@@ -15,16 +16,14 @@ export function PageLayout({ panel, hero }: PageLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col lg:grid lg:grid-cols-[minmax(340px,420px)_1fr] relative">
-      {/* Brand Logo — top left corner */}
-      <div className="absolute top-4 left-4 lg:left-8 z-50 flex items-center gap-2.5">
-        <img
-          src="/logo-source.png"
-          alt="nerdShare"
-          className="w-8 h-8 rounded-lg"
-        />
-        <span className="font-bold text-lg tracking-tight select-none">
-          nerdShare
-        </span>
+      {/* Left panel */}
+      <div className="flex items-center justify-center p-8 lg:p-12">
+        <div className="w-full max-w-sm">{panel}</div>
+      </div>
+
+      {/* Right hero */}
+      <div className="flex items-center justify-center p-8 lg:p-16 bg-muted/20 pb-24 lg:pb-32">
+        <div className="max-w-lg">{hero}</div>
       </div>
 
       {/* Theme toggle — top right corner */}
@@ -40,15 +39,7 @@ export function PageLayout({ panel, hero }: PageLayoutProps) {
         />
       </button>
 
-      {/* Left panel */}
-      <div className="flex items-center justify-center p-8 lg:p-12">
-        <div className="w-full max-w-sm">{panel}</div>
-      </div>
-
-      {/* Right hero */}
-      <div className="flex items-center justify-center p-8 lg:p-16 bg-muted/20">
-        <div className="max-w-lg">{hero}</div>
-      </div>
+      <FloatingFooter />
     </div>
   );
 }
