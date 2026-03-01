@@ -248,20 +248,20 @@ export function LandingView({
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               className={`
-                border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200
-                bg-card/50
+                border-2 border-dashed rounded-3xl p-10 sm:p-14 text-center transition-all duration-200
+                bg-card/50 flex flex-col items-center justify-center min-h-[280px]
                 ${
                   zipping
                     ? "border-primary/50 cursor-wait"
                     : isDragOver
                       ? "border-primary bg-primary/10 animate-pulse-glow cursor-copy"
-                      : "border-border hover:border-primary/50 hover:bg-muted/30"
+                      : "border-border hover:border-primary/50 hover:bg-muted/10"
                 }
               `}
             >
               {zipping ? (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   <p className="text-sm text-muted-foreground">
                     {zipProgress && zipProgress.totalFiles > 0
                       ? `Zipping… ${zipProgress.filesProcessed} / ${zipProgress.totalFiles} files`
@@ -270,11 +270,26 @@ export function LandingView({
                 </div>
               ) : (
                 <>
-                  <div className="w-10 h-10 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="text-primary text-lg">+</span>
+                  <div className="flex items-center gap-4 sm:gap-6 mb-8 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground flex flex-col items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm"
+                      title="Select File"
+                    >
+                      <HugeiconsIcon icon={File01Icon} size={28} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleFolderClick}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground flex flex-col items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm"
+                      title="Select Folder"
+                    >
+                      <HugeiconsIcon icon={Folder01Icon} size={28} />
+                    </button>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Drop a <strong>file</strong> or <strong>folder</strong> here
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-[220px] mx-auto">
+                    Or drag and drop it directly into this area
                   </p>
                 </>
               )}
@@ -283,39 +298,6 @@ export function LandingView({
             {/* Action buttons */}
             {!zipping && (
               <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card/50 px-4 py-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all duration-150"
-                  >
-                    <HugeiconsIcon
-                      icon={File01Icon}
-                      size={16}
-                      className="shrink-0"
-                    />
-                    Select file
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleFolderClick}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card/50 px-4 py-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all duration-150"
-                  >
-                    <HugeiconsIcon
-                      icon={Folder01Icon}
-                      size={16}
-                      className="shrink-0"
-                    />
-                    Select folder
-                  </button>
-                </div>
-                <div className="relative flex items-center py-2">
-                  <div className="flex-grow border-t border-border"></div>
-                  <span className="flex-shrink-0 mx-4 text-xs text-muted-foreground uppercase tracking-wider">
-                    Or
-                  </span>
-                  <div className="flex-grow border-t border-border"></div>
-                </div>
                 <button
                   type="button"
                   onClick={() => setShowNearby(true)}
