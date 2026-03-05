@@ -11,6 +11,9 @@ import {
   Wifi01Icon,
   Sun02Icon,
   Moon02Icon,
+  Globe02Icon,
+  ShieldKeyIcon,
+  EarthIcon,
 } from "@hugeicons/core-free-icons";
 import AnimatedFolder from "@/components/AnimatedFolder";
 import { PlusIcon } from "@/components/ui/plus-icon";
@@ -229,7 +232,24 @@ export function LandingView({
       </AlertDialog>
 
       {/* Full-page layout */}
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-screen flex flex-col bg-background relative">
+        {/* Masked grid + dot background */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px),
+              radial-gradient(circle, rgba(59,147,173,0.4) 1px, transparent 1px)
+            `,
+            backgroundSize: "30px 30px, 30px 30px, 30px 30px",
+            backgroundPosition: "0 0, 0 0, 0 0",
+            WebkitMaskImage:
+              "linear-gradient(to left, #000 0%, #000 50%, transparent 80%, transparent 100%)",
+            maskImage:
+              "linear-gradient(to left, #000 0%, #000 50%, transparent 80%, transparent 100%)",
+          }}
+        />
         {/* ── Top Navbar ── */}
         <header className="w-full flex items-center justify-between px-6 sm:px-10 py-4 shrink-0">
           {/* Logo / Brand */}
@@ -271,8 +291,8 @@ export function LandingView({
         </header>
 
         {/* ── Hero Section ── */}
-        <main className="flex-1 flex items-center px-6 sm:px-10 pb-28">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-[220px_2fr_4fr] gap-0 items-center">
+        <main className="flex-1 flex items-center pl-16 sm:pl-24 lg:pl-32 pr-6 sm:pr-10 pb-28">
+          <div className="w-full grid grid-cols-1 lg:grid-cols-[400px_2fr_4fr] gap-0 items-center">
             {/* Left: Drop zone */}
             <div
               onDrop={handleDrop}
@@ -282,7 +302,7 @@ export function LandingView({
               className={`
                 relative w-full border-2 border-dashed rounded-3xl
                 flex flex-col items-center justify-center gap-4 py-14 px-6
-                transition-all duration-200 bg-card/40 cursor-pointer aspect-square
+                transition-all duration-200 bg-card/40 cursor-pointer h-[280px]
                 ${
                   zipping
                     ? "border-primary/50 cursor-wait"
@@ -329,7 +349,7 @@ export function LandingView({
 
             {/* Right: Hero text */}
             <div className="flex flex-col gap-6 lg:text-left text-center">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1]">
                 Share files <span className="text-primary">directly</span> from
                 your device
               </h1>
@@ -370,6 +390,76 @@ export function LandingView({
             </div>
           </div>
         </main>
+
+        {/* ── Features / About Section ── */}
+        <section className="relative z-10 px-8 sm:px-16 lg:px-24 pt-4 pb-24">
+          {/* Section label */}
+          <p className="text-xs font-semibold tracking-widest uppercase text-primary/70 mb-8">
+            Why nerdShare?
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Card 1 */}
+            <div className="group rounded-2xl border border-border bg-card/40 backdrop-blur p-6 flex flex-col gap-3 hover:border-primary/30 hover:bg-card/60 transition-all duration-200">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/20 transition-colors">
+                <HugeiconsIcon icon={EarthIcon} size={18} />
+              </div>
+              <h3 className="font-semibold text-sm text-foreground">
+                Built for humans, not corporations
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                nerdShare is free, independent, and has zero trackers. No
+                accounts, no ads, no BS — just you and whoever you're sending
+                files to.
+              </p>
+            </div>
+
+            {/* Card 2 */}
+            <div className="group rounded-2xl border border-border bg-card/40 backdrop-blur p-6 flex flex-col gap-3 hover:border-primary/30 hover:bg-card/60 transition-all duration-200">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/20 transition-colors">
+                <HugeiconsIcon icon={Globe02Icon} size={18} />
+              </div>
+              <h3 className="font-semibold text-sm text-foreground">
+                Closes when you close
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Your files live on your device, not our servers. Shut the tab
+                and poof — they're gone. No lingering uploads, no accidental
+                oversharing.
+              </p>
+            </div>
+
+            {/* Card 3 */}
+            <div className="group rounded-2xl border border-border bg-card/40 backdrop-blur p-6 flex flex-col gap-3 hover:border-primary/30 hover:bg-card/60 transition-all duration-200">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/20 transition-colors">
+                <HugeiconsIcon icon={InfinityCircleIcon} size={18} />
+              </div>
+              <h3 className="font-semibold text-sm text-foreground">
+                No limits. Seriously.
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Since we never store your data, we have no reason to cap file
+                sizes. Send a 4K movie. Send an entire project folder. We don't
+                mind.
+              </p>
+            </div>
+
+            {/* Card 4 */}
+            <div className="group rounded-2xl border border-border bg-card/40 backdrop-blur p-6 flex flex-col gap-3 hover:border-primary/30 hover:bg-card/60 transition-all duration-200">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary/20 transition-colors">
+                <HugeiconsIcon icon={ShieldKeyIcon} size={18} />
+              </div>
+              <h3 className="font-semibold text-sm text-foreground">
+                End-to-end, just for you two
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                WebRTC + DTLS means your data is encrypted in transit and only
+                your receiver can decrypt it. Not even we can peek. Pinky
+                promise. 🤙
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* Hey greeting (bottom subtle text) */}
         <div className="text-center pb-6 text-xs text-muted-foreground/50 shrink-0">
