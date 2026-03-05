@@ -1,17 +1,19 @@
 import { useRef, useCallback, useState } from "react";
 import { useClientName } from "@/lib/use-client-name";
-import { PageLayout } from "@/components/PageLayout";
 import { NearbyView } from "@/components/NearbyView";
+import { FloatingFooter } from "@/components/FloatingFooter";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InfinityCircleIcon,
   FlashIcon,
   DistributeVerticalCenterIcon,
   SquareLock02Icon,
-  Folder01Icon,
-  File01Icon,
   Wifi01Icon,
+  Sun02Icon,
+  Moon02Icon,
 } from "@hugeicons/core-free-icons";
+import AnimatedFolder from "@/components/AnimatedFolder";
+import { PlusIcon } from "@/components/ui/plus-icon";
 import {
   folderToZip,
   fileListToZip,
@@ -28,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useViteTheme } from "@space-man/react-theme-animation";
 
 import { type NearbyPeer } from "@nerdshare/shared";
 
@@ -47,6 +50,7 @@ export function LandingView({
   onFileSelected,
 }: LandingViewProps) {
   const displayName = useClientName();
+  const { resolvedTheme, toggleTheme, ref } = useViteTheme();
   const [showNearby, setShowNearby] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [zipping, setZipping] = useState(false);
@@ -77,19 +81,16 @@ export function LandingView({
         let zipFile: File;
 
         if (source instanceof File) {
-          // Plain file — pass through untouched
           onFileSelected(source);
           return;
         } else if (Array.isArray(source)) {
           zipFile = await fileListToZip(source, (p) => setZipProgress(p));
         } else if (source instanceof FileSystemDirectoryHandle) {
-          // FileSystemDirectoryHandle (showDirectoryPicker)
           zipFile = await dirHandleToZip(
             source as FileSystemDirectoryHandle,
             (p) => setZipProgress(p),
           );
         } else {
-          // FileSystemDirectoryEntry (legacy drag-and-drop)
           zipFile = await folderToZip(source as FileSystemDirectoryEntry, (p) =>
             setZipProgress(p),
           );
@@ -139,7 +140,6 @@ export function LandingView({
   // ── Folder picker — modern path (Chrome/Edge) ──
 
   const handleFolderClick = useCallback(async () => {
-    // Modern API — no "Upload X files?" confirm dialog
     if ("showDirectoryPicker" in window) {
       try {
         const handle = await (
@@ -151,15 +151,12 @@ export function LandingView({
         ).showDirectoryPicker({ mode: "read" });
         await runZip(handle);
       } catch (err: unknown) {
-        // User cancelled the picker
         if ((err as Error).name !== "AbortError") {
           console.error("[folder-picker] failed:", err);
         }
       }
       return;
     }
-
-    // Firefox fallback — trigger the old input, then show our themed confirm
     folderInputRef.current?.click();
   }, [runZip]);
 
@@ -169,10 +166,8 @@ export function LandingView({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawFiles = e.target.files;
       if (!rawFiles || rawFiles.length === 0) return;
-      // Snapshot BEFORE resetting the input — FileList is a live DOM object
       const fileArray = Array.from(rawFiles);
       e.target.value = "";
-      // Show themed confirmation dialog instead of the browser's native one
       setPendingFiles(fileArray);
     },
     [],
@@ -188,8 +183,6 @@ export function LandingView({
   const handleCancelUpload = useCallback(() => {
     setPendingFiles(null);
   }, []);
-
-  // ─────────────────────────────────────────────
 
   const features = [
     { icon: InfinityCircleIcon, label: "No file size limit" },
@@ -235,27 +228,67 @@ export function LandingView({
         </AlertDialogContent>
       </AlertDialog>
 
-      <PageLayout
-        panel={
-          <div className="space-y-3">
-            <h2 className="text-xl font-medium text-foreground text-center mb-2">
-              Hey, {displayName} 👋
-            </h2>
+      {/* Full-page layout */}
+      <div className="min-h-screen flex flex-col bg-background">
+        {/* ── Top Navbar ── */}
+        <header className="w-full flex items-center justify-between px-6 sm:px-10 py-4 shrink-0">
+          {/* Logo / Brand */}
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo-source.png"
+              alt="nerdShare"
+              className="w-7 h-7 object-contain"
+            />
+            <span className="font-semibold text-base tracking-tight text-foreground">
+              nerdShare
+            </span>
+          </div>
 
-            {/* Drop zone */}
+          {/* Nav right side */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowNearby(true)}
+              className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              <HugeiconsIcon icon={Wifi01Icon} size={16} />
+              Nearby Devices
+            </button>
+
+            {/* Theme toggle */}
+            <button
+              ref={ref as React.RefObject<HTMLButtonElement>}
+              onClick={() => toggleTheme()}
+              className="p-2 rounded-full bg-card/80 backdrop-blur border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              aria-label="Toggle theme"
+            >
+              <HugeiconsIcon
+                icon={resolvedTheme === "dark" ? Sun02Icon : Moon02Icon}
+                size={16}
+              />
+            </button>
+          </div>
+        </header>
+
+        {/* ── Hero Section ── */}
+        <main className="flex-1 flex items-center px-6 sm:px-10 pb-28">
+          <div className="w-full grid grid-cols-1 lg:grid-cols-[220px_2fr_4fr] gap-0 items-center">
+            {/* Left: Drop zone */}
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
+              onClick={() => fileInputRef.current?.click()}
               className={`
-                border-2 border-dashed rounded-3xl p-10 sm:p-14 text-center transition-all duration-200
-                bg-card/50 flex flex-col items-center justify-center min-h-[280px]
+                relative w-full border-2 border-dashed rounded-3xl
+                flex flex-col items-center justify-center gap-4 py-14 px-6
+                transition-all duration-200 bg-card/40 cursor-pointer aspect-square
                 ${
                   zipping
                     ? "border-primary/50 cursor-wait"
                     : isDragOver
                       ? "border-primary bg-primary/10 animate-pulse-glow cursor-copy"
-                      : "border-border hover:border-primary/50 hover:bg-muted/10"
+                      : "border-border hover:border-primary/40 hover:bg-muted/10"
                 }
               `}
             >
@@ -270,93 +303,97 @@ export function LandingView({
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-4 sm:gap-6 mb-8 mt-4">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground flex flex-col items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm"
-                      title="Select File"
-                    >
-                      <HugeiconsIcon icon={File01Icon} size={28} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleFolderClick}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground flex flex-col items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm"
-                      title="Select Folder"
-                    >
-                      <HugeiconsIcon icon={Folder01Icon} size={28} />
-                    </button>
+                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                    <PlusIcon size={28} />
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-[220px] mx-auto">
-                    Or drag and drop it directly into this area
+                  <p className="text-sm text-muted-foreground leading-relaxed text-center max-w-[200px]">
+                    Click to browse or drag files here to start sharing
                   </p>
+
+                  {/* Animated folder — bottom-right corner */}
+                  <div
+                    className="absolute bottom-3 right-3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFolderClick();
+                    }}
+                  >
+                    <AnimatedFolder color="#3b93ad" size={0.65} />
+                  </div>
                 </>
               )}
             </div>
 
-            {/* Action buttons */}
-            {!zipping && (
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNearby(true)}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-border bg-primary/5 hover:bg-primary/10 px-4 py-3 text-sm text-primary transition-all duration-150 font-medium"
-                >
-                  <HugeiconsIcon
-                    icon={Wifi01Icon}
-                    size={16}
-                    className="shrink-0"
-                  />
-                  Nearby Devices
-                </button>
-              </div>
-            )}
+            {/* Middle spacer */}
+            <div className="hidden lg:block" />
 
-            {/* Hidden inputs */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-            {/* Firefox fallback only — hidden when showDirectoryPicker is available */}
-            <input
-              ref={folderInputRef}
-              type="file"
-              className="hidden"
-              // @ts-expect-error — non-standard but widely supported
-              webkitdirectory=""
-              onChange={handleFolderChange}
-            />
-          </div>
-        }
-        hero={
-          <div>
-            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
-              Share files directly from your device to anywhere
-            </h1>
-            <p className="text-muted-foreground text-base mb-8 leading-relaxed">
-              Send files of any size directly from your device without ever
-              storing anything online.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              {features.map((f) => (
-                <div key={f.label} className="flex items-center gap-2.5">
-                  <HugeiconsIcon
-                    icon={f.icon}
-                    size={18}
-                    className="text-primary shrink-0"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {f.label}
-                  </span>
-                </div>
-              ))}
+            {/* Right: Hero text */}
+            <div className="flex flex-col gap-6 lg:text-left text-center">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+                Share files <span className="text-primary">directly</span> from
+                your device
+              </h1>
+              <p className="text-muted-foreground text-base sm:text-lg leading-relaxed max-w-md">
+                Send files of any size peer-to-peer, without ever storing
+                anything online. Instant. Private. Free.
+              </p>
+
+              {/* Feature pills */}
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                {features.map((f) => (
+                  <div key={f.label} className="flex items-center gap-2">
+                    <HugeiconsIcon
+                      icon={f.icon}
+                      size={15}
+                      className="text-primary shrink-0"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {f.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mobile nearby button */}
+              <button
+                type="button"
+                onClick={() => setShowNearby(true)}
+                className="sm:hidden self-center flex items-center gap-2 rounded-xl border border-border bg-primary/5 hover:bg-primary/10 px-5 py-3 text-sm text-primary transition-all font-medium"
+              >
+                <HugeiconsIcon
+                  icon={Wifi01Icon}
+                  size={16}
+                  className="shrink-0"
+                />
+                Nearby Devices
+              </button>
             </div>
           </div>
-        }
+        </main>
+
+        {/* Hey greeting (bottom subtle text) */}
+        <div className="text-center pb-6 text-xs text-muted-foreground/50 shrink-0">
+          Hey, {displayName} 👋
+        </div>
+      </div>
+
+      {/* Hidden inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={handleFileChange}
       />
+      <input
+        ref={folderInputRef}
+        type="file"
+        className="hidden"
+        // @ts-expect-error — non-standard but widely supported
+        webkitdirectory=""
+        onChange={handleFolderChange}
+      />
+
+      <FloatingFooter />
     </>
   );
 }
