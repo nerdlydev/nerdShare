@@ -1,7 +1,6 @@
 import { useRef, useCallback, useState } from "react";
 import { useClientName } from "@/lib/use-client-name";
 import { NearbyView } from "@/components/NearbyView";
-import { FloatingFooter } from "@/components/FloatingFooter";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InfinityCircleIcon,
@@ -482,8 +481,6 @@ export function LandingView({
         webkitdirectory=""
         onChange={handleFolderChange}
       />
-
-      <FloatingFooter />
     </>
   );
 }
