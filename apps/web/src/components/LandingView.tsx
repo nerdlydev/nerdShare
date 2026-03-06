@@ -1,6 +1,7 @@
 import { useRef, useCallback, useState } from "react";
 import { useClientName } from "@/lib/use-client-name";
 import { NearbyView } from "@/components/NearbyView";
+import { MorphicNavbar } from "@/components/kokonutui/morphic-navbar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InfinityCircleIcon,
@@ -8,12 +9,18 @@ import {
   DistributeVerticalCenterIcon,
   SquareLock02Icon,
   Wifi01Icon,
-  Sun02Icon,
-  Moon02Icon,
-  Globe02Icon,
   ShieldKeyIcon,
   EarthIcon,
+  Globe02Icon,
 } from "@hugeicons/core-free-icons";
+import { HomeIcon } from "@/components/ui/home";
+import { WifiIcon } from "@/components/ui/wifi";
+import { SendIcon } from "@/components/ui/send";
+import { LockKeyholeIcon } from "@/components/ui/lock-keyhole";
+import { LanguagesIcon } from "@/components/ui/languages";
+import { MoonIcon } from "@/components/ui/moon";
+import { SunIcon } from "@/components/ui/sun";
+import { CircleHelpIcon } from "@/components/ui/circle-help";
 import AnimatedFolder from "@/components/AnimatedFolder";
 import { PlusIcon } from "@/components/ui/plus-icon";
 import {
@@ -263,16 +270,43 @@ export function LandingView({
             </span>
           </div>
 
-          {/* Nav right side */}
+          {/* Morphic Navbar + theme toggle */}
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setShowNearby(true)}
-              className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              <HugeiconsIcon icon={Wifi01Icon} size={16} />
-              Nearby Devices
-            </button>
+            <MorphicNavbar
+              items={[
+                {
+                  path: "/",
+                  name: "home",
+                  icon: <HomeIcon size={16} />,
+                },
+                {
+                  path: "/nearby",
+                  name: "nearby devices",
+                  icon: <WifiIcon size={16} />,
+                  onClick: () => setShowNearby(true),
+                },
+                {
+                  path: "/contact",
+                  name: "contact",
+                  icon: <SendIcon size={16} />,
+                },
+                {
+                  path: "/about",
+                  name: "about us",
+                  icon: <CircleHelpIcon size={16} />,
+                },
+                {
+                  path: "/privacy",
+                  name: "privacy",
+                  icon: <LockKeyholeIcon size={16} />,
+                },
+                {
+                  path: "/lang",
+                  name: "eng",
+                  icon: <LanguagesIcon size={16} />,
+                },
+              ]}
+            />
 
             {/* Theme toggle */}
             <button
@@ -281,10 +315,13 @@ export function LandingView({
               className="p-2 rounded-full bg-card/80 backdrop-blur border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               aria-label="Toggle theme"
             >
-              <HugeiconsIcon
-                icon={resolvedTheme === "dark" ? Sun02Icon : Moon02Icon}
-                size={16}
-              />
+              <span key={resolvedTheme} className="animate-theme-icon flex">
+                {resolvedTheme === "dark" ? (
+                  <SunIcon size={16} />
+                ) : (
+                  <MoonIcon size={16} />
+                )}
+              </span>
             </button>
           </div>
         </header>
@@ -348,6 +385,9 @@ export function LandingView({
 
             {/* Right: Hero text */}
             <div className="flex flex-col gap-6 lg:text-left text-center">
+              <p className="text-sm text-muted-foreground/60">
+                Hey, {displayName} 👋
+              </p>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1]">
                 Share files <span className="text-primary">directly</span> from
                 your device
@@ -459,11 +499,6 @@ export function LandingView({
             </div>
           </div>
         </section>
-
-        {/* Hey greeting (bottom subtle text) */}
-        <div className="text-center pb-6 text-xs text-muted-foreground/50 shrink-0">
-          Hey, {displayName} 👋
-        </div>
       </div>
 
       {/* Hidden inputs */}
