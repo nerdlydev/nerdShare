@@ -1,7 +1,5 @@
 import { useRef, useCallback, useState } from "react";
 import { useClientName } from "@/lib/use-client-name";
-import { NearbyView } from "@/components/NearbyView";
-import { MorphicNavbar } from "@/components/kokonutui/morphic-navbar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InfinityCircleIcon,
@@ -13,14 +11,6 @@ import {
   EarthIcon,
   Globe02Icon,
 } from "@hugeicons/core-free-icons";
-import { HomeIcon } from "@/components/ui/home";
-import { WifiIcon } from "@/components/ui/wifi";
-import { SendIcon } from "@/components/ui/send";
-import { LockKeyholeIcon } from "@/components/ui/lock-keyhole";
-import { LanguagesIcon } from "@/components/ui/languages";
-import { MoonIcon } from "@/components/ui/moon";
-import { SunIcon } from "@/components/ui/sun";
-import { CircleHelpIcon } from "@/components/ui/circle-help";
 import AnimatedFolder from "@/components/AnimatedFolder";
 import { PlusIcon } from "@/components/ui/plus-icon";
 import {
@@ -39,28 +29,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useViteTheme } from "@space-man/react-theme-animation";
 
 import { type NearbyPeer } from "@nerdshare/shared";
+import type { NavPage } from "@/components/AppShell";
 
 interface LandingViewProps {
-  userId: string;
   peers: NearbyPeer[];
   onFileSelected: (
     file: File,
     providedRoomId?: string,
     isNearbyTransfer?: boolean,
   ) => void;
+  onNavigate: (page: NavPage) => void;
 }
 
 export function LandingView({
-  userId,
-  peers,
+  peers: _peers,
   onFileSelected,
+  onNavigate,
 }: LandingViewProps) {
   const displayName = useClientName();
-  const { resolvedTheme, toggleTheme, ref } = useViteTheme();
-  const [showNearby, setShowNearby] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [zipProgress, setZipProgress] = useState<{
@@ -200,19 +188,6 @@ export function LandingView({
     { icon: SquareLock02Icon, label: "End-to-end encrypted" },
   ];
 
-  if (showNearby) {
-    return (
-      <NearbyView
-        userId={userId}
-        peers={peers}
-        onBack={() => setShowNearby(false)}
-        onConnect={(_, roomId, file) => {
-          onFileSelected(file, roomId, true);
-        }}
-      />
-    );
-  }
-
   return (
     <>
       {/* Firefox fallback: themed confirmation dialog */}
@@ -238,7 +213,7 @@ export function LandingView({
       </AlertDialog>
 
       {/* Full-page layout */}
-      <div className="min-h-screen flex flex-col bg-background relative">
+      <div className="min-h-[calc(100vh-49px)] flex flex-col bg-background relative overflow-x-hidden">
         {/* Masked grid + dot background */}
         <div
           className="absolute inset-0 z-0 pointer-events-none"
@@ -256,154 +231,119 @@ export function LandingView({
               "linear-gradient(to left, #000 0%, #000 50%, transparent 80%, transparent 100%)",
           }}
         />
-        {/* ── Top Navbar ── */}
-        <header className="w-full flex items-center justify-between px-6 sm:px-10 py-4 shrink-0">
-          {/* Logo / Brand */}
-          <div className="flex items-center gap-2.5">
-            <img
-              src="/logo-source.png"
-              alt="nerdShare"
-              className="w-7 h-7 object-contain"
-            />
-            <span className="font-semibold text-base tracking-tight text-foreground">
-              nerdShare
-            </span>
-          </div>
-
-          {/* Morphic Navbar + theme toggle */}
-          <div className="flex items-center gap-3">
-            <MorphicNavbar
-              items={[
-                {
-                  path: "/",
-                  name: "home",
-                  icon: <HomeIcon size={16} />,
-                },
-                {
-                  path: "/nearby",
-                  name: "nearby devices",
-                  icon: <WifiIcon size={16} />,
-                  onClick: () => setShowNearby(true),
-                },
-                {
-                  path: "/contact",
-                  name: "contact",
-                  icon: <SendIcon size={16} />,
-                },
-                {
-                  path: "/about",
-                  name: "about us",
-                  icon: <CircleHelpIcon size={16} />,
-                },
-                {
-                  path: "/privacy",
-                  name: "privacy",
-                  icon: <LockKeyholeIcon size={16} />,
-                },
-                {
-                  path: "/lang",
-                  name: "eng",
-                  icon: <LanguagesIcon size={16} />,
-                },
-              ]}
-            />
-
-            {/* Theme toggle */}
-            <button
-              ref={ref as React.RefObject<HTMLButtonElement>}
-              onClick={() => toggleTheme()}
-              className="p-2 rounded-full bg-card/80 backdrop-blur border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-              aria-label="Toggle theme"
-            >
-              <span key={resolvedTheme} className="animate-theme-icon flex">
-                {resolvedTheme === "dark" ? (
-                  <SunIcon size={16} />
-                ) : (
-                  <MoonIcon size={16} />
-                )}
-              </span>
-            </button>
-          </div>
-        </header>
 
         {/* ── Hero Section ── */}
-        <main className="flex-1 flex items-center pl-16 sm:pl-24 lg:pl-32 pr-6 sm:pr-10 pb-28">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-[400px_2fr_4fr] gap-0 items-center">
-            {/* Left: Drop zone */}
-            <div
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onClick={() => fileInputRef.current?.click()}
-              className={`
-                relative w-full border-2 border-dashed rounded-3xl
-                flex flex-col items-center justify-center gap-4 py-14 px-6
-                transition-all duration-200 bg-card/40 cursor-pointer h-[280px]
-                ${
-                  zipping
-                    ? "border-primary/50 cursor-wait"
-                    : isDragOver
-                      ? "border-primary bg-primary/10 animate-pulse-glow cursor-copy"
-                      : "border-border hover:border-primary/40 hover:bg-muted/10"
-                }
-              `}
-            >
-              {zipping ? (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm text-muted-foreground">
-                    {zipProgress && zipProgress.totalFiles > 0
-                      ? `Zipping… ${zipProgress.filesProcessed} / ${zipProgress.totalFiles} files`
-                      : "Preparing zip…"}
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                    <PlusIcon size={28} />
+        <main className="flex-1 flex items-center px-4 sm:px-8 lg:pl-32 lg:pr-10 py-8 lg:py-0 lg:pb-16">
+          <div className="w-full grid grid-cols-1 lg:grid-cols-[400px_2fr_4fr] gap-8 lg:gap-0 items-center">
+            {/* Left: Drop zone + upload buttons */}
+            <div className="flex flex-col gap-3 w-full max-w-md mx-auto lg:max-w-none lg:mx-0">
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onClick={() => fileInputRef.current?.click()}
+                className={`
+                  relative w-full border-2 border-dashed rounded-3xl
+                  flex flex-col items-center justify-center gap-4 py-10 px-6
+                  transition-all duration-200 bg-card/40 cursor-pointer
+                  h-[200px] sm:h-[240px] lg:h-[280px]
+                  ${
+                    zipping
+                      ? "border-primary/50 cursor-wait"
+                      : isDragOver
+                        ? "border-primary bg-primary/10 animate-pulse-glow cursor-copy"
+                        : "border-border hover:border-primary/40 hover:bg-muted/10"
+                  }
+                `}
+              >
+                {zipping ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-9 h-9 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <p className="text-sm text-muted-foreground">
+                      {zipProgress && zipProgress.totalFiles > 0
+                        ? `Zipping… ${zipProgress.filesProcessed} / ${zipProgress.totalFiles} files`
+                        : "Preparing zip…"}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-center max-w-[200px]">
-                    Click to browse or drag files here to start sharing
-                  </p>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                      <PlusIcon size={24} />
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed text-center max-w-[220px]">
+                      <span className="hidden sm:inline">
+                        Click to browse or drag files here to start sharing
+                      </span>
+                      <span className="sm:hidden">
+                        Drag & drop files here or tap to browse
+                      </span>
+                    </p>
 
-                  {/* Animated folder — bottom-right corner */}
-                  <div
-                    className="absolute bottom-3 right-3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleFolderClick();
-                    }}
-                  >
-                    <AnimatedFolder color="#3b93ad" size={0.65} />
-                  </div>
-                </>
-              )}
+                    {/* Animated folder — bottom-right corner */}
+                    <div
+                      className="absolute bottom-3 right-3"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFolderClick();
+                      }}
+                    >
+                      <AnimatedFolder color="#3b93ad" size={0.55} />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Upload buttons — visible on mobile & tablet, hidden on desktop where drag-drop is primary */}
+              <div className="flex gap-2 lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-border bg-card/60 hover:bg-muted/30 px-4 py-3 text-sm text-foreground font-medium transition-all"
+                >
+                  <PlusIcon size={15} />
+                  Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFolderClick();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-border bg-card/60 hover:bg-muted/30 px-4 py-3 text-sm text-foreground font-medium transition-all"
+                >
+                  <AnimatedFolder color="currentColor" size={0.38} />
+                  Upload Folder
+                </button>
+              </div>
             </div>
 
             {/* Middle spacer */}
             <div className="hidden lg:block" />
 
             {/* Right: Hero text */}
-            <div className="flex flex-col gap-6 lg:text-left text-center">
+            <div className="flex flex-col gap-5 text-center lg:text-left">
               <p className="text-sm text-muted-foreground/60">
                 Hey, {displayName} 👋
               </p>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1]">
+              <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold tracking-tight leading-[1.1]">
                 Share files <span className="text-primary">directly</span> from
                 your device
               </h1>
-              <p className="text-muted-foreground text-base sm:text-lg leading-relaxed max-w-md">
+              <p className="text-muted-foreground text-sm sm:text-base lg:text-lg leading-relaxed max-w-md mx-auto lg:mx-0">
                 Send files of any size peer-to-peer, without ever storing
                 anything online. Instant. Private. Free.
               </p>
 
               {/* Feature pills */}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
                 {features.map((f) => (
-                  <div key={f.label} className="flex items-center gap-2">
+                  <div
+                    key={f.label}
+                    className="flex items-center gap-2 justify-center lg:justify-start"
+                  >
                     <HugeiconsIcon
                       icon={f.icon}
-                      size={15}
+                      size={14}
                       className="text-primary shrink-0"
                     />
                     <span className="text-sm text-muted-foreground">
@@ -413,11 +353,11 @@ export function LandingView({
                 ))}
               </div>
 
-              {/* Mobile nearby button */}
+              {/* Nearby Devices button — hidden on desktop (in navbar) */}
               <button
                 type="button"
-                onClick={() => setShowNearby(true)}
-                className="sm:hidden self-center flex items-center gap-2 rounded-xl border border-border bg-primary/5 hover:bg-primary/10 px-5 py-3 text-sm text-primary transition-all font-medium"
+                onClick={() => onNavigate("nearby")}
+                className="lg:hidden self-center flex items-center gap-2 rounded-xl border border-border bg-primary/5 hover:bg-primary/10 px-5 py-3 text-sm text-primary transition-all font-medium"
               >
                 <HugeiconsIcon
                   icon={Wifi01Icon}
@@ -431,7 +371,7 @@ export function LandingView({
         </main>
 
         {/* ── Features / About Section ── */}
-        <section className="relative z-10 px-8 sm:px-16 lg:px-24 pt-4 pb-24">
+        <section className="relative z-10 px-4 sm:px-8 lg:px-24 pt-2 pb-12 lg:pb-24">
           {/* Section label */}
           <p className="text-xs font-semibold tracking-widest uppercase text-primary/70 mb-8">
             Why nerdShare?

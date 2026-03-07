@@ -3,9 +3,14 @@ import { WebRTCManager, type ConnectionState } from "@/lib/webrtc-manager";
 import { LandingView } from "@/components/LandingView";
 import { HostView } from "@/components/HostView";
 import { PeerView } from "@/components/PeerView";
+import { NearbyView } from "@/components/NearbyView";
 import { LogsContext } from "@/lib/logs-context";
 import { useNearbyPeers } from "@/lib/use-nearby-peers";
 import { useClientName } from "@/lib/use-client-name";
+import { AppShell, type NavPage } from "@/components/AppShell";
+import { AboutPage } from "@/components/pages/AboutPage";
+import { ContactPage } from "@/components/pages/ContactPage";
+import { PrivacyPage } from "@/components/pages/PrivacyPage";
 
 const SIGNALING_URL = "ws://localhost:8080";
 
@@ -25,6 +30,7 @@ export function App() {
   const [isNearby, setIsNearby] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [userId] = useState(() => generateId());
+  const [navPage, setNavPage] = useState<NavPage>("home");
 
   const displayName = useClientName();
   const deviceType = useMemo(() => {
@@ -61,6 +67,7 @@ export function App() {
     setSelectedFile(null);
     setConnectionState("idle");
     setLogs([]);
+    setNavPage("home");
     window.history.pushState(null, "", "/");
   }, [cleanup]);
 
@@ -74,9 +81,6 @@ export function App() {
       setSelectedFile(file);
       setRole("host");
       setLogs([]);
-
-      // Update URL to show the room but NOT /r/ (that's for receivers)
-      // The host stays on / with state
 
       const mgr = new WebRTCManager({
         signalingUrl: SIGNALING_URL,
@@ -155,7 +159,6 @@ export function App() {
   const handleIncomingNearby = useCallback(
     (msg: any) => {
       const { fromUserId, displayName, roomId } = msg;
-
       console.log(
         `[nearby] Incoming connection from ${displayName || "Unknown"} (${fromUserId}) to room ${roomId}`,
       );
@@ -169,46 +172,75 @@ export function App() {
     userId,
     displayName,
     deviceType,
-    enabled: role === null, // Only announce and search when sitting on the Landing Page
+    enabled: role === null,
     onIncomingRequest: handleIncomingNearby,
   });
 
-  // ── Route ──
-  if (!role) {
+  // ── Render page content ──
+  const renderContent = () => {
+    // During an active transfer, show the transfer view
+    if (role === "host" && selectedFile) {
+      const shareUrl = `${window.location.origin}/r/${roomId}`;
+      return (
+        <LogsContext.Provider value={logs}>
+          <HostView
+            file={selectedFile}
+            shareUrl={shareUrl}
+            isNearby={isNearby}
+            connectionState={connectionState}
+            dc={dc}
+            onLeave={leave}
+          />
+        </LogsContext.Provider>
+      );
+    }
+
+    if (role === "peer") {
+      return (
+        <LogsContext.Provider value={logs}>
+          <PeerView
+            connectionState={connectionState}
+            dc={dc}
+            addLog={addLog}
+            onLeave={leave}
+          />
+        </LogsContext.Provider>
+      );
+    }
+
+    // Nav-page routing (only when idle)
+    if (navPage === "nearby") {
+      return (
+        <NearbyView
+          userId={userId}
+          peers={peers}
+          onBack={() => setNavPage("home")}
+          onConnect={(_, roomId, file) => {
+            handleFileSelected(file, roomId, true);
+          }}
+        />
+      );
+    }
+    if (navPage === "about") return <AboutPage />;
+    if (navPage === "contact") return <ContactPage />;
+    if (navPage === "privacy") return <PrivacyPage />;
+
     return (
       <LandingView
-        userId={userId}
         peers={peers}
         onFileSelected={handleFileSelected}
+        onNavigate={setNavPage}
       />
     );
-  }
+  };
 
-  if (role === "host" && selectedFile) {
-    const shareUrl = `${window.location.origin}/r/${roomId}`;
-    return (
-      <LogsContext.Provider value={logs}>
-        <HostView
-          file={selectedFile}
-          shareUrl={shareUrl}
-          isNearby={isNearby}
-          connectionState={connectionState}
-          dc={dc}
-          onLeave={leave}
-        />
-      </LogsContext.Provider>
-    );
-  }
+  // Derive the active nav page for the shell
+  const activeNavPage: NavPage = role !== null ? navPage : navPage;
 
   return (
-    <LogsContext.Provider value={logs}>
-      <PeerView
-        connectionState={connectionState}
-        dc={dc}
-        addLog={addLog}
-        onLeave={leave}
-      />
-    </LogsContext.Provider>
+    <AppShell activePage={activeNavPage} onNavigate={setNavPage}>
+      {renderContent()}
+    </AppShell>
   );
 }
 
