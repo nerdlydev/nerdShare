@@ -280,7 +280,7 @@ export function LandingView({
                     </p>
 
                     {/* Animated folder — bottom-right corner */}
-                    <div
+                    {/* <div
                       className="absolute bottom-3 right-3"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -288,7 +288,7 @@ export function LandingView({
                       }}
                     >
                       <AnimatedFolder color="#3b93ad" size={0.55} />
-                    </div>
+                    </div> */}
                   </>
                 )}
               </div>
@@ -303,7 +303,7 @@ export function LandingView({
                   <PlusIcon size={15} />
                   Upload File
                 </button>
-                <button
+                {/* <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -313,7 +313,7 @@ export function LandingView({
                 >
                   <AnimatedFolder color="currentColor" size={0.38} />
                   Upload Folder
-                </button>
+                </button> */}
               </div>
             </div>
 

@@ -96,7 +96,7 @@ export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* ── Fixed top header ── */}
-      <header className="fixed top-0 inset-x-0 z-50 w-full flex items-center justify-between px-4 sm:px-6 py-1.5 bg-transparent backdrop-blur-xl">
+      <header className="fixed top-0 inset-x-0 z-50 w-full flex items-center justify-between px-4 sm:px-6 py-1.5 bg-transparent backdrop-blur-xl border-b border-border/10">
         {/* LEFT: Logo (always) + hamburger on mobile/tablet */}
         <div className="flex items-center gap-3">
           {/* Hamburger — mobile & tablet only */}
