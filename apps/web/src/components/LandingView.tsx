@@ -7,6 +7,7 @@ import {
   ShieldKeyIcon,
   EarthIcon,
   Globe02Icon,
+  FlashIcon,
 } from "@hugeicons/core-free-icons";
 import { motion } from "framer-motion";
 import { PlusIcon } from "@/components/ui/plus-icon";
@@ -220,12 +221,12 @@ export function LandingView({
         />
 
         {/* ── Hero Section ── */}
-        <section className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-20 pb-12 relative z-10">
+        <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-12 pb-12 relative z-10">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
-            className="w-full max-w-4xl mx-auto flex flex-col items-center text-center gap-6"
+            className="w-full max-w-7xl mx-auto flex flex-col items-center text-center gap-12 sm:gap-16"
           >
             <motion.p
               variants={fadeInUp}
@@ -233,73 +234,126 @@ export function LandingView({
             >
               Hey, {displayName} 👋
             </motion.p>
-            <motion.h1
-              variants={fadeInUp}
-              className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] sm:leading-[1.05] mt-4 text-balance"
-            >
-              Share files <span className="text-primary">directly</span> from
-              your device.
-            </motion.h1>
-            <motion.p
-              variants={fadeInUp}
-              className="text-muted-foreground text-lg sm:text-xl lg:text-2xl leading-relaxed max-w-2xl mt-2 text-balance"
-            >
-              Send files of any size peer-to-peer, without ever storing anything
-              online. Instant. Private. Free.
-            </motion.p>
 
-            {/* Drop Zone positioned prominently below the text */}
-            <motion.div
-              variants={fadeInUp}
-              className="w-full max-w-2xl mt-12 sm:mt-16 relative"
-            >
-              {/* Decorative glow behind dropzone */}
-              <div className="absolute inset-0 bg-primary/20 blur-[80px] rounded-[3rem] pointer-events-none -translate-y-4" />
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-                className={`
-                    relative w-full border-2 border-dashed rounded-[2.5rem]
-                    flex flex-col items-center justify-center gap-5 py-16 px-6
-                    transition-all duration-300 bg-card/60 backdrop-blur-md cursor-pointer shadow-sm hover:shadow-md
-                    h-[280px] sm:h-[320px] group
-                    ${
-                      zipping
-                        ? "border-primary/50 cursor-wait"
-                        : isDragOver
-                          ? "border-primary bg-primary/10 animate-pulse-glow cursor-copy scale-[1.02]"
-                          : "border-border hover:border-primary/50 hover:bg-card/80"
-                    }
-                  `}
-              >
-                {zipping ? (
-                  <div className="flex flex-col items-center gap-5">
-                    <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="text-base text-muted-foreground font-medium">
-                      {zipProgress && zipProgress.totalFiles > 0
-                        ? `Zipping… ${zipProgress.filesProcessed} / ${zipProgress.totalFiles} files`
-                        : "Preparing zip…"}
-                    </p>
+            <div className="w-full grid grid-cols-1 lg:grid-cols-12 items-center gap-12 lg:gap-x-12">
+              {/* Left Margin */}
+              <div className="hidden lg:block lg:col-span-1 lg:order-1" />
+
+              {/* Hero text (Top on mobile, Right on desktop) */}
+              <div className="w-full lg:col-span-5 flex flex-col items-center lg:items-start justify-center text-center lg:text-left gap-6 order-1 lg:order-3 lg:h-[320px]">
+                <motion.h1
+                  variants={fadeInUp}
+                  className="text-3xl sm:text-5xl lg:text-[2.6rem] font-bold tracking-tight leading-[1.1] sm:leading-[1.05]"
+                >
+                  Share files <span className="text-primary">directly</span> from
+                  <br className="hidden lg:block" /> your device{" "}
+                  <span className="text-primary">to anywhere</span>.
+                </motion.h1>
+                <motion.p
+                  variants={fadeInUp}
+                  className="text-muted-foreground text-base sm:text-lg lg:text-lg leading-relaxed max-w-2xl text-balance"
+                >
+                  Send files of any size directly from your device without ever
+                  storing anything online.
+                </motion.p>
+
+                <motion.div
+                  variants={fadeInUp}
+                  className="grid grid-cols-2 gap-x-8 gap-y-4 mt-2"
+                >
+                  <div className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+                    <HugeiconsIcon
+                      icon={InfinityCircleIcon}
+                      size={18}
+                      className="text-primary"
+                    />
+                    <span className="text-sm font-medium">
+                      No file size limit
+                    </span>
                   </div>
-                ) : (
-                  <>
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all shadow-sm">
-                      <PlusIcon size={32} />
-                    </div>
-                    <div className="text-center space-y-1">
-                      <p className="text-lg font-medium text-foreground">
-                        Click to browse or drag & drop files
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Any file. Any size.
-                      </p>
-                    </div>
-                  </>
-                )}
+                  <div className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+                    <HugeiconsIcon
+                      icon={FlashIcon}
+                      size={18}
+                      className="text-primary"
+                    />
+                    <span className="text-sm font-medium">Blazingly fast</span>
+                  </div>
+                  <div className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+                    <HugeiconsIcon
+                      icon={Wifi01Icon}
+                      size={18}
+                      className="text-primary"
+                    />
+                    <span className="text-sm font-medium">Peer-to-peer</span>
+                  </div>
+                  <div className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+                    <HugeiconsIcon
+                      icon={ShieldKeyIcon}
+                      size={18}
+                      className="text-primary"
+                    />
+                    <span className="text-sm font-medium">
+                      End-to-end encrypted
+                    </span>
+                  </div>
+                </motion.div>
               </div>
-            </motion.div>
+
+              {/* Drop Zone (Bottom on mobile, Left on desktop) */}
+              <motion.div
+                variants={fadeInUp}
+                className="w-full lg:col-span-5 relative order-2 lg:order-2"
+              >
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`
+                      relative w-full border-2 border-dashed rounded-[2.5rem]
+                      flex flex-col items-center justify-center gap-5 py-16 px-6
+                      transition-all duration-300 bg-card/60 backdrop-blur-md cursor-pointer shadow-sm hover:shadow-md
+                      h-[280px] sm:h-[320px] group
+                      ${
+                        zipping
+                          ? "border-primary/50 cursor-wait"
+                          : isDragOver
+                            ? "border-primary bg-primary/10 cursor-copy scale-[1.02]"
+                            : "border-border hover:border-primary/50 hover:bg-card/80"
+                      }
+                    `}
+                >
+                  {zipping ? (
+                    <div className="flex flex-col items-center gap-5">
+                      <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+                      <p className="text-base text-muted-foreground font-medium">
+                        {zipProgress && zipProgress.totalFiles > 0
+                          ? `Zipping… ${zipProgress.filesProcessed} / ${zipProgress.totalFiles} files`
+                          : "Preparing zip…"}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all shadow-sm">
+                        <PlusIcon size={32} />
+                      </div>
+                      <div className="text-center space-y-1">
+                        <p className="text-lg font-medium text-foreground">
+                          Click to browse or drag & drop files
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Any file. Any size.
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Right Margin */}
+              <div className="hidden lg:block lg:col-span-1 lg:order-4" />
+            </div>
 
             {/* Nearby Devices button (moved below hero for flow) */}
             <motion.div variants={fadeInUp} className="mt-8">
