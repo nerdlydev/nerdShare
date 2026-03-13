@@ -133,7 +133,22 @@ export function LandingView({
   );
 
   // ── Folder picker — modern path (Chrome/Edge) ──
-  // Removed unused click handler in favor of drag-and-drop
+  const handleFolderClick = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent triggering the main file picker
+    try {
+      if ("showDirectoryPicker" in window) {
+        // @ts-expect-error - TS doesn't know about showDirectoryPicker yet
+        const dirHandle = await window.showDirectoryPicker();
+        await runZip(dirHandle);
+      } else {
+        folderInputRef.current?.click();
+      }
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        console.error("Failed to pick folder:", err);
+      }
+    }
+  }, [runZip]);
 
   // ── Folder picker — Firefox fallback ──
 
@@ -228,27 +243,26 @@ export function LandingView({
             variants={staggerContainer}
             className="w-full max-w-7xl mx-auto flex flex-col items-center text-center gap-12 sm:gap-16"
           >
-            <motion.p
-              variants={fadeInUp}
-              className="text-sm font-medium text-primary tracking-wide uppercase bg-primary/10 px-4 py-1.5 rounded-full inline-flex items-center gap-2"
-            >
-              Hey, {displayName} 👋
-            </motion.p>
+            <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-x-24 items-start">
+              {/* Greeting (top-left) */}
+              <motion.h1
+                variants={fadeInUp}
+                className="lg:col-span-12 text-left text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] lg:-ml-8 xl:-ml-16 lg:-mt-32 xl:-mt-40"
+              >
+                Hey, 👋 {displayName}
+              </motion.h1>
 
-            <div className="w-full grid grid-cols-1 lg:grid-cols-12 items-center gap-12 lg:gap-x-12">
-              {/* Left Margin */}
-              <div className="hidden lg:block lg:col-span-1 lg:order-1" />
-
-              {/* Hero text (Top on mobile, Right on desktop) */}
-              <div className="w-full lg:col-span-5 flex flex-col items-center lg:items-start justify-center text-center lg:text-left gap-6 order-1 lg:order-3 lg:h-[320px]">
-                <motion.h1
+              {/* Hero text (below greeting on mobile, right of dropzone on desktop) */}
+              <div className="flex flex-col items-start text-left gap-6 lg:col-span-6 lg:col-start-6 lg:row-start-2 lg:ml-8 xl:ml-16 lg:-mt-12 xl:-mt-16">
+                <motion.h2
                   variants={fadeInUp}
                   className="text-3xl sm:text-5xl lg:text-[2.6rem] font-bold tracking-tight leading-[1.1] sm:leading-[1.05]"
                 >
-                  Share files <span className="text-primary">directly</span> from
+                  Share files <span className="text-primary">directly</span>{" "}
+                  from
                   <br className="hidden lg:block" /> your device{" "}
                   <span className="text-primary">to anywhere</span>.
-                </motion.h1>
+                </motion.h2>
                 <motion.p
                   variants={fadeInUp}
                   className="text-muted-foreground text-base sm:text-lg lg:text-lg leading-relaxed max-w-2xl text-balance"
@@ -259,7 +273,7 @@ export function LandingView({
 
                 <motion.div
                   variants={fadeInUp}
-                  className="grid grid-cols-2 gap-x-8 gap-y-4 mt-2"
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mt-2"
                 >
                   <div className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
                     <HugeiconsIcon
@@ -300,10 +314,10 @@ export function LandingView({
                 </motion.div>
               </div>
 
-              {/* Drop Zone (Bottom on mobile, Left on desktop) */}
+              {/* Dropzone (desktop) */}
               <motion.div
                 variants={fadeInUp}
-                className="w-full lg:col-span-5 relative order-2 lg:order-2"
+                className="hidden lg:block w-full relative lg:col-span-4 lg:col-start-1 lg:row-start-2 lg:-ml-8 xl:-ml-16 lg:-mt-12 xl:-mt-20"
               >
                 <div
                   onDrop={handleDrop}
@@ -314,7 +328,7 @@ export function LandingView({
                       relative w-full border-2 border-dashed rounded-[2.5rem]
                       flex flex-col items-center justify-center gap-5 py-16 px-6
                       transition-all duration-300 bg-card/60 backdrop-blur-md cursor-pointer shadow-sm hover:shadow-md
-                      h-[280px] sm:h-[320px] group
+                      h-70 sm:h-80 group
                       ${
                         zipping
                           ? "border-primary/50 cursor-wait"
@@ -342,7 +356,17 @@ export function LandingView({
                         <p className="text-lg font-medium text-foreground">
                           Click to browse or drag & drop files
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-base text-muted-foreground mt-1">
+                          or{" "}
+                          <span
+                            onClick={handleFolderClick}
+                            className="text-primary hover:underline cursor-pointer font-medium relative top-[-1px]"
+                          >
+                            click here
+                          </span>{" "}
+                          to select a folder
+                        </p>
+                        <p className="text-sm text-muted-foreground/70 pt-2 font-medium">
                           Any file. Any size.
                         </p>
                       </div>
@@ -351,8 +375,23 @@ export function LandingView({
                 </div>
               </motion.div>
 
-              {/* Right Margin */}
-              <div className="hidden lg:block lg:col-span-1 lg:order-4" />
+              {/* File selector button (mobile) */}
+              <motion.div
+                variants={fadeInUp}
+                className="lg:hidden w-full relative"
+              >
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-2 rounded-[2.5rem] border border-border bg-card/60 py-4 px-6 text-lg font-medium text-foreground hover:bg-card/80 transition"
+                >
+                  <PlusIcon size={22} className="text-primary" />
+                  Select files
+                </button>
+                <p className="mt-3 text-sm text-muted-foreground text-center">
+                  Or drag & drop files from your device.
+                </p>
+              </motion.div>
             </div>
 
             {/* Nearby Devices button (moved below hero for flow) */}
@@ -483,7 +522,7 @@ export function LandingView({
         </section>
 
         {/* ── Feature: No Limits & Security ── */}
-        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10 border-y border-border/40 bg-card/10">
+        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10 bg-card/10">
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, x: -20 }}
