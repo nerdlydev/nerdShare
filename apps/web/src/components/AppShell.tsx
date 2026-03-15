@@ -1,15 +1,16 @@
-import { useState } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Menu01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
-import { MorphicNavbar } from "@/components/kokonutui/morphic-navbar";
+import React, { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+
 import { HomeIcon } from "@/components/ui/home";
 import { WifiIcon } from "@/components/ui/wifi";
 import { SendIcon } from "@/components/ui/send";
 import { LockKeyholeIcon } from "@/components/ui/lock-keyhole";
 import { LanguagesIcon } from "@/components/ui/languages";
+import { GithubIcon } from "@/components/ui/github";
 import { MoonIcon } from "@/components/ui/moon";
 import { SunIcon } from "@/components/ui/sun";
 import { CircleHelpIcon } from "@/components/ui/circle-help";
+import { MenuIcon, type MenuIconHandle } from "@/components/ui/menu";
 import { useViteTheme } from "@space-man/react-theme-animation";
 
 export type NavPage = "home" | "nearby" | "about" | "contact" | "privacy";
@@ -24,221 +25,253 @@ const NAV_ITEMS: {
   path: string;
   page: NavPage | "lang";
   name: string;
-  icon: React.ReactNode;
+  icon: any;
 }[] = [
-  { path: "/", page: "home", name: "home", icon: <HomeIcon size={16} /> },
-  {
-    path: "/nearby",
-    page: "nearby",
-    name: "nearby devices",
-    icon: <WifiIcon size={16} />,
-  },
-  {
-    path: "/contact",
-    page: "contact",
-    name: "contact",
-    icon: <SendIcon size={16} />,
-  },
-  {
-    path: "/about",
-    page: "about",
-    name: "about us",
-    icon: <CircleHelpIcon size={16} />,
-  },
-  {
-    path: "/privacy",
-    page: "privacy",
-    name: "privacy",
-    icon: <LockKeyholeIcon size={16} />,
-  },
-  {
-    path: "/lang",
-    page: "lang",
-    name: "eng",
-    icon: <LanguagesIcon size={16} />,
-  },
+  { path: "/", page: "home", name: "home", icon: HomeIcon },
+  { path: "/nearby", page: "nearby", name: "nearby devices", icon: WifiIcon },
+  { path: "/contact", page: "contact", name: "contact", icon: SendIcon },
+  { path: "/about", page: "about", name: "about us", icon: CircleHelpIcon },
+  { path: "/privacy", page: "privacy", name: "privacy", icon: LockKeyholeIcon },
+  { path: "/lang", page: "lang", name: "eng", icon: LanguagesIcon },
 ];
+
+function DesktopNavItem({ item, isActive, onClick, layoutId }: any) {
+  const iconRef = useRef<any>(null);
+  const Icon = item.icon;
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => iconRef.current?.startAnimation?.()}
+      onMouseLeave={() => iconRef.current?.stopAnimation?.()}
+      className={`
+        relative group px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md
+        ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}
+      `}
+    >
+      {isActive && (
+        <motion.div
+          layoutId={layoutId}
+          className="absolute inset-0 bg-background shadow-sm rounded-md z-0"
+          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+        />
+      )}
+      <span className="relative z-10 flex items-center gap-2">
+        <span className="opacity-70 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <Icon ref={iconRef} size={16} />
+        </span>
+        <span className="capitalize">{item.name}</span>
+      </span>
+    </button>
+  );
+}
+
+function MobileNavItem({ item, isActive, onClick }: any) {
+  const iconRef = useRef<any>(null);
+  const Icon = item.icon;
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => iconRef.current?.startAnimation?.()}
+      onMouseLeave={() => iconRef.current?.stopAnimation?.()}
+      className={`
+        group px-4 py-3 mx-1 mt-1 text-sm transition-colors text-left flex items-center justify-between rounded-lg
+        ${isActive ? "text-primary font-medium bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/70"}
+      `}
+    >
+      <div className="flex items-center gap-3">
+        <span className={`shrink-0 flex transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
+          <Icon ref={iconRef} size={16} />
+        </span>
+        <span className="capitalize">{item.name}</span>
+      </div>
+    </button>
+  );
+}
+
+function DesktopGithubAction() {
+  const iconRef = useRef<any>(null);
+  return (
+    <a
+      href="https://github.com/devesh008/nerdShare"
+      target="_blank"
+      rel="noreferrer"
+      onMouseEnter={() => iconRef.current?.startAnimation?.()}
+      onMouseLeave={() => iconRef.current?.stopAnimation?.()}
+      className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-muted-foreground transition-colors group"
+      aria-label="GitHub Repository"
+    >
+      <GithubIcon ref={iconRef} size={14} />
+    </a>
+  );
+}
+
+function MobileGithubItem({ onClick }: any) {
+  const iconRef = useRef<any>(null);
+  return (
+    <a
+      href="https://github.com/devesh008/nerdShare"
+      target="_blank"
+      rel="noreferrer"
+      onMouseEnter={() => iconRef.current?.startAnimation?.()}
+      onMouseLeave={() => iconRef.current?.stopAnimation?.()}
+      className="group px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center justify-between"
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-3">
+        <span className="shrink-0 flex transition-opacity opacity-70 group-hover:opacity-100">
+          <GithubIcon ref={iconRef} size={16} />
+        </span>
+        <span>GitHub Repo</span>
+      </div>
+    </a>
+  );
+}
 
 export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
   const { resolvedTheme, toggleTheme, ref } = useViteTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const menuIconRef = useRef<MenuIconHandle>(null);
 
-  const pageToPath: Record<NavPage, string> = {
-    home: "/",
-    nearby: "/nearby",
-    contact: "/contact",
-    about: "/about",
-    privacy: "/privacy",
-  };
+  useEffect(() => {
+    if (sidebarOpen) {
+      menuIconRef.current?.startAnimation();
+    } else {
+      menuIconRef.current?.stopAnimation();
+    }
+  }, [sidebarOpen]);
 
   const handleNavigate = (page: NavPage) => {
     onNavigate(page);
     setSidebarOpen(false);
   };
 
-  const ThemeButton = () => (
-    <button
-      ref={ref as React.RefObject<HTMLButtonElement>}
-      onClick={() => toggleTheme()}
-      className="p-2 rounded-full bg-card/80 backdrop-blur border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer shrink-0"
-      aria-label="Toggle theme"
-    >
-      <span key={resolvedTheme} className="animate-theme-icon flex">
-        {resolvedTheme === "dark" ? (
-          <SunIcon size={16} />
-        ) : (
-          <MoonIcon size={16} />
-        )}
-      </span>
-    </button>
-  );
-
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* ── Fixed top header ── */}
-      <header className="fixed top-0 inset-x-0 z-50 w-full flex items-center justify-between px-4 sm:px-6 py-1.5 bg-transparent backdrop-blur-xl border-b border-border/10">
-        {/* LEFT: Logo (always) + hamburger on mobile/tablet */}
-        <div className="flex items-center gap-3">
-          {/* Hamburger — mobile & tablet only */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors cursor-pointer"
-            aria-label="Open menu"
-          >
-            <HugeiconsIcon icon={Menu01Icon} size={20} />
-          </button>
-
-          {/* Logo */}
-          <button
-            onClick={() => handleNavigate("home")}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <img
-              src="/logo-source.png"
-              alt="nerdShare"
-              className="w-7 h-7 object-contain"
-            />
-            <span className="font-semibold text-base tracking-tight text-foreground">
-              nerdShare
-            </span>
-          </button>
-        </div>
-
-        {/* RIGHT: MorphicNavbar (desktop) + theme toggle */}
-        <div className="flex items-center gap-2">
-          {/* MorphicNavbar — desktop only */}
-          <div className="hidden lg:flex items-center">
-            <MorphicNavbar
-              activePath={pageToPath[activePage]}
-              items={NAV_ITEMS.map((item) => ({
-                path: item.path,
-                name: item.name,
-                icon: item.icon,
-                onClick:
-                  item.page !== "lang"
-                    ? () => handleNavigate(item.page as NavPage)
-                    : undefined,
-              }))}
-            />
+    <div className="min-h-screen flex flex-col bg-background relative">
+      {/* ── Fixed top header (Floating Pill Style) ── */}
+      <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+        <header className="w-full max-w-6xl bg-background/80 backdrop-blur-xl border-2 border-dashed border-border rounded-full pointer-events-auto">
+          <div className="flex items-center justify-between h-14 px-4 sm:px-6">
+          {/* LEFT: Logo */}
+          <div className="flex items-center gap-3 lg:w-[220px]">
+            <button
+              onClick={() => handleNavigate("home")}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <img
+                src="/logo-source.png"
+                alt="nerdShare"
+                className="w-6 h-6 object-contain"
+              />
+              <span className="hidden sm:inline-block font-semibold text-[15px] tracking-tight text-foreground">
+                nerdShare
+              </span>
+            </button>
           </div>
 
-          <ThemeButton />
-        </div>
-      </header>
+          {/* CENTER: Nav (Desktop) inside light gray rounded pill */}
+          <div className="hidden lg:flex flex-1 justify-center">
+            <div className="flex items-center rounded-lg bg-muted/60 p-1 border border-border/50">
+              {NAV_ITEMS.map((item) => {
+                if (item.page === "lang") return null;
+                const isActive = activePage === item.page;
+                return (
+                  <DesktopNavItem
+                    key={item.path}
+                    item={item}
+                    isActive={isActive}
+                    onClick={() => handleNavigate(item.page as NavPage)}
+                    layoutId="nav-pill"
+                  />
+                );
+              })}
+            </div>
+          </div>
 
-      {/* ── Sidebar overlay — mobile & tablet ── */}
-      {/* Dim backdrop */}
-      <div
-        className={`
-          fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden
-          ${sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
-        `}
-        onClick={() => setSidebarOpen(false)}
-        aria-hidden="true"
-      />
+          {/* RIGHT: Actions */}
+          <div className="flex items-center justify-end gap-2 lg:w-[220px]">
+            {/* Desktop Actions */}
+            <div className="hidden sm:flex items-center gap-2">
+              <DesktopGithubAction />
 
-      {/* Sidebar panel */}
-      <aside
-        className={`
-          fixed top-0 left-0 z-50 h-full w-[80vw] max-w-[320px] bg-background/95 backdrop-blur-xl
-          border-r border-border/40 flex flex-col
-          transition-transform duration-300 ease-out lg:hidden
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-        `}
-      >
-        {/* Sidebar header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
-          <button
-            onClick={() => handleNavigate("home")}
-            className="flex items-center gap-2"
-          >
-            <img
-              src="/logo-source.png"
-              alt="nerdShare"
-              className="w-6 h-6 object-contain"
-            />
-            <span className="font-semibold text-sm tracking-tight text-foreground">
-              nerdShare
-            </span>
-          </button>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
-            aria-label="Close menu"
-          >
-            <HugeiconsIcon icon={Cancel01Icon} size={18} />
-          </button>
-        </div>
-
-        {/* Sidebar nav items */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
-            const isActive = item.page !== "lang" && activePage === item.page;
-            return (
               <button
-                key={item.path}
-                onClick={() => {
-                  if (item.page !== "lang")
-                    handleNavigate(item.page as NavPage);
-                  else setSidebarOpen(false);
-                }}
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
-                  transition-all duration-150 text-left w-full
-                  ${
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                  }
-                `}
+                ref={ref as React.RefObject<HTMLButtonElement>}
+                onClick={() => toggleTheme()}
+                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-muted-foreground transition-colors"
+                aria-label="Toggle theme"
               >
-                <span className="shrink-0">{item.icon}</span>
-                <span className="capitalize">{item.name}</span>
+                <span key={resolvedTheme} className="animate-theme-icon flex">
+                  {resolvedTheme === "dark" ? (
+                    <SunIcon size={14} />
+                  ) : (
+                    <MoonIcon size={14} />
+                  )}
+                </span>
               </button>
-            );
-          })}
-        </nav>
 
-        {/* Sidebar footer — theme toggle */}
-        <div className="px-4 py-4 border-t border-border/30">
-          <button
-            onClick={() => toggleTheme()}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors w-full"
-          >
-            <span
-              key={resolvedTheme}
-              className="animate-theme-icon flex shrink-0"
-            >
-              {resolvedTheme === "dark" ? (
-                <SunIcon size={16} />
-              ) : (
-                <MoonIcon size={16} />
+              <button
+                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-muted-foreground transition-colors"
+                aria-label="Language"
+              >
+                <LanguagesIcon size={14} />
+              </button>
+            </div>
+
+
+
+            {/* Hamburger (Mobile/Tablet) */}
+            <div className="lg:hidden relative">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-foreground transition-colors relative z-50"
+                aria-label="Toggle menu"
+                aria-expanded={sidebarOpen}
+              >
+                <MenuIcon ref={menuIconRef} size={20} />
+              </button>
+
+              {sidebarOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40 bg-transparent"
+                    onClick={() => setSidebarOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div className="absolute top-[calc(100%+0.5rem)] right-0 z-50 w-52 py-2 bg-background border border-border rounded-2xl shadow-xl flex flex-col">
+                     {NAV_ITEMS.map((item) => {
+                      if (item.page === "lang") return null;
+                      const isActive = activePage === item.page;
+                      return (
+                        <MobileNavItem
+                          key={item.path}
+                          item={item}
+                          isActive={isActive}
+                          onClick={() => handleNavigate(item.page as NavPage)}
+                        />
+                      );
+                    })}
+                    
+                    <div className="h-px bg-border/40 mx-3 my-2" />
+
+                    <MobileGithubItem onClick={() => setSidebarOpen(false)} />
+                    
+                    <button
+                      onClick={() => {
+                        toggleTheme();
+                        setSidebarOpen(false);
+                      }}
+                      className="px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center justify-between"
+                    >
+                      <span>{resolvedTheme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                      {resolvedTheme === "dark" ? <SunIcon size={14} /> : <MoonIcon size={14} />}
+                    </button>
+                  </div>
+                </>
               )}
-            </span>
-            <span>{resolvedTheme === "dark" ? "Light mode" : "Dark mode"}</span>
-          </button>
-        </div>
-      </aside>
+            </div>
+          </div>
+          </div>
+        </header>
+      </div>
 
       {/* Page content */}
       <main className="flex-1 pt-[49px]">{children}</main>

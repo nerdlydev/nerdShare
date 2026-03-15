@@ -133,22 +133,25 @@ export function LandingView({
   );
 
   // ── Folder picker — modern path (Chrome/Edge) ──
-  const handleFolderClick = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation(); // prevent triggering the main file picker
-    try {
-      if ("showDirectoryPicker" in window) {
-        // @ts-expect-error - TS doesn't know about showDirectoryPicker yet
-        const dirHandle = await window.showDirectoryPicker();
-        await runZip(dirHandle);
-      } else {
-        folderInputRef.current?.click();
+  const handleFolderClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation(); // prevent triggering the main file picker
+      try {
+        if ("showDirectoryPicker" in window) {
+          // @ts-expect-error - TS doesn't know about showDirectoryPicker yet
+          const dirHandle = await window.showDirectoryPicker();
+          await runZip(dirHandle);
+        } else {
+          folderInputRef.current?.click();
+        }
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          console.error("Failed to pick folder:", err);
+        }
       }
-    } catch (err) {
-      if ((err as Error).name !== "AbortError") {
-        console.error("Failed to pick folder:", err);
-      }
-    }
-  }, [runZip]);
+    },
+    [runZip],
+  );
 
   // ── Folder picker — Firefox fallback ──
 
@@ -247,13 +250,13 @@ export function LandingView({
               {/* Greeting (top-left) */}
               <motion.h1
                 variants={fadeInUp}
-                className="lg:col-span-12 text-left text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] lg:-ml-8 xl:-ml-16 lg:-mt-32 xl:-mt-40"
+                className="lg:col-span-12 text-center text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] w-full lg:-mt-32 xl:-mt-24"
               >
                 Hey, 👋 {displayName}
               </motion.h1>
 
               {/* Hero text (below greeting on mobile, right of dropzone on desktop) */}
-              <div className="flex flex-col items-start text-left gap-6 lg:col-span-6 lg:col-start-6 lg:row-start-2 lg:ml-8 xl:ml-16 lg:-mt-12 xl:-mt-16">
+              <div className="flex flex-col items-start text-left gap-6 lg:col-span-6 lg:col-start-6 lg:row-start-2 lg:ml-8 xl:ml-16 lg:mt-8 xl:mt-12">
                 <motion.h2
                   variants={fadeInUp}
                   className="text-3xl sm:text-5xl lg:text-[2.6rem] font-bold tracking-tight leading-[1.1] sm:leading-[1.05]"
@@ -317,7 +320,7 @@ export function LandingView({
               {/* Dropzone (desktop) */}
               <motion.div
                 variants={fadeInUp}
-                className="hidden lg:block w-full relative lg:col-span-4 lg:col-start-1 lg:row-start-2 lg:-ml-8 xl:-ml-16 lg:-mt-12 xl:-mt-20"
+                className="hidden lg:block w-full relative lg:col-span-4 lg:col-start-1 lg:row-start-2 lg:-ml-8 xl:-ml-16 lg:mt-8 xl:mt-12"
               >
                 <div
                   onDrop={handleDrop}
@@ -383,23 +386,30 @@ export function LandingView({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 rounded-[2.5rem] border border-border bg-card/60 py-4 px-6 text-lg font-medium text-foreground hover:bg-card/80 transition"
+                  className="w-full flex items-center justify-center gap-2 rounded-full border-2 border-dashed border-border bg-background hover:bg-muted/50 py-4 px-6 text-lg font-medium text-foreground transition-all"
                 >
                   <PlusIcon size={22} className="text-primary" />
                   Select files
                 </button>
                 <p className="mt-3 text-sm text-muted-foreground text-center">
-                  Or drag & drop files from your device.
+                  or{" "}
+                  <span
+                    onClick={handleFolderClick}
+                    className="text-primary hover:underline cursor-pointer font-medium relative top-[-1px]"
+                  >
+                    click here
+                  </span>{" "}
+                  to select a folder
                 </p>
               </motion.div>
             </div>
 
             {/* Nearby Devices button (moved below hero for flow) */}
-            <motion.div variants={fadeInUp} className="mt-8">
+            <motion.div variants={fadeInUp} className="mt-4">
               <button
                 type="button"
                 onClick={() => onNavigate("nearby")}
-                className="lg:hidden flex items-center gap-2 rounded-full border border-border bg-background hover:bg-muted/50 px-6 py-2.5 text-sm font-medium transition-all shadow-sm"
+                className="lg:hidden flex items-center gap-2 rounded-full border-2 border-dashed border-border bg-background hover:bg-muted/50 px-8 py-3 text-base font-medium transition-all"
               >
                 <HugeiconsIcon
                   icon={Wifi01Icon}
