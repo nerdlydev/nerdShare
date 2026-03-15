@@ -51,7 +51,7 @@ function DesktopNavItem({ item, isActive, onClick, layoutId }: any) {
       {isActive && (
         <motion.div
           layoutId={layoutId}
-          className="absolute inset-0 bg-background shadow-sm rounded-md z-0"
+          className="absolute inset-0 bg-background border border-border rounded-md z-0"
           transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
         />
       )}
@@ -150,19 +150,19 @@ export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
       {/* ── Fixed top header (Floating Pill Style) ── */}
       <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
         <header className="w-full max-w-6xl bg-background/80 backdrop-blur-xl border-2 border-dashed border-border rounded-full pointer-events-auto">
-          <div className="flex items-center justify-between h-14 px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
           {/* LEFT: Logo */}
           <div className="flex items-center gap-3 lg:w-[220px]">
             <button
               onClick={() => handleNavigate("home")}
-              className="flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-[10px] cursor-pointer"
             >
               <img
                 src="/logo-source.png"
                 alt="nerdShare"
-                className="w-6 h-6 object-contain"
+                className="w-8 h-8 object-contain"
               />
-              <span className="hidden sm:inline-block font-semibold text-[15px] tracking-tight text-foreground">
+              <span className="hidden sm:inline-block font-semibold text-[20px] tracking-tight text-foreground">
                 nerdShare
               </span>
             </button>
