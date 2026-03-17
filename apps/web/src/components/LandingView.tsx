@@ -225,9 +225,9 @@ export function LandingView({
           className="fixed inset-0 z-0 pointer-events-none"
           style={{
             backgroundImage: `
-              linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px),
-              radial-gradient(circle, var(--color-primary-base, rgba(59,147,173,0.3)) 1px, transparent 1px)
+              linear-gradient(to right, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
+              linear-gradient(to bottom, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
+              radial-gradient(circle, color-mix(in srgb, var(--primary), transparent 85%) 1px, transparent 1px)
             `,
             backgroundSize: "40px 40px, 40px 40px, 40px 40px",
             backgroundPosition: "0 0, 0 0, 0 0",
@@ -423,7 +423,7 @@ export function LandingView({
         </section>
 
         {/* ── Feature: Built for humans ── */}
-        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10 border-t border-border/40 bg-card/10">
+        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -532,7 +532,7 @@ export function LandingView({
         </section>
 
         {/* ── Feature: No Limits & Security ── */}
-        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10 bg-card/10">
+        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10">
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, x: -20 }}
