@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { Routes, Route, useNavigate, useParams, Navigate } from "react-router-dom";
 import { WebRTCManager, type ConnectionState } from "@/lib/webrtc-manager";
 import { LandingView } from "@/components/LandingView";
 import { HostView } from "@/components/HostView";
@@ -7,7 +8,7 @@ import { NearbyDevicesPage } from "@/components/pages/NearbyDevicesPage";
 import { LogsContext } from "@/lib/logs-context";
 import { useNearbyPeers } from "@/lib/use-nearby-peers";
 import { useClientName } from "@/lib/use-client-name";
-import { AppShell, type NavPage } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { AboutPage } from "@/components/pages/AboutPage";
 import { ContactPage } from "@/components/pages/ContactPage";
 import { PrivacyPage } from "@/components/pages/PrivacyPage";
@@ -18,11 +19,6 @@ function generateId(): string {
   return crypto.randomUUID().split("-")[0];
 }
 
-/** Extract room ID from pathname like /r/abc123 */
-function getRoomFromPath(): string | null {
-  const match = window.location.pathname.match(/^\/r\/([a-zA-Z0-9-]+)/);
-  return match ? match[1] : null;
-}
 
 export function App() {
   const [role, setRole] = useState<"host" | "peer" | null>(null);
@@ -30,7 +26,8 @@ export function App() {
   const [isNearby, setIsNearby] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [userId] = useState(() => generateId());
-  const [navPage, setNavPage] = useState<NavPage>("home");
+  
+  const navigate = useNavigate();
 
   const displayName = useClientName();
   const deviceType = useMemo(() => {
@@ -67,9 +64,8 @@ export function App() {
     setSelectedFile(null);
     setConnectionState("idle");
     setLogs([]);
-    setNavPage("home");
-    window.history.pushState(null, "", "/");
-  }, [cleanup]);
+    navigate("/");
+  }, [cleanup, navigate]);
 
   // ── Sender: file selected → create room ──
   const handleFileSelected = useCallback(
@@ -106,8 +102,9 @@ export function App() {
       managerRef.current = mgr;
       mgr.start();
       addLog(`created room: ${newRoomId}`);
+      navigate(`/r/${newRoomId}`);
     },
-    [userId, addLog, cleanup],
+    [userId, addLog, cleanup, navigate],
   );
 
   // ── Receiver: join a room ──
@@ -146,15 +143,6 @@ export function App() {
     [userId, addLog, cleanup],
   );
 
-  // ── Auto-join if URL has /r/:roomId ──
-  useEffect(() => {
-    const hashRoom = getRoomFromPath();
-    if (hashRoom && !role) {
-      joinRoom(hashRoom);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // ── Listen for Incoming Nearby Connections & Announce Presence ──
   const handleIncomingNearby = useCallback(
     (msg: any) => {
@@ -177,68 +165,86 @@ export function App() {
   });
 
   // ── Render page content ──
-  const renderContent = () => {
-    // During an active transfer, show the transfer view
-    if (role === "host" && selectedFile) {
-      const shareUrl = `${window.location.origin}/r/${roomId}`;
-      return (
-        <LogsContext.Provider value={logs}>
-          <HostView
-            file={selectedFile}
-            shareUrl={shareUrl}
-            isNearby={isNearby}
-            connectionState={connectionState}
-            dc={dc}
-            onLeave={leave}
-          />
-        </LogsContext.Provider>
-      );
-    }
+  // ── Unified Routing ──
+  const AppRoutes = () => {
+    const { roomId: urlRoomId } = useParams();
 
-    if (role === "peer") {
-      return (
-        <LogsContext.Provider value={logs}>
-          <PeerView
-            connectionState={connectionState}
-            dc={dc}
-            addLog={addLog}
-            onLeave={leave}
-          />
-        </LogsContext.Provider>
-      );
-    }
-
-    // Nav-page routing (only when idle)
-    if (navPage === "nearby") {
-      return (
-        <NearbyDevicesPage
-          userId={userId}
-          peers={peers}
-          onConnect={(_, roomId, file) => {
-            handleFileSelected(file, roomId, true);
-          }}
-        />
-      );
-    }
-    if (navPage === "about") return <AboutPage />;
-    if (navPage === "contact") return <ContactPage />;
-    if (navPage === "privacy") return <PrivacyPage />;
+    // Auto-join if on /r/:roomId and no role set
+    useEffect(() => {
+      if (urlRoomId && !role) {
+        joinRoom(urlRoomId);
+      }
+    }, [urlRoomId]);
 
     return (
-      <LandingView
-        peers={peers}
-        onFileSelected={handleFileSelected}
-        onNavigate={setNavPage}
-      />
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            <LandingView
+              peers={peers}
+              onFileSelected={handleFileSelected}
+              onNavigate={(page) => navigate(`/${page}`)}
+            />
+          } 
+        />
+        <Route 
+          path="/nearby" 
+          element={
+            <NearbyDevicesPage
+              userId={userId}
+              peers={peers}
+              onConnect={(_, roomId, file) => {
+                handleFileSelected(file, roomId, true);
+              }}
+            />
+          } 
+        />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        
+        {/* Active Transfer Route */}
+        <Route 
+          path="/r/:roomId" 
+          element={
+            role === "host" && selectedFile ? (
+              <LogsContext.Provider value={logs}>
+                <HostView
+                  file={selectedFile}
+                  shareUrl={`${window.location.origin}/r/${roomId}`}
+                  isNearby={isNearby}
+                  connectionState={connectionState}
+                  dc={dc}
+                  onLeave={leave}
+                />
+              </LogsContext.Provider>
+            ) : role === "peer" ? (
+              <LogsContext.Provider value={logs}>
+                <PeerView
+                  connectionState={connectionState}
+                  dc={dc}
+                  addLog={addLog}
+                  onLeave={leave}
+                />
+              </LogsContext.Provider>
+            ) : (
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="animate-pulse text-muted-foreground">Connecting to room...</div>
+              </div>
+            )
+          } 
+        />
+        
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     );
   };
 
-  // Derive the active nav page for the shell
-  const activeNavPage: NavPage = role !== null ? navPage : navPage;
-
   return (
-    <AppShell activePage={activeNavPage} onNavigate={setNavPage}>
-      {renderContent()}
+    <AppShell>
+      <AppRoutes />
     </AppShell>
   );
 }

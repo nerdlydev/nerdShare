@@ -1,9 +1,11 @@
 import { useRef, useCallback, useState, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
+import { CopyIcon } from "@/components/ui/copy";
+import { CheckIcon } from "@/components/ui/check";
+import { motion, AnimatePresence } from "framer-motion";
 import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Copy01Icon,
   Cancel01Icon,
   FileIcon,
   CheckmarkCircle02Icon,
@@ -18,9 +20,9 @@ import { TransferSender } from "@/lib/transfer-sender";
 import QRCode from "qrcode";
 import { useLogs } from "@/lib/logs-context";
 import { useWakeLock } from "@/lib/use-wake-lock";
+import { useViteTheme } from "@space-man/react-theme-animation";
 
 // ── Isolated debug log reads from context ──
-// Only this component subscribes to log changes — HostView never re-renders.
 const DebugLog = memo(function DebugLog() {
   const logs = useLogs();
   return (
@@ -68,14 +70,20 @@ export const HostView = memo(function HostView({
   const isError = transferState === "error";
   const isComplete = transferState === "complete";
 
+  const { resolvedTheme } = useViteTheme();
+
   // Generate QR code
   useEffect(() => {
+    const isDark = resolvedTheme === "dark";
     QRCode.toDataURL(shareUrl, {
-      width: 140,
+      width: 400,
       margin: 2,
-      color: { dark: "#ffffff", light: "#00000000" },
+      color: {
+        dark: isDark ? "#ffffff" : "#1f2937", // pixels
+        light: "#00000000", // transparent
+      },
     }).then(setQrDataUrl);
-  }, [shareUrl]);
+  }, [shareUrl, resolvedTheme]);
 
   // Auto-start transfer when DataChannel opens
   const startTransfer = useCallback(async () => {
@@ -137,178 +145,195 @@ export const HostView = memo(function HostView({
   return (
     <PageLayout
       panel={
-        <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
-          {/* Close button */}
-          <button
-            onClick={onLeave}
-            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          >
-            <HugeiconsIcon icon={Cancel01Icon} size={18} />
-          </button>
+        <div className="relative group">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={transferState}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="bg-card/40 backdrop-blur-xl rounded-[2.5rem] p-8 border-2 border-dashed border-border/60 shadow-2xl shadow-primary/10 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
-          {/* File info */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 mb-0.5">
-              <HugeiconsIcon
-                icon={FileIcon}
-                size={16}
-                className="text-primary"
-              />
-              <p className="text-sm font-medium truncate">{file.name}</p>
-            </div>
-            <p className="text-xs text-muted-foreground ml-6">
-              {formatBytes(file.size)}
-            </p>
-          </div>
-
-          {/* Share link (Hidden in Nearby mode) */}
-          {!isNearby && (
-            <div className="flex items-center gap-1.5 mb-5">
-              <input
-                type="text"
-                readOnly
-                value={shareUrl}
-                className="flex-1 text-xs font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-2 text-primary truncate focus:outline-none cursor-text"
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={copyLink}
-                className="shrink-0"
+              <button
+                onClick={onLeave}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer z-10"
               >
-                <HugeiconsIcon icon={Copy01Icon} size={14} />
-                {copied ? "Copied!" : "Copy"}
-              </Button>
-            </div>
-          )}
+                <HugeiconsIcon icon={Cancel01Icon} size={20} />
+              </button>
 
-          {/* QR Code (Hidden in Nearby mode) */}
-          {!isNearby && qrDataUrl && (
-            <div className="flex justify-center mb-5">
-              <img src={qrDataUrl} alt="Share QR Code" className="w-28 h-28" />
-            </div>
-          )}
-
-          {/* Progress */}
-          {progress && (
-            <div className="flex flex-col gap-1.5 mb-3">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{Math.round(progress.progress * 100)}%</span>
-                <span>
-                  {isPaused ? "—" : `${formatBytes(progress.speed)}/s`}
-                </span>
+              <div className="mb-8">
+                <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">
+                  {isComplete ? "Success" : "Sharing File"}
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <HugeiconsIcon icon={FileIcon} size={24} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-lg font-bold truncate">{file.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatBytes(file.size)}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-150 ${
-                    isComplete
-                      ? "bg-green-500"
-                      : isError
-                        ? "bg-destructive"
-                        : isPaused
-                          ? "bg-yellow-500"
-                          : "animate-shimmer"
-                  }`}
-                  style={{
-                    width: `${Math.min(progress.progress * 100, 100)}%`,
-                  }}
-                />
-              </div>
-              <p
-                className={`text-xs ${
-                  isError
-                    ? "text-destructive"
-                    : isPaused
-                      ? "text-yellow-500"
-                      : "text-muted-foreground"
-                }`}
-              >
-                {statusLabel}
-              </p>
-            </div>
-          )}
+              {!isNearby && !isTransferring && !isComplete && !isPaused && (
+                <div className="space-y-6">
+                  <div className="relative group/link">
+                    <input
+                      type="text"
+                      readOnly
+                      value={shareUrl}
+                      className="w-full text-sm font-mono bg-muted/40 border-2 border-dashed border-border rounded-2xl px-4 py-4 pr-14 text-primary focus:outline-none cursor-text transition-all group-hover/link:border-primary/30"
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                    />
+                    <div className="absolute right-2 top-2">
+                       <Button
+                        size="icon"
+                        variant={copied ? "default" : "secondary"}
+                        onClick={copyLink}
+                        className="rounded-xl h-10 w-10 border-none transition-all"
+                      >
+                        <AnimatePresence mode="wait" initial={false}>
+                          {copied ? (
+                            <motion.div
+                              key="check"
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <CheckIcon size={18} />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="copy"
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <CopyIcon size={18} />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </Button>
+                    </div>
+                  </div>
 
-          {/* Flow control buttons */}
-          {(isTransferring || isPaused) && (
-            <div className="flex items-center gap-2 mb-3">
-              {isTransferring ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handlePause}
-                  className="gap-1.5 flex-1"
-                >
-                  ⏸ Pause
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleResume}
-                  className="gap-1.5 flex-1"
-                >
-                  ▶ Resume
-                </Button>
+                  {qrDataUrl && (
+                    <div className="bg-muted/80 backdrop-blur-sm p-6 rounded-[2rem] flex justify-center w-fit mx-auto m-1 border-2 border-dashed border-border/40">
+                      <img 
+                        src={qrDataUrl} 
+                        alt="Share QR Code" 
+                        className="w-48 h-48 rounded-xl" 
+                      />
+                    </div>
+                  )}
+                </div>
               )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleCancel}
-                className="gap-1.5 text-destructive hover:text-destructive"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={14} />
-                Cancel
-              </Button>
-            </div>
-          )}
 
-          {isComplete && (
-            <div className="flex items-center justify-center gap-1.5 text-sm text-green-400 font-medium">
-              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} />
-              Done! You can close this tab.
-            </div>
-          )}
+              {progress && !isComplete && (
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm font-bold">
+                    <span className="text-primary">{Math.round(progress.progress * 100)}%</span>
+                    <span className="text-muted-foreground font-mono">
+                      {isPaused ? "PAUSED" : `${formatBytes(progress.speed)}/s`}
+                    </span>
+                  </div>
+                  <div className="h-3 rounded-full bg-muted overflow-hidden relative">
+                    <motion.div
+                      layout
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        isError ? "bg-destructive" : isPaused ? "bg-yellow-500" : "bg-primary"
+                      }`}
+                      style={{ width: `${Math.min(progress.progress * 100, 100)}%` }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+                  </div>
+                  <p className={`text-xs font-medium ${isPaused ? "text-yellow-500" : "text-muted-foreground"}`}>
+                    {statusLabel}
+                  </p>
+                </div>
+              )}
 
+              {(isTransferring || isPaused) && (
+                <div className="flex items-center gap-3 mt-8">
+                  <Button
+                    onClick={isTransferring ? handlePause : handleResume}
+                    variant="outline"
+                    className="flex-1 py-6 rounded-2xl text-base font-bold"
+                  >
+                    {isTransferring ? "Pause Transfer" : "Resume Transfer"}
+                  </Button>
+                  <Button
+                    onClick={handleCancel}
+                    variant="ghost"
+                    className="px-6 py-6 rounded-2xl text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} size={20} />
+                  </Button>
+                </div>
+              )}
+
+              {isComplete && (
+                <div className="mt-4">
+                  <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-6 group-hover:scale-110 transition-transform">
+                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={32} />
+                  </div>
+                  <p className="text-emerald-500 font-bold text-lg mb-2">Transfer Successful!</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    The file has been successfully delivered and saved on the receiver's device.
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
           <DebugLog />
         </div>
       }
       hero={
-        <div>
-          {isComplete ? (
-            <>
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
-                Transfer completed successfully!
-              </h1>
-              <p className="text-muted-foreground text-base leading-relaxed mb-6">
-                Your file has been downloaded by the receiver. You can close
-                this page or share another file.
-              </p>
-              <Button variant="outline" onClick={onLeave} className="gap-2">
-                <HugeiconsIcon icon={RepeatIcon} size={16} />
-                Share again?
-              </Button>
-            </>
-          ) : (
-            <>
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
-                {isConnected
-                  ? "Now sharing your files directly from your device"
-                  : "Ready to share"}
-              </h1>
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mt-6">
-                <div className="flex items-center gap-1.5 text-sm font-medium text-destructive mb-1">
-                  <HugeiconsIcon icon={Alert02Icon} size={16} />
-                  Please note:
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Closing this page means you stop sharing! Simply keep this
-                  page open in the background to keep sharing.
-                </p>
-              </div>
-            </>
+        <motion.div
+           initial={{ opacity: 0, x: 20 }}
+           animate={{ opacity: 1, x: 0 }}
+           transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-6">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            Active Host
+          </div>
+          <h1 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-6 text-balance">
+            {isComplete ? "Sharing successful" : (isConnected ? "Connected & Sharing" : "Waiting for receiver")}
+          </h1>
+          <p className="text-muted-foreground text-lg leading-relaxed text-balance">
+            {isComplete 
+              ? "Your files have been safely delivered. You can now close this tab or share another file."
+              : "Keep this page open while the transfer is in progress. Closing it will terminate the connection immediately."}
+          </p>
+          
+          {isComplete && (
+             <Button variant="outline" onClick={onLeave} className="mt-8 py-6 px-8 rounded-2xl font-bold gap-2">
+               <HugeiconsIcon icon={RepeatIcon} size={20} />
+               Share Another File
+             </Button>
           )}
-        </div>
+
+          {!isComplete && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-3xl p-6 mt-12">
+               <div className="flex items-center gap-2 text-sm font-bold text-destructive mb-2 uppercase tracking-wide">
+                 <HugeiconsIcon icon={Alert02Icon} size={18} />
+                 Sharing Note
+               </div>
+               <p className="text-sm text-muted-foreground/80 leading-relaxed">
+                 nerdShare is a direct device-to-device service. We don't store your files on any cloud. 
+                 To ensure the transfer completes, do not close this browser tab.
+               </p>
+            </div>
+          )}
+        </motion.div>
       }
     />
   );

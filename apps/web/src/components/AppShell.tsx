@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
+import { Link, useLocation } from "react-router-dom";
 
 import { HomeIcon } from "@/components/ui/home";
 import { WifiIcon } from "@/components/ui/wifi";
@@ -15,11 +16,6 @@ import { useViteTheme } from "@space-man/react-theme-animation";
 
 export type NavPage = "home" | "nearby" | "about" | "contact" | "privacy";
 
-interface AppShellProps {
-  children: React.ReactNode;
-  activePage: NavPage;
-  onNavigate: (page: NavPage) => void;
-}
 
 const NAV_ITEMS: {
   path: string;
@@ -35,12 +31,14 @@ const NAV_ITEMS: {
   { path: "/lang", page: "lang", name: "eng", icon: LanguagesIcon },
 ];
 
-function DesktopNavItem({ item, isActive, onClick, layoutId }: any) {
+function DesktopNavItem({ item, isActive, layoutId }: any) {
   const iconRef = useRef<any>(null);
   const Icon = item.icon;
+  const path = item.page === "home" ? "/" : `/${item.page}`;
+
   return (
-    <button
-      onClick={onClick}
+    <Link
+      to={path}
       onMouseEnter={() => iconRef.current?.startAnimation?.()}
       onMouseLeave={() => iconRef.current?.stopAnimation?.()}
       className={`
@@ -61,15 +59,18 @@ function DesktopNavItem({ item, isActive, onClick, layoutId }: any) {
         </span>
         <span className="capitalize">{item.name}</span>
       </span>
-    </button>
+    </Link>
   );
 }
 
 function MobileNavItem({ item, isActive, onClick }: any) {
   const iconRef = useRef<any>(null);
   const Icon = item.icon;
+  const path = item.page === "home" ? "/" : `/${item.page}`;
+
   return (
-    <button
+    <Link
+      to={path}
       onClick={onClick}
       onMouseEnter={() => iconRef.current?.startAnimation?.()}
       onMouseLeave={() => iconRef.current?.stopAnimation?.()}
@@ -84,7 +85,7 @@ function MobileNavItem({ item, isActive, onClick }: any) {
         </span>
         <span className="capitalize">{item.name}</span>
       </div>
-    </button>
+    </Link>
   );
 }
 
@@ -127,10 +128,19 @@ function MobileGithubItem({ onClick }: any) {
   );
 }
 
-export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
+export function AppShell({ children }: { children: React.ReactNode }) {
   const { resolvedTheme, toggleTheme, ref } = useViteTheme();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const menuIconRef = useRef<MenuIconHandle>(null);
+
+  const activePage = useMemo(() => {
+    const path = location.pathname;
+    if (path === "/") return "home";
+    const p = path.slice(1);
+    if (["nearby", "about", "contact", "privacy"].includes(p)) return p as NavPage;
+    return "home";
+  }, [location.pathname]);
 
   useEffect(() => {
     if (sidebarOpen) {
@@ -140,10 +150,6 @@ export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
     }
   }, [sidebarOpen]);
 
-  const handleNavigate = (page: NavPage) => {
-    onNavigate(page);
-    setSidebarOpen(false);
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background relative">
@@ -153,8 +159,8 @@ export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
           <div className="flex items-center justify-between h-16 px-4 sm:px-6">
           {/* LEFT: Logo */}
           <div className="flex items-center gap-3 lg:w-[220px]">
-            <button
-              onClick={() => handleNavigate("home")}
+            <Link
+              to="/"
               className="flex items-center gap-[10px] cursor-pointer"
             >
               <img
@@ -165,7 +171,7 @@ export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
               <span className="hidden sm:inline-block font-semibold text-[20px] tracking-tight text-foreground">
                 nerdShare
               </span>
-            </button>
+            </Link>
           </div>
 
           {/* CENTER: Nav (Desktop) inside light gray rounded pill */}
@@ -179,7 +185,6 @@ export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
                     key={item.path}
                     item={item}
                     isActive={isActive}
-                    onClick={() => handleNavigate(item.page as NavPage)}
                     layoutId="nav-pill"
                   />
                 );
@@ -245,7 +250,7 @@ export function AppShell({ children, activePage, onNavigate }: AppShellProps) {
                           key={item.path}
                           item={item}
                           isActive={isActive}
-                          onClick={() => handleNavigate(item.page as NavPage)}
+                          onClick={() => setSidebarOpen(false)}
                         />
                       );
                     })}

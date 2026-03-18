@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -186,49 +187,38 @@ export const PeerView = memo(function PeerView({
     </div>
   );
 
-  // Render the left panel based on state
   const renderPanel = () => {
-    const closeButton = (
-      <button
-        onClick={onLeave}
-        className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-      >
-        <HugeiconsIcon icon={Cancel01Icon} size={18} />
-      </button>
-    );
-
     switch (peerState) {
       case "connecting":
         return (
-          <div className="bg-card/50 rounded-2xl p-8 border border-border text-center relative">
-            {closeButton}
-            <div className="w-16 h-16 mx-auto mb-4 relative">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-6 relative">
+              <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-150 animate-pulse" />
               <HugeiconsIcon
                 icon={Loading03Icon}
                 size={48}
-                className="text-primary animate-spin-slow"
+                className="text-primary animate-spin-slow relative z-10"
               />
             </div>
-            <p className="text-sm font-medium mb-1">Connecting to sender</p>
-            <p className="text-xs text-muted-foreground">
-              Trying to establish a connection with the sender
+            <p className="text-lg font-bold mb-2">Connecting...</p>
+            <p className="text-sm text-muted-foreground">
+              Establishing a secure peer-to-peer connection
             </p>
           </div>
         );
 
       case "waiting":
         return (
-          <div className="bg-card/50 rounded-2xl p-8 border border-border text-center relative">
-            {closeButton}
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-primary/10 flex items-center justify-center text-primary">
               <HugeiconsIcon
                 icon={WifiConnected01Icon}
-                size={28}
-                className="text-primary animate-float"
+                size={32}
+                className="animate-float"
               />
             </div>
-            <p className="text-sm font-medium mb-1">Connected</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-lg font-bold mb-2">Connected</p>
+            <p className="text-sm text-muted-foreground">
               Waiting for the sender to start the transfer…
             </p>
           </div>
@@ -236,11 +226,13 @@ export const PeerView = memo(function PeerView({
 
       case "ready":
         return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
-            {closeButton}
-            {fileInfoBlock}
+          <div>
+            <div className="mb-8">
+               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">File to Receive</p>
+               {fileInfoBlock}
+            </div>
             <Button
-              className="w-full"
+              className="w-full py-6 rounded-2xl text-lg font-bold"
               disabled={isAccepting}
               onClick={() => {
                 setIsAccepting(true);
@@ -251,15 +243,15 @@ export const PeerView = memo(function PeerView({
                 <>
                   <HugeiconsIcon
                     icon={Loading03Icon}
-                    size={16}
-                    className="animate-spin-slow"
+                    size={20}
+                    className="animate-spin-slow mr-2"
                   />
-                  Starting download...
+                  Negotiating...
                 </>
               ) : (
                 <>
-                  <HugeiconsIcon icon={DownloadIcon} size={16} />
-                  Download
+                  <HugeiconsIcon icon={DownloadIcon} size={20} className="mr-2" />
+                  Accept Transfer
                 </>
               )}
             </Button>
@@ -267,35 +259,35 @@ export const PeerView = memo(function PeerView({
         );
 
       case "downloading":
-        return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
-            {closeButton}
-            {fileInfoBlock}
-            {progressBlock}
-          </div>
-        );
-
       case "paused":
         return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
-            {closeButton}
-            {fileInfoBlock}
+          <div>
+            <div className="mb-8">
+               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Downloading</p>
+               {fileInfoBlock}
+            </div>
             {progressBlock}
           </div>
         );
 
       case "done":
         return (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border relative">
-            {closeButton}
-            {fileInfoBlock}
-            <div className="flex items-center justify-center gap-1.5 text-sm text-green-400 font-medium mb-3">
-              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} />
-              Download complete!
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={32} />
             </div>
-            <Button className="w-full" onClick={triggerDownload}>
-              <HugeiconsIcon icon={DownloadIcon} size={16} />
-              Download Again
+            
+            <div className="mb-8 text-left">
+               <p className="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-4">Success</p>
+               {fileInfoBlock}
+            </div>
+
+            <Button 
+               className="w-full py-6 rounded-2xl text-lg font-bold bg-emerald-500 hover:bg-emerald-600 text-white border-none" 
+               onClick={triggerDownload}
+            >
+              <HugeiconsIcon icon={DownloadIcon} size={20} className="mr-2" />
+              Save File
             </Button>
           </div>
         );
@@ -308,23 +300,66 @@ export const PeerView = memo(function PeerView({
   return (
     <PageLayout
       panel={
-        <div className="relative">
-          {renderPanel()}
+        <div className="relative group">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={peerState}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="bg-card/40 backdrop-blur-xl rounded-[2.5rem] p-8 border-2 border-dashed border-border/60 shadow-2xl shadow-primary/10 relative overflow-hidden"
+            >
+              {/* Subtle background glow */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+
+              <button
+                onClick={onLeave}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer z-10"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={20} />
+              </button>
+
+              {renderPanel()}
+            </motion.div>
+          </AnimatePresence>
 
           <DebugLog />
         </div>
       }
       hero={
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight leading-tight mb-4">
-            Receiving files with nerdShare
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-6">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            Secure Transfer
+          </div>
+          <h1 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-6 text-balance">
+            Receiving files <span className="text-primary">with nerdShare</span>
           </h1>
-          <p className="text-muted-foreground text-base leading-relaxed">
-            You are about to start a secure transfer with nerdShare, directly
-            from the sender. The file will be downloaded directly to your
-            device.
+          <p className="text-muted-foreground text-lg leading-relaxed text-balance">
+            You are about to start a secure transfer directly from the sender. 
+            The file will be downloaded directly to your device once you accept.
           </p>
-        </div>
+          
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6 opacity-60">
+             <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                 <HugeiconsIcon icon={WifiConnected01Icon} size={20} />
+               </div>
+               <p className="text-sm font-medium">Direct Peer-to-Peer</p>
+             </div>
+             <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                 <HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} />
+               </div>
+               <p className="text-sm font-medium">End-to-End Encrypted</p>
+             </div>
+          </div>
+        </motion.div>
       }
     />
   );

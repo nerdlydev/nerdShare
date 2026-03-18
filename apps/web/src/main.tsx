@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { ViteThemeProvider } from "@space-man/react-theme-animation";
 import { registerSW } from "virtual:pwa-register";
 
+import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
 import { ClickSpark } from "@/components/ClickSpark";
@@ -12,7 +13,9 @@ registerSW({ immediate: true });
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ViteThemeProvider defaultTheme="dark">
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
       <ClickSpark
         sparkColor="#ffffff"
         sparkSize={10}
