@@ -1,0 +1,363 @@
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Wifi01Icon,
+  SmartPhone01Icon,
+  LaptopProgrammingIcon,
+  Folder01Icon,
+  File01Icon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
+import { type NearbyPeer } from "@nerdshare/shared";
+import {
+  folderToZip,
+  fileListToZip,
+  dirHandleToZip,
+} from "@/lib/folder-to-zip";
+
+interface NearbyDevicesPageProps {
+  userId: string;
+  peers: NearbyPeer[];
+  onConnect: (peerId: string, roomId: string, file: File) => void;
+}
+
+export function NearbyDevicesPage({
+  userId,
+  peers,
+  onConnect,
+}: NearbyDevicesPageProps) {
+  const [selectedPeer, setSelectedPeer] = useState<NearbyPeer | null>(null);
+  const [zipping, setZipping] = useState(false);
+  const [zipProgress, setZipProgress] = useState<{
+    filesProcessed: number;
+    totalFiles: number;
+  } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  const fadeInUp: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+    },
+  };
+
+  const staggerContainer: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const getDeviceIcon = (type?: string) => {
+    if (type === "mobile" || type === "tablet") return SmartPhone01Icon;
+    return LaptopProgrammingIcon;
+  };
+
+  const handleConnect = useCallback(
+    (targetUserId: string, file: File) => {
+      const roomId = crypto.randomUUID().split("-")[0];
+      const socket = new WebSocket("ws://localhost:8080");
+
+      socket.onopen = () => {
+        socket.send(
+          JSON.stringify({
+            type: "NEARBY_CONNECT",
+            fromUserId: userId,
+            toUserId: targetUserId,
+            roomId,
+          })
+        );
+        setTimeout(() => socket.close(), 500);
+      };
+
+      onConnect(targetUserId, roomId, file);
+      setSelectedPeer(null);
+    },
+    [userId, onConnect]
+  );
+
+  const runZip = useCallback(
+    async (
+      source: FileSystemDirectoryHandle | FileSystemDirectoryEntry | File[] | File
+    ) => {
+      if (!selectedPeer) return;
+      
+      setZipping(true);
+      setZipProgress({ filesProcessed: 0, totalFiles: 0 });
+      try {
+        let zipFile: File;
+
+        if (source instanceof File) {
+          handleConnect(selectedPeer.userId, source);
+          return;
+        } else if (Array.isArray(source)) {
+          zipFile = await fileListToZip(source, (p) => setZipProgress(p));
+        } else if (source instanceof FileSystemDirectoryHandle) {
+          zipFile = await dirHandleToZip(
+            source as FileSystemDirectoryHandle,
+            (p) => setZipProgress(p)
+          );
+        } else {
+          zipFile = await folderToZip(source as FileSystemDirectoryEntry, (p) =>
+            setZipProgress(p)
+          );
+        }
+
+        handleConnect(selectedPeer.userId, zipFile);
+      } catch (err) {
+        console.error("[nearby-transfer] failed:", err);
+      } finally {
+        setZipping(false);
+        setZipProgress(null);
+      }
+    },
+    [selectedPeer, handleConnect]
+  );
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) runZip(file);
+      e.target.value = "";
+    },
+    [runZip]
+  );
+
+  const handleFolderClick = useCallback(async () => {
+    try {
+      if ("showDirectoryPicker" in window) {
+        // @ts-expect-error - Browsers API
+        const dirHandle = await window.showDirectoryPicker();
+        await runZip(dirHandle);
+      } else {
+        folderInputRef.current?.click();
+      }
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        console.error("Failed to pick folder:", err);
+      }
+    }
+  }, [runZip]);
+
+  return (
+    <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-32">
+      {/* Background Decorative Pattern */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none opacity-40"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
+            linear-gradient(to bottom, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
+            radial-gradient(circle, color-mix(in srgb, var(--primary), transparent 90%) 1px, transparent 1px)
+          `,
+          backgroundSize: "40px 40px, 40px 40px, 40px 40px",
+        }}
+      />
+
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="max-w-6xl mx-auto px-6 pt-32 relative z-10"
+      >
+        {/* HERO SECTION */}
+        <motion.section variants={fadeInUp} className="text-center mb-16 px-4">
+          <div className="relative inline-block mb-8">
+            {/* Radar Animation */}
+            <motion.div
+              animate={{
+                scale: [1, 1.8],
+                opacity: [0.6, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeOut",
+              }}
+              className="absolute inset-0 rounded-full bg-primary/20"
+            />
+            <motion.div
+              animate={{
+                scale: [1, 1.5],
+                opacity: [0.4, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeOut",
+                delay: 0.6,
+              }}
+              className="absolute inset-0 rounded-full bg-primary/20"
+            />
+            <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary relative z-10 shadow-sm">
+              <HugeiconsIcon icon={Wifi01Icon} size={32} />
+            </div>
+          </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
+            Nearby Devices
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance">
+            Looking for devices on your network…
+          </p>
+        </motion.section>
+
+        {/* DEVICE LIST */}
+        <motion.section variants={fadeInUp} className="w-full">
+          {peers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 sm:p-20 text-center rounded-[2.5rem] border border-dashed border-border bg-card/20 backdrop-blur-sm max-w-2xl mx-auto">
+              <div className="w-12 h-12 mb-6 rounded-full bg-muted/50 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No devices found yet</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Make sure the other device has nerdShare open and is connected
+                to the same Wi-Fi network.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <AnimatePresence mode="popLayout">
+                {peers.map((peer) => (
+                  <motion.button
+                    key={peer.userId}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedPeer(peer)}
+                    className="flex flex-col items-center gap-4 p-8 rounded-[2.5rem] border border-border bg-card/40 backdrop-blur-xl hover:bg-card hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all text-center group relative overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                      <HugeiconsIcon icon={getDeviceIcon(peer.deviceType)} size={32} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground mb-1 leading-tight">
+                        {peer.displayName}
+                      </h3>
+                      <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Ready to receive
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </motion.section>
+      </motion.div>
+
+      {/* SELECTION MODAL */}
+      <AnimatePresence>
+        {selectedPeer && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-8">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPeer(null)}
+              className="absolute inset-0 bg-background/60 backdrop-blur-sm cursor-pointer"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-xl bg-card border border-border rounded-[3rem] shadow-2xl overflow-hidden px-8 py-10 sm:p-12"
+            >
+              <button
+                onClick={() => setSelectedPeer(null)}
+                className="absolute top-6 right-8 p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors"
+                aria-label="Close modal"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={24} />
+              </button>
+
+              <div className="text-center mb-10">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
+                  <HugeiconsIcon icon={getDeviceIcon(selectedPeer.deviceType)} size={32} />
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                  Send files to {selectedPeer.displayName}
+                </h2>
+                <p className="text-muted-foreground text-sm uppercase tracking-widest font-semibold opacity-60">
+                  Choose what you want to send
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  disabled={zipping}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="group flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <HugeiconsIcon icon={File01Icon} size={24} />
+                  </div>
+                  <span className="font-bold text-lg">Select Files</span>
+                </button>
+
+                <button
+                  disabled={zipping}
+                  onClick={handleFolderClick}
+                  className="group flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <HugeiconsIcon icon={Folder01Icon} size={24} />
+                  </div>
+                  <span className="font-bold text-lg">Select Folder</span>
+                </button>
+              </div>
+
+              {zipping && (
+                <div className="mt-8 p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-4">
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {zipProgress && zipProgress.totalFiles > 0
+                      ? `Preparing files… ${zipProgress.filesProcessed} / ${zipProgress.totalFiles}`
+                      : "Preparing folder…"}
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={() => setSelectedPeer(null)}
+                className="mt-10 w-full py-4 text-muted-foreground hover:text-foreground font-medium transition-colors"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        // @ts-expect-error - Browsers API
+        webkitdirectory=""
+        className="hidden"
+        onChange={(e) => {
+          const files = e.target.files;
+          if (files) runZip(Array.from(files));
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}

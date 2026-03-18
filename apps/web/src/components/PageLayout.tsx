@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { useViteTheme } from "@space-man/react-theme-animation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Sun02Icon, Moon02Icon } from "@hugeicons/core-free-icons";
-import { FloatingFooter } from "@/components/FloatingFooter";
 
 interface PageLayoutProps {
   /** Interactive card panel (left on desktop, top on mobile) */
@@ -38,8 +37,6 @@ export function PageLayout({ panel, hero }: PageLayoutProps) {
           size={18}
         />
       </button>
-
-      <FloatingFooter />
     </div>
   );
 }

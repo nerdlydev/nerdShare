@@ -3,7 +3,7 @@ import { WebRTCManager, type ConnectionState } from "@/lib/webrtc-manager";
 import { LandingView } from "@/components/LandingView";
 import { HostView } from "@/components/HostView";
 import { PeerView } from "@/components/PeerView";
-import { NearbyView } from "@/components/NearbyView";
+import { NearbyDevicesPage } from "@/components/pages/NearbyDevicesPage";
 import { LogsContext } from "@/lib/logs-context";
 import { useNearbyPeers } from "@/lib/use-nearby-peers";
 import { useClientName } from "@/lib/use-client-name";
@@ -211,10 +211,9 @@ export function App() {
     // Nav-page routing (only when idle)
     if (navPage === "nearby") {
       return (
-        <NearbyView
+        <NearbyDevicesPage
           userId={userId}
           peers={peers}
-          onBack={() => setNavPage("home")}
           onConnect={(_, roomId, file) => {
             handleFileSelected(file, roomId, true);
           }}
