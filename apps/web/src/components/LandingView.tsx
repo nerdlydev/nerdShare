@@ -9,7 +9,7 @@ import {
   Globe02Icon,
   FlashIcon,
 } from "@hugeicons/core-free-icons";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { PlusIcon } from "@/components/ui/plus-icon";
 import {
   folderToZip,
@@ -47,6 +47,14 @@ export function LandingView({
   onNavigate,
 }: LandingViewProps) {
   const displayName = useClientName();
+  const { scrollYProgress } = useScroll();
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+  const pathLength = useTransform(smoothProgress, [0, 0.4], [1, 0]); // Starts full, disappears by 40% scroll
+
   const [isDragOver, setIsDragOver] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [zipProgress, setZipProgress] = useState<{
@@ -220,26 +228,25 @@ export function LandingView({
 
       {/* Full-page layout */}
       <div className="min-h-screen flex flex-col bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-20">
-        {/* Fixed Background grid + dot background */}
-        <div
-          className="fixed inset-0 z-0 pointer-events-none"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
-              linear-gradient(to bottom, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
-              radial-gradient(circle, color-mix(in srgb, var(--primary), transparent 85%) 1px, transparent 1px)
-            `,
-            backgroundSize: "40px 40px, 40px 40px, 40px 40px",
-            backgroundPosition: "0 0, 0 0, 0 0",
-            WebkitMaskImage:
-              "linear-gradient(to bottom, #000 0%, #000 30%, transparent 80%, transparent 100%)",
-            maskImage:
-              "linear-gradient(to bottom, #000 0%, #000 30%, transparent 80%, transparent 100%)",
-          }}
-        />
-
-        {/* ── Hero Section ── */}
-        <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-12 pb-12 relative z-10">
+        {/* ── Hero Section with dynamic background ── */}
+        <section className="min-h-[92vh] flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-20 pb-20 relative group/hero">
+          {/* Background grid + dot background only for Hero */}
+          <div
+            className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
+                linear-gradient(to bottom, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
+                radial-gradient(circle, color-mix(in srgb, var(--primary), transparent 85%) 1px, transparent 1px)
+              `,
+              backgroundSize: "40px 40px, 40px 40px, 40px 40px",
+              backgroundPosition: "0 0, 0 0, 0 0",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%)",
+              maskImage:
+                "linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%)",
+            }}
+          />
           <motion.div
             initial="hidden"
             animate="visible"
@@ -420,225 +427,296 @@ export function LandingView({
               </button>
             </motion.div>
           </motion.div>
-        </section>
 
-        {/* ── Feature: Built for humans ── */}
-        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            className="max-w-4xl mx-auto flex flex-col items-center text-center gap-6"
-          >
-            <motion.div
-              variants={fadeInUp}
-              className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-2 shadow-inner"
+          {/* Wave Divider with scroll-linked animation */}
+          <div className="absolute bottom-[-1px] left-0 w-full leading-none z-10 transition-all duration-500">
+            <svg
+              className="relative block w-full h-[60px] sm:h-[100px] lg:h-[150px]"
+              viewBox="0 0 1440 150"
+              preserveAspectRatio="xMidYMin slice"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <HugeiconsIcon icon={EarthIcon} size={32} />
-            </motion.div>
-            <motion.h2
-              variants={fadeInUp}
-              className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance"
-            >
-              Built for humans, not corporations.
-            </motion.h2>
-            <motion.p
-              variants={fadeInUp}
-              className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl text-balance"
-            >
-              nerdShare is free, independent, and has zero trackers. No
-              accounts, no ads, no paywalls — just you and whoever you're
-              sending files to. The internet the way it was meant to be.
-            </motion.p>
-          </motion.div>
-        </section>
-
-        {/* ── Feature: Ephemeral  ── */}
-        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={staggerContainer}
-              className="flex flex-col gap-6 order-2 lg:order-1 text-center lg:text-left items-center lg:items-start"
-            >
-              <motion.div
-                variants={fadeInUp}
-                className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"
-              >
-                <HugeiconsIcon icon={Globe02Icon} size={24} />
-              </motion.div>
-              <motion.h2
-                variants={fadeInUp}
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
-              >
-                Closes when you close.
-              </motion.h2>
-              <motion.p
-                variants={fadeInUp}
-                className="text-lg text-muted-foreground leading-relaxed"
-              >
-                Your files live strictly on your device. Once a connection is
-                established, data flows directly to your peer. Shut the tab and
-                poof — the connection drops. No lingering uploads on third-party
-                servers, no accidental oversharing.
-              </motion.p>
-            </motion.div>
-
-            {/* Visual Illustration */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, x: 20 }}
-              whileInView={{ opacity: 1, scale: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="order-1 lg:order-2 h-[300px] sm:h-[400px] rounded-[2.5rem] border border-border bg-card/40 backdrop-blur flex items-center justify-center overflow-hidden relative shadow-sm"
-            >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--color-primary)_0,transparent_100%)] opacity-[0.05]" />
-
-              <div className="flex items-center justify-center gap-4 sm:gap-8 w-full max-w-[80%]">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-background border border-border flex items-center justify-center shadow-md relative z-10">
-                  <HugeiconsIcon
-                    icon={EarthIcon}
-                    size={32}
-                    className="text-foreground/80"
-                  />
-                </div>
-
-                {/* Connection Line & Particle */}
-                <div className="flex-1 h-0.5 bg-border relative">
-                  <motion.div
-                    animate={{ x: ["0%", "100%"] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="absolute top-1/2 -translate-y-1/2 -ml-2 w-4 h-4 rounded-full bg-primary shadow-[0_0_15px_var(--color-primary)]"
-                  />
-                </div>
-
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-background border border-border flex items-center justify-center shadow-md relative z-10">
-                  <HugeiconsIcon
-                    icon={Globe02Icon}
-                    size={32}
-                    className="text-foreground/80"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* ── Feature: No Limits & Security ── */}
-        <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, x: -20 }}
-              whileInView={{ opacity: 1, scale: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="h-[300px] sm:h-[400px] rounded-[2.5rem] border border-border bg-card/40 backdrop-blur flex flex-col items-center justify-center gap-8 overflow-hidden relative shadow-sm"
-            >
-              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto relative group">
-                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl scale-150 opacity-40 group-hover:scale-125 transition-transform duration-500" />
-                <HugeiconsIcon
-                  icon={InfinityCircleIcon}
-                  size={48}
-                  className="relative z-10"
-                />
-              </div>
-              <div className="text-center relative z-10">
-                <p className="text-xl sm:text-2xl font-medium text-muted-foreground">
-                  File size limit:
-                </p>
-                <p className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/70 mt-2">
-                  None.
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={staggerContainer}
-              className="flex flex-col gap-6 text-center lg:text-left items-center lg:items-start"
-            >
-              <motion.div
-                variants={fadeInUp}
-                className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"
-              >
-                <HugeiconsIcon icon={ShieldKeyIcon} size={24} />
-              </motion.div>
-              <motion.h2
-                variants={fadeInUp}
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
-              >
-                End-to-end encrypted.
-              </motion.h2>
-              <motion.p
-                variants={fadeInUp}
-                className="text-lg text-muted-foreground leading-relaxed"
-              >
-                Using industry-standard WebRTC + DTLS routing means your data is
-                encrypted in transit. Only your receiver can decrypt the file.
-                We can't see your data, and we don't want to. Pinky promise. 🤙
-              </motion.p>
-              <motion.p
-                variants={fadeInUp}
-                className="text-lg text-muted-foreground leading-relaxed"
-              >
-                And because we don't host your files, we have zero infra costs
-                for storage. Feel like sending a completely uncompressed 4K
-                movie? Or perhaps an entire project folder? Please do. We
-                genuinely don't mind.
-              </motion.p>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* ── Call to Action ── */}
-        <section className="py-32 px-4 sm:px-8 text-center relative overflow-hidden z-10">
-          {/* Subtle background glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            className="max-w-2xl mx-auto flex flex-col items-center gap-8 relative z-10"
-          >
-            <motion.h2
-              variants={fadeInUp}
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance"
-            >
-              Experience the magic yourself.
-            </motion.h2>
-            <motion.p
-              variants={fadeInUp}
-              className="text-xl text-muted-foreground text-balance"
-            >
-              Just drop a file into the zone, or browse to start a direct share.
-            </motion.p>
-            <motion.div variants={fadeInUp} className="pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                  // Slight delay avoids opening the picker while the page is fast-scrolling playfully
-                  setTimeout(() => fileInputRef.current?.click(), 400);
+              {/* Background Path (Dotted) */}
+              <path
+                d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeDasharray="4 8"
+                className="text-border opacity-80 dark:opacity-40"
+              />
+              
+              {/* Foreground Path (Filling line) */}
+              <motion.path
+                d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeDasharray="4 8"
+                style={{
+                  pathLength,
+                  filter: "drop-shadow(0 4px 12px rgba(var(--color-primary-rgb, 0,0,0), 0.5))"
                 }}
-                className="flex items-center gap-3 rounded-full bg-foreground text-background hover:bg-foreground/90 px-8 py-4 text-lg font-medium transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
-              >
-                <PlusIcon size={20} />
-                Choose File Now
-              </button>
-            </motion.div>
-          </motion.div>
+                className="text-border opacity-100"
+              />
+
+              {/* Wave fill background */}
+              <path
+                d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55 L1440,150 L0,150 Z"
+                fill="var(--background)"
+                className="transition-colors duration-300"
+              />
+            </svg>
+          </div>
         </section>
+
+        {/* ── Glassmorphic Page Content ── */}
+        <main className="relative z-10 bg-background/50 backdrop-blur-3xl">
+          {/* ── Feature: Built for humans ── */}
+          <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              variants={staggerContainer}
+              className="max-w-4xl mx-auto flex flex-col items-center text-center gap-6"
+            >
+              <motion.div
+                variants={fadeInUp}
+                className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-2 shadow-inner"
+              >
+                <HugeiconsIcon icon={EarthIcon} size={32} />
+              </motion.div>
+              <motion.h2
+                variants={fadeInUp}
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance"
+              >
+                Built for humans, not corporations.
+              </motion.h2>
+              <motion.p
+                variants={fadeInUp}
+                className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl text-balance"
+              >
+                nerdShare is free, independent, and has zero trackers. No
+                accounts, no ads, no paywalls — just you and whoever you're
+                sending files to. The internet the way it was meant to be.
+              </motion.p>
+            </motion.div>
+          </section>
+
+          {/* ── Feature: Ephemeral  ── */}
+          <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-100px" }}
+                variants={staggerContainer}
+                className="flex flex-col gap-6 order-2 lg:order-1 text-center lg:text-left items-center lg:items-start"
+              >
+                <motion.div
+                  variants={fadeInUp}
+                  className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"
+                >
+                  <HugeiconsIcon icon={Globe02Icon} size={24} />
+                </motion.div>
+                <motion.h2
+                  variants={fadeInUp}
+                  className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
+                >
+                  Closes when you close.
+                </motion.h2>
+                <motion.p
+                  variants={fadeInUp}
+                  className="text-lg text-muted-foreground leading-relaxed"
+                >
+                  Your files live strictly on your device. Once a connection is
+                  established, data flows directly to your peer. Shut the tab
+                  and poof — the connection drops. No lingering uploads on
+                  third-party servers, no accidental oversharing.
+                </motion.p>
+              </motion.div>
+
+              {/* Visual Illustration */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, x: 20 }}
+                whileInView={{ opacity: 1, scale: 1, x: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="order-1 lg:order-2 h-[300px] sm:h-[400px] rounded-[2.5rem] border border-border bg-card/40 backdrop-blur flex items-center justify-center overflow-hidden relative shadow-sm"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--color-primary)_0,transparent_100%)] opacity-[0.05]" />
+
+                <div className="flex items-center justify-center gap-4 sm:gap-8 w-full max-w-[80%]">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-background border border-border flex items-center justify-center shadow-md relative z-10">
+                    <HugeiconsIcon
+                      icon={EarthIcon}
+                      size={32}
+                      className="text-foreground/80"
+                    />
+                  </div>
+
+                  {/* Connection Line & Particle */}
+                  <div className="flex-1 h-0.5 bg-border relative">
+                    <motion.div
+                      animate={{ x: ["0%", "100%"] }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="absolute top-1/2 -translate-y-1/2 -ml-2 w-4 h-4 rounded-full bg-primary shadow-[0_0_15px_var(--color-primary)]"
+                    />
+                  </div>
+
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-background border border-border flex items-center justify-center shadow-md relative z-10">
+                    <HugeiconsIcon
+                      icon={Globe02Icon}
+                      size={32}
+                      className="text-foreground/80"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* ── Feature: No Limits & Security ── */}
+          <section className="py-24 sm:py-32 px-4 sm:px-8 lg:px-24 relative z-10">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, x: -20 }}
+                whileInView={{ opacity: 1, scale: 1, x: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="h-[300px] sm:h-[400px] rounded-[2.5rem] border border-border bg-card/40 backdrop-blur flex flex-col items-center justify-center gap-8 overflow-hidden relative shadow-sm"
+              >
+                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto relative group">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl scale-150 opacity-40 group-hover:scale-125 transition-transform duration-500" />
+                  <HugeiconsIcon
+                    icon={InfinityCircleIcon}
+                    size={48}
+                    className="relative z-10"
+                  />
+                </div>
+                <div className="text-center relative z-10">
+                  <p className="text-xl sm:text-2xl font-medium text-muted-foreground">
+                    File size limit:
+                  </p>
+                  <p className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/70 mt-2">
+                    None.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-100px" }}
+                variants={staggerContainer}
+                className="flex flex-col gap-6 text-center lg:text-left items-center lg:items-start"
+              >
+                <motion.div
+                  variants={fadeInUp}
+                  className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"
+                >
+                  <HugeiconsIcon icon={ShieldKeyIcon} size={24} />
+                </motion.div>
+                <motion.h2
+                  variants={fadeInUp}
+                  className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
+                >
+                  End-to-end encrypted.
+                </motion.h2>
+                <motion.p
+                  variants={fadeInUp}
+                  className="text-lg text-muted-foreground leading-relaxed"
+                >
+                  Using industry-standard WebRTC + DTLS routing means your data
+                  is encrypted in transit. Only your receiver can decrypt the
+                  file. We can't see your data, and we don't want to. Pinky
+                  promise. 🤙
+                </motion.p>
+                <motion.p
+                  variants={fadeInUp}
+                  className="text-lg text-muted-foreground leading-relaxed"
+                >
+                  And because we don't host your files, we have zero infra costs
+                  for storage. Feel like sending a completely uncompressed 4K
+                  movie? Or perhaps an entire project folder? Please do. We
+                  genuinely don't mind.
+                </motion.p>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* ── Call to Action ── */}
+          <section className="py-32 px-4 sm:px-8 text-center relative overflow-hidden z-10">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              variants={staggerContainer}
+              className="max-w-2xl mx-auto flex flex-col items-center gap-8 relative z-10"
+            >
+              <motion.h2
+                variants={fadeInUp}
+                className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance"
+              >
+                Experience the magic yourself.
+              </motion.h2>
+              <motion.p
+                variants={fadeInUp}
+                className="text-xl text-muted-foreground text-balance"
+              >
+                Just drop a file into the zone, or browse to start a direct
+                share.
+              </motion.p>
+              <motion.div variants={fadeInUp} className="pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    // Slight delay avoids opening the picker while the page is fast-scrolling playfully
+                    setTimeout(() => fileInputRef.current?.click(), 400);
+                  }}
+                  className="flex items-center gap-3 rounded-full bg-foreground text-background hover:bg-foreground/90 px-8 py-4 text-lg font-medium transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
+                >
+                  <PlusIcon size={20} />
+                  Choose File Now
+                </button>
+              </motion.div>
+            </motion.div>
+          </section>
+
+          {/* Bottom Wave Divider (Static) */}
+          <div className="relative w-full leading-none z-10 rotate-180 translate-y-[1px]">
+            <svg
+              className="relative block w-full h-[60px] sm:h-[100px] lg:h-[150px]"
+              viewBox="0 0 1440 150"
+              preserveAspectRatio="xMidYMin slice"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Background Path (Solid) */}
+              <path
+                d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                className="text-border opacity-100 dark:opacity-60"
+                style={{
+                  filter: "drop-shadow(0 -4px 12px rgba(var(--color-primary-rgb, 0,0,0), 0.3))"
+                }}
+              />
+              {/* Wave fill background */}
+              <path
+                d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55 L1440,150 L0,150 Z"
+                fill="var(--background)"
+                className="transition-colors duration-300"
+              />
+            </svg>
+          </div>
+        </main>
       </div>
 
       {/* Hidden inputs */}

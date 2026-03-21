@@ -311,3 +311,14 @@
   stroke-linecap: round;
   transition: stroke-dashoffset 0.3s ease;
 }
+/* ─── Wave Divider Responsive Dash Array ─── */
+
+.wave-divider-path {
+  stroke-dasharray: 4 12;
+}
+
+@media (min-width: 640px) {
+  .wave-divider-path {
+    stroke-dasharray: 8 4;
+  }
+}
