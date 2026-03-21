@@ -429,10 +429,10 @@ export function LandingView({
           </motion.div>
 
           {/* Wave Divider with scroll-linked animation */}
-          <div className="absolute bottom-[-1px] left-0 w-full leading-none z-10 transition-all duration-500">
+          <div className="absolute bottom-[-1px] left-0 w-full leading-none z-10 transition-all duration-500 overflow-visible">
             <svg
-              className="relative block w-full h-[60px] sm:h-[100px] lg:h-[150px]"
-              viewBox="0 0 1440 150"
+              className="relative block w-full h-[60px] sm:h-[100px] lg:h-[150px] overflow-visible"
+              viewBox="0 0 1440 200"
               preserveAspectRatio="xMidYMin slice"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -455,7 +455,7 @@ export function LandingView({
                 strokeDasharray="4 8"
                 style={{
                   pathLength,
-                  filter: "drop-shadow(0 4px 12px rgba(var(--color-primary-rgb, 0,0,0), 0.5))"
+                  filter: "drop-shadow(0 2px 6px rgba(var(--color-primary-rgb, 0,0,0), 0.3))"
                 }}
                 className="text-border opacity-100"
               />
@@ -690,10 +690,10 @@ export function LandingView({
           </section>
 
           {/* Bottom Wave Divider (Static) */}
-          <div className="relative w-full leading-none z-10 rotate-180 translate-y-[1px]">
+          <div className="relative w-full leading-none z-10 rotate-180 translate-y-[1px] overflow-visible">
             <svg
-              className="relative block w-full h-[60px] sm:h-[100px] lg:h-[150px]"
-              viewBox="0 0 1440 150"
+              className="relative block w-full h-[60px] sm:h-[100px] lg:h-[150px] overflow-visible"
+              viewBox="0 0 1440 200"
               preserveAspectRatio="xMidYMin slice"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -705,7 +705,7 @@ export function LandingView({
                 strokeWidth="3.5"
                 className="text-border opacity-100 dark:opacity-60"
                 style={{
-                  filter: "drop-shadow(0 -4px 12px rgba(var(--color-primary-rgb, 0,0,0), 0.3))"
+                  filter: "drop-shadow(0 2px 6px rgba(var(--color-primary-rgb, 0,0,0), 0.2))"
                 }}
               />
               {/* Wave fill background */}
