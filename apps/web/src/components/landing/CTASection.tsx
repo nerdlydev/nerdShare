@@ -35,9 +35,12 @@ export function CTASection({ onCTAButtonClick, variants }: CTASectionProps) {
           <button
             type="button"
             onClick={onCTAButtonClick}
-            className="flex items-center gap-3 rounded-full bg-foreground text-background hover:bg-foreground/90 px-8 py-4 text-lg font-medium transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
+            className="flex items-center gap-3 rounded-full bg-background/80 backdrop-blur-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-background text-foreground px-8 py-4 text-lg font-medium transition-all shadow-sm hover:shadow-md hover:-translate-y-1 group"
           >
-            <PlusIcon size={20} />
+            <PlusIcon
+              size={20}
+              className="group-hover:rotate-90 transition-transform duration-300"
+            />
             Choose File Now
           </button>
         </motion.div>
