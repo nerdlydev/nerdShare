@@ -42,7 +42,7 @@ function DesktopNavItem({ item, isActive, layoutId }: any) {
       onMouseEnter={() => iconRef.current?.startAnimation?.()}
       onMouseLeave={() => iconRef.current?.stopAnimation?.()}
       className={`
-        relative group px-4 py-2 text-sm font-medium rounded-md
+        relative group lg:px-2.5 xl:px-4 py-2 text-sm font-medium rounded-md
         ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}
       `}
     >
@@ -53,11 +53,13 @@ function DesktopNavItem({ item, isActive, layoutId }: any) {
           transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
         />
       )}
-      <span className="relative z-10 flex items-center gap-2">
+      <span className="relative z-10 flex items-center lg:gap-0 xl:gap-2">
         <span className="opacity-70 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <Icon ref={iconRef} size={16} />
         </span>
-        <span className="capitalize">{item.name}</span>
+        <span className="capitalize hidden xl:inline-block truncate max-w-[100px]">
+          {item.name}
+        </span>
       </span>
     </Link>
   );
@@ -168,7 +170,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 alt="nerdShare"
                 className="w-8 h-8 object-contain"
               />
-              <span className="hidden sm:inline-block font-semibold text-[20px] tracking-tight text-foreground">
+              <span className="hidden sm:inline-block lg:hidden xl:inline-block font-semibold text-[20px] tracking-tight text-foreground">
                 nerdShare
               </span>
             </Link>
@@ -290,7 +292,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Page content */}
-      <main className="flex-1 pt-[49px]">{children}</main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

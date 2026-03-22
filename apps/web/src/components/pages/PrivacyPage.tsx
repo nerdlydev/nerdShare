@@ -5,19 +5,6 @@ import { ShieldKeyIcon } from "@hugeicons/core-free-icons";
 export function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-32">
-      {/* Background Decorative Pattern (Subtle) */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none opacity-40"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
-            linear-gradient(to bottom, color-mix(in srgb, var(--border), transparent 95%) 1px, transparent 1px),
-            radial-gradient(circle, color-mix(in srgb, var(--primary), transparent 90%) 1px, transparent 1px)
-          `,
-          backgroundSize: "40px 40px, 40px 40px, 40px 40px",
-          backgroundPosition: "0 0, 0 0, 0 0",
-        }}
-      />
 
       <motion.div
         className="max-w-4xl mx-auto px-6 pt-32 relative z-10"
