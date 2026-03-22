@@ -1,4 +1,4 @@
-import { motion, type Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   FlashIcon,
@@ -8,22 +8,6 @@ import {
 } from "@hugeicons/core-free-icons";
 
 export function AboutPage() {
-  const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-    },
-  };
-
-  const staggerContainer: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 },
-    },
-  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-32">
@@ -42,17 +26,14 @@ export function AboutPage() {
       />
 
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
         className="max-w-4xl mx-auto px-6 pt-32 relative z-10"
       >
         {/* HERO SECTION */}
-        <motion.section variants={fadeInUp} className="text-center mb-32">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-8">
+        <motion.section className="text-center mb-32">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-balance mb-8">
             Why nerdShare exists
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance border-t border-border/40 pt-8 mt-8">
+          <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance border-t border-border/40 pt-10 mt-10">
             It started with a simple frustration: sending a file shouldn’t
             require logging into five different tools.
           </p>
@@ -60,12 +41,11 @@ export function AboutPage() {
 
         {/* THE OFFICE MOMENT */}
         <motion.section
-          variants={fadeInUp}
           className="mb-24 p-8 sm:p-12 rounded-[2.5rem] bg-muted/20 border border-border/50"
         >
           <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
-            <div className="flex-1 space-y-6">
-              <h2 className="text-3xl font-bold tracking-tight">
+            <div className="flex-1 space-y-8">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">
                 The moment that started it
               </h2>
               <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">
@@ -88,9 +68,9 @@ export function AboutPage() {
         </motion.section>
 
         {/* DISCOVERING AN IDEA */}
-        <motion.section variants={fadeInUp} className="mb-32">
+        <motion.section className="mb-32">
           <div className="p-8 sm:p-12 rounded-[2.5rem] border border-border bg-card/40 backdrop-blur-xl shadow-sm relative overflow-hidden">
-            <h2 className="text-3xl font-bold mb-8">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance mb-10">
               Discovering a simple idea
             </h2>
             <div className="max-w-2xl space-y-6 text-lg text-muted-foreground leading-relaxed">
@@ -112,10 +92,10 @@ export function AboutPage() {
         </motion.section>
 
         {/* CURIOSITY SPIRAL */}
-        <motion.section variants={fadeInUp} className="mb-32">
+        <motion.section className="mb-32">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold tracking-tight">
+            <div className="space-y-8">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">
                 The curiosity spiral
               </h2>
               <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">
@@ -161,10 +141,9 @@ export function AboutPage() {
 
         {/* BUILDING NERDSHARE */}
         <motion.section
-          variants={fadeInUp}
           className="mb-32 p-8 sm:p-12 rounded-[2.5rem] bg-primary/5 border border-primary/20 text-center"
         >
-          <h2 className="text-3xl font-bold tracking-tight mb-8">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance mb-8">
             So I built nerdShare
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-12">
@@ -200,14 +179,14 @@ export function AboutPage() {
         </motion.section>
 
         {/* PHILOSOPHY & FOOTER */}
-        <motion.section variants={fadeInUp} className="text-center pt-16">
+        <motion.section className="text-center pt-16">
           <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-12 uppercase tracking-widest shadow-sm">
             The Philosophy
           </div>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-12">
+          <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-foreground text-balance mb-12">
             Files should move between people, not servers.
           </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto border-t border-border/40 pt-12">
+          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto border-t border-border/40 pt-12">
             nerdShare is a solo project built in spare time. Part curiosity,
             part engineering experiment, part attempt to make file sharing feel
             simpler.

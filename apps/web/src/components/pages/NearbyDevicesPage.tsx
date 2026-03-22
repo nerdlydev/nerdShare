@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Wifi01Icon,
@@ -15,7 +15,6 @@ import {
   fileListToZip,
   dirHandleToZip,
 } from "@/lib/folder-to-zip";
-
 interface NearbyDevicesPageProps {
   userId: string;
   peers: NearbyPeer[];
@@ -36,23 +35,6 @@ export function NearbyDevicesPage({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
-
-  const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-    },
-  };
-
-  const staggerContainer: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
 
   const getDeviceIcon = (type?: string) => {
     if (type === "mobile" || type === "tablet") return SmartPhone01Icon;
@@ -161,13 +143,10 @@ export function NearbyDevicesPage({
       />
 
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
         className="max-w-6xl mx-auto px-6 pt-32 relative z-10"
       >
         {/* HERO SECTION */}
-        <motion.section variants={fadeInUp} className="text-center mb-16 px-4">
+        <motion.section className="text-center mb-16 px-4">
           <div className="relative inline-block mb-8">
             {/* Radar Animation */}
             <motion.div
@@ -208,7 +187,7 @@ export function NearbyDevicesPage({
         </motion.section>
 
         {/* DEVICE LIST */}
-        <motion.section variants={fadeInUp} className="w-full">
+        <motion.section className="w-full">
           {peers.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 sm:p-20 text-center rounded-[2.5rem] border border-dashed border-border bg-card/20 backdrop-blur-sm max-w-2xl mx-auto">
               <div className="w-12 h-12 mb-6 rounded-full bg-muted/50 flex items-center justify-center">
@@ -223,7 +202,7 @@ export function NearbyDevicesPage({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <AnimatePresence mode="popLayout">
-                {peers.map((peer) => (
+                {peers.map((peer: NearbyPeer) => (
                   <motion.button
                     key={peer.userId}
                     layout
