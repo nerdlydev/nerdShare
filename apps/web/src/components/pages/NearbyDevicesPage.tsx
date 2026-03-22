@@ -1,8 +1,8 @@
-import { useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { WifiIcon, type WifiIconHandle } from "@/components/ui/wifi";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Wifi01Icon,
   SmartPhone01Icon,
   LaptopProgrammingIcon,
   Folder01Icon,
@@ -26,6 +26,14 @@ export function NearbyDevicesPage({
   peers,
   onConnect,
 }: NearbyDevicesPageProps) {
+  const iconRef = useRef<WifiIconHandle>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      iconRef.current?.startAnimation();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
   const [selectedPeer, setSelectedPeer] = useState<NearbyPeer | null>(null);
   const [zipping, setZipping] = useState(false);
   const [zipProgress, setZipProgress] = useState<{
@@ -135,39 +143,39 @@ export function NearbyDevicesPage({
       >
         {/* HERO SECTION */}
         <motion.section className="text-center mb-16 px-4">
-          <div className="relative inline-block mb-8">
-            {/* Radar Animation */}
-            <motion.div
-              animate={{
-                scale: [1, 1.8],
-                opacity: [0.6, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeOut",
-              }}
-              className="absolute inset-0 rounded-full bg-primary/20"
-            />
-            <motion.div
-              animate={{
-                scale: [1, 1.5],
-                opacity: [0.4, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeOut",
-                delay: 0.6,
-              }}
-              className="absolute inset-0 rounded-full bg-primary/20"
-            />
-            <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary relative z-10 shadow-sm">
-              <HugeiconsIcon icon={Wifi01Icon} size={32} />
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6 flex items-center justify-center gap-4 sm:gap-6">
+            <div className="relative inline-block shrink-0">
+              {/* Radar Animation */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.8],
+                  opacity: [0.6, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                }}
+                className="absolute inset-0 rounded-full bg-primary/20"
+              />
+              <motion.div
+                animate={{
+                  scale: [1, 1.5],
+                  opacity: [0.4, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                  delay: 0.6,
+                }}
+                className="absolute inset-0 rounded-full bg-primary/20"
+              />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary relative z-10 shadow-sm overflow-hidden">
+                <WifiIcon ref={iconRef} size={32} className="scale-75 sm:scale-100" />
+              </div>
             </div>
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
-            Nearby Devices
+            <span>Nearby Devices</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance">
             Looking for devices on your network…

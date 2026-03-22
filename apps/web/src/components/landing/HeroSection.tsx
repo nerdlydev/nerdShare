@@ -22,6 +22,7 @@ interface HeroSectionProps {
     staggerContainer: any;
   };
   pathLength: any;
+  fillColor?: string;
 }
 
 export function HeroSection({
@@ -32,6 +33,7 @@ export function HeroSection({
   dropZoneChild,
   variants,
   pathLength,
+  fillColor,
 }: HeroSectionProps) {
   return (
     <section className="min-h-[92vh] flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-32 pb-20 relative group/hero">
@@ -145,7 +147,7 @@ export function HeroSection({
         </motion.div>
       </motion.div>
 
-      <WaveDivider pathLength={pathLength} />
+      <WaveDivider pathLength={pathLength} fillColor={fillColor} />
     </section>
   );
 }

@@ -1,4 +1,6 @@
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { CircleHelpIcon, type CircleHelpIconHandle } from "@/components/ui/circle-help";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   FlashIcon,
@@ -8,6 +10,14 @@ import {
 } from "@hugeicons/core-free-icons";
 
 export function AboutPage() {
+  const iconRef = useRef<CircleHelpIconHandle>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      iconRef.current?.startAnimation();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-32">
@@ -17,8 +27,11 @@ export function AboutPage() {
       >
         {/* HERO SECTION */}
         <motion.section className="text-center mb-32">
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-balance mb-8">
-            Why nerdShare exists
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-balance mb-8 flex items-center justify-center gap-4 sm:gap-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl lg:rounded-3xl bg-primary/10 flex items-center justify-center text-primary shadow-inner overflow-hidden shrink-0">
+              <CircleHelpIcon ref={iconRef} size={32} className="scale-75 sm:scale-90 lg:scale-100" />
+            </div>
+            <span>Why nerdShare exists</span>
           </h1>
           <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance border-t border-border/40 pt-10 mt-10">
             It started with a simple frustration: sending a file shouldn’t

@@ -1,8 +1,18 @@
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ShieldKeyIcon } from "@hugeicons/core-free-icons";
+import { LockKeyholeIcon, type LockKeyholeIconHandle } from "@/components/ui/lock-keyhole";
 
 export function PrivacyPage() {
+  const iconRef = useRef<LockKeyholeIconHandle>(null);
+
+  useEffect(() => {
+    // Small delay to ensure smooth entry
+    const timer = setTimeout(() => {
+      iconRef.current?.startAnimation();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-32">
 
@@ -11,11 +21,11 @@ export function PrivacyPage() {
       >
         {/* HERO SECTION */}
         <motion.section className="text-center mb-28">
-          <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-10 shadow-inner">
-            <HugeiconsIcon icon={ShieldKeyIcon} size={40} />
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-balance mb-8">
-            Your files stay yours.
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-balance mb-8 flex items-center justify-center gap-4 sm:gap-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl lg:rounded-3xl bg-primary/10 flex items-center justify-center text-primary shadow-inner overflow-hidden shrink-0">
+              <LockKeyholeIcon ref={iconRef} size={32} className="scale-75 sm:scale-90 lg:scale-100" />
+            </div>
+            <span>Your files stay yours.</span>
           </h1>
           <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance font-normal">
             nerdShare never stores your files. All transfers happen directly

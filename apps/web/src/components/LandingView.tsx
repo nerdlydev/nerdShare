@@ -23,7 +23,6 @@ import type { NavPage } from "@/components/AppShell";
 
 import { HeroSection } from "./landing/HeroSection";
 import { DropZone } from "./landing/DropZone";
-import { WaveDivider } from "./landing/WaveDivider";
 import { FeatureSections } from "./landing/FeatureSections";
 import { CTASection } from "./landing/CTASection";
 
@@ -232,6 +231,7 @@ export function LandingView({
 
       {/* Full-page layout */}
       <div className="min-h-screen flex flex-col bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-20">
+        {/* We use a specific less-dark tone for the rest of the page */}
         <HeroSection
           displayName={displayName}
           onNavigate={onNavigate}
@@ -239,6 +239,7 @@ export function LandingView({
           onFolderClick={handleFolderClick}
           variants={variants}
           pathLength={pathLength}
+          fillColor="var(--content-bg)"
           dropZoneChild={
             <DropZone
               isDragOver={isDragOver}
@@ -254,15 +255,13 @@ export function LandingView({
           }
         />
 
-        <main className="relative z-10">
+        <main className="relative z-10 bg-[var(--content-bg)]">
           <FeatureSections variants={variants} />
 
           <CTASection
             onCTAButtonClick={handleCTAButtonClick}
             variants={variants}
           />
-
-          <WaveDivider pathLength={pathLength} isBottom />
         </main>
       </div>
 

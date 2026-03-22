@@ -13,6 +13,7 @@ import { SunIcon } from "@/components/ui/sun";
 import { CircleHelpIcon } from "@/components/ui/circle-help";
 import { MenuIcon, type MenuIconHandle } from "@/components/ui/menu";
 import { useViteTheme } from "@space-man/react-theme-animation";
+import { cn } from "@/lib/utils";
 
 export type NavPage = "home" | "nearby" | "about" | "contact" | "privacy";
 
@@ -292,7 +293,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Page content */}
-      <main className="flex-1">{children}</main>
+      <main className={cn("flex-1", activePage !== "home" && "pt-20")}>
+        {children}
+      </main>
     </div>
   );
 }

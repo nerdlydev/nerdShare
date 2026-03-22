@@ -51,6 +51,7 @@
   --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
   --tracking-normal: 0em;
+  --content-bg: oklch(0.99 0.01 314.78);
 }
 
 .dark {
@@ -98,6 +99,7 @@
   --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 4px 6px -2px hsl(0 0% 0% / 0.10);
   --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+  --content-bg: oklch(0.25 0.01 56.04);
 }
 
 @theme inline {
@@ -158,6 +160,7 @@
   --shadow-xs: var(--shadow-xs);
   --shadow-2xs: var(--shadow-2xs);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-content-bg: var(--content-bg);
 }
 
 @layer base {

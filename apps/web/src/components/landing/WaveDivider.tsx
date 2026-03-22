@@ -4,9 +4,15 @@ interface WaveDividerProps {
   pathLength: any; // MotionValue<number>
   className?: string;
   isBottom?: boolean;
+  fillColor?: string;
 }
 
-export function WaveDivider({ pathLength, className, isBottom }: WaveDividerProps) {
+export function WaveDivider({
+  pathLength,
+  className,
+  isBottom,
+  fillColor = "var(--background)",
+}: WaveDividerProps) {
   if (isBottom) {
     return (
       <div className={`relative w-full leading-none z-10 rotate-180 translate-y-[1px] overflow-visible ${className}`}>
@@ -30,7 +36,7 @@ export function WaveDivider({ pathLength, className, isBottom }: WaveDividerProp
           {/* Wave fill background */}
           <path
             d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55 L1440,150 L0,150 Z"
-            fill="var(--background)"
+            fill={fillColor}
           />
         </svg>
       </div>
@@ -72,7 +78,7 @@ export function WaveDivider({ pathLength, className, isBottom }: WaveDividerProp
         {/* Wave fill background */}
         <path
           d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55 L1440,200 L0,200 Z"
-          fill="var(--background)"
+          fill={fillColor}
         />
       </svg>
     </div>
