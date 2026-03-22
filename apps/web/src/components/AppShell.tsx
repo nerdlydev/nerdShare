@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 
 import { HomeIcon } from "@/components/ui/home";
@@ -42,7 +42,7 @@ function DesktopNavItem({ item, isActive, layoutId }: any) {
       onMouseEnter={() => iconRef.current?.startAnimation?.()}
       onMouseLeave={() => iconRef.current?.stopAnimation?.()}
       className={`
-        relative group px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md
+        relative group px-4 py-2 text-sm font-medium rounded-md
         ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}
       `}
     >
@@ -75,7 +75,7 @@ function MobileNavItem({ item, isActive, onClick }: any) {
       onMouseEnter={() => iconRef.current?.startAnimation?.()}
       onMouseLeave={() => iconRef.current?.stopAnimation?.()}
       className={`
-        group px-4 py-3 mx-1 mt-1 text-sm transition-colors text-left flex items-center justify-between rounded-lg
+        group px-4 py-3 mx-1 mt-1 text-sm text-left flex items-center justify-between rounded-lg
         ${isActive ? "text-primary font-medium bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/70"}
       `}
     >
@@ -98,7 +98,7 @@ function DesktopGithubAction() {
       rel="noreferrer"
       onMouseEnter={() => iconRef.current?.startAnimation?.()}
       onMouseLeave={() => iconRef.current?.stopAnimation?.()}
-      className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-muted-foreground transition-colors group"
+      className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground group"
       aria-label="GitHub Repository"
     >
       <GithubIcon ref={iconRef} size={14} />
@@ -201,20 +201,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 ref={ref as React.RefObject<HTMLButtonElement>}
                 onClick={() => toggleTheme()}
-                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-muted-foreground transition-colors"
+                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground"
                 aria-label="Toggle theme"
               >
-                <span key={resolvedTheme} className="animate-theme-icon flex">
-                  {resolvedTheme === "dark" ? (
-                    <SunIcon size={14} />
-                  ) : (
-                    <MoonIcon size={14} />
-                  )}
-                </span>
+                <div className="relative w-8 h-8 flex items-center justify-center overflow-hidden">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={resolvedTheme}
+                      initial={{ scale: 0.5, opacity: 0, rotate: -45 }}
+                      animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                      exit={{ scale: 0.5, opacity: 0, rotate: 45 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="flex items-center justify-center"
+                    >
+                      {resolvedTheme === "dark" ? (
+                        <SunIcon size={14} />
+                      ) : (
+                        <MoonIcon size={14} />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               </button>
 
               <button
-                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-muted-foreground transition-colors"
+                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground"
                 aria-label="Language"
               >
                 <LanguagesIcon size={14} />

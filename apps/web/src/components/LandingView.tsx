@@ -429,7 +429,7 @@ export function LandingView({
           </motion.div>
 
           {/* Wave Divider with scroll-linked animation */}
-          <div className="absolute bottom-[-1px] left-0 w-full leading-none z-10 transition-all duration-500 overflow-visible">
+          <div className="absolute bottom-[-1px] left-0 w-full leading-none z-10 overflow-visible">
             <svg
               className="relative block w-full h-[60px] sm:h-[100px] lg:h-[150px] overflow-visible"
               viewBox="0 0 1440 200"
@@ -464,7 +464,6 @@ export function LandingView({
               <path
                 d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55 L1440,150 L0,150 Z"
                 fill="var(--background)"
-                className="transition-colors duration-300"
               />
             </svg>
           </div>
@@ -712,7 +711,6 @@ export function LandingView({
               <path
                 d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55 L1440,150 L0,150 Z"
                 fill="var(--background)"
-                className="transition-colors duration-300"
               />
             </svg>
           </div>

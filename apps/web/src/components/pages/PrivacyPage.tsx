@@ -1,25 +1,8 @@
-import { motion, type Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ShieldKeyIcon } from "@hugeicons/core-free-icons";
 
 export function PrivacyPage() {
-  const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-    },
-  };
-
-  const staggerContainer: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 },
-    },
-  };
-
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-32">
       {/* Background Decorative Pattern (Subtle) */}
@@ -37,20 +20,17 @@ export function PrivacyPage() {
       />
 
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
         className="max-w-4xl mx-auto px-6 pt-32 relative z-10"
       >
         {/* HERO SECTION */}
-        <motion.section variants={fadeInUp} className="text-center mb-24">
-          <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-8 shadow-inner">
+        <motion.section className="text-center mb-28">
+          <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-10 shadow-inner">
             <HugeiconsIcon icon={ShieldKeyIcon} size={40} />
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-balance mb-8">
             Your files stay yours.
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance">
+          <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance font-normal">
             nerdShare never stores your files. All transfers happen directly
             between your devices, keeping your data private and secure.
           </p>
@@ -58,12 +38,10 @@ export function PrivacyPage() {
 
         {/* PRIVACY BY DESIGN */}
         <motion.section
-          variants={fadeInUp}
           className="mb-24 p-8 sm:p-12 rounded-[2.5rem] bg-muted/20 border border-border/50"
         >
-          <div className="items-center">
-            <div className="order-1 md:order-2 space-y-6">
-              <h2 className="text-3xl font-bold tracking-tight">
+            <div className="space-y-8">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">
                 Privacy by design
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
@@ -80,16 +58,14 @@ export function PrivacyPage() {
                 content of your files.
               </p>
             </div>
-          </div>
         </motion.section>
 
         {/* RESPONSIBILITY */}
         <motion.section
-          variants={fadeInUp}
-          className="mb-24 border-l-4 border-primary/20 pl-8 py-4"
+          className="mb-28 border-l-4 border-primary/20 pl-10 py-4"
         >
-          <h2 className="text-2xl font-bold mb-4">A small reminder</h2>
-          <p className="text-muted-foreground leading-relaxed max-w-2xl">
+          <h2 className="text-3xl font-bold tracking-tight mb-6">A small reminder</h2>
+          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
             While nerdShare focuses on privacy, security is still partly{" "}
             <span className="text-foreground font-medium">
               your responsibility
@@ -106,11 +82,10 @@ export function PrivacyPage() {
 
         {/* FOOTER NOTE */}
         <motion.section
-          variants={fadeInUp}
-          className="text-center pt-16 border-t border-border/40"
+          className="text-center pt-24 border-t border-border/40"
         >
-          <h2 className="text-2xl font-bold mb-4">Questions?</h2>
-          <p className="text-muted-foreground leading-relaxed mb-8 max-w-xl mx-auto">
+          <h2 className="text-3xl font-bold tracking-tight text-balance mb-6">Questions?</h2>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
             nerdShare is a solo-built project, and transparency about how it
             works matters a lot. If you ever have questions or concerns about
             privacy, feel free to reach out.

@@ -12,6 +12,7 @@ import { AppShell } from "@/components/AppShell";
 import { AboutPage } from "@/components/pages/AboutPage";
 import { ContactPage } from "@/components/pages/ContactPage";
 import { PrivacyPage } from "@/components/pages/PrivacyPage";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const SIGNALING_URL = "ws://localhost:8080";
 
@@ -164,19 +165,18 @@ export function App() {
     onIncomingRequest: handleIncomingNearby,
   });
 
-  // ── Render page content ──
-  // ── Unified Routing ──
-  const AppRoutes = () => {
-    const { roomId: urlRoomId } = useParams();
+  const { roomId: urlRoomId } = useParams();
 
-    // Auto-join if on /r/:roomId and no role set
-    useEffect(() => {
-      if (urlRoomId && !role) {
-        joinRoom(urlRoomId);
-      }
-    }, [urlRoomId]);
+  // Auto-join if on /r/:roomId and no role set
+  useEffect(() => {
+    if (urlRoomId && !role) {
+      joinRoom(urlRoomId);
+    }
+  }, [urlRoomId, role, joinRoom]);
 
-    return (
+  return (
+    <AppShell>
+      <ScrollToTop />
       <Routes>
         <Route 
           path="/" 
@@ -239,12 +239,6 @@ export function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    );
-  };
-
-  return (
-    <AppShell>
-      <AppRoutes />
     </AppShell>
   );
 }
