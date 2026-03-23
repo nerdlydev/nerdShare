@@ -29,9 +29,7 @@ export function WaveDivider({
             stroke="currentColor"
             strokeWidth="3.5"
             className="text-border opacity-100 dark:opacity-60"
-            style={{
-              filter: "drop-shadow(0 2px 6px rgba(var(--color-primary-rgb, 0,0,0), 0.2))"
-            }}
+
           />
           {/* Wave fill background */}
           <path
@@ -51,27 +49,15 @@ export function WaveDivider({
         preserveAspectRatio="xMidYMin slice"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Background Path (Dotted) */}
-        <path
-          d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeDasharray="4 8"
-          className="text-border opacity-80 dark:opacity-40"
-        />
-        
+
         {/* Foreground Path (Filling line) */}
         <motion.path
           d="M0,0 C240,110 480,110 720,55 C960,0 1200,0 1440,55"
           fill="none"
           stroke="currentColor"
           strokeWidth="4"
-          strokeDasharray="4 8"
           pathLength={pathLength}
-          style={{
-            filter: "drop-shadow(0 2px 6px rgba(var(--color-primary-rgb, 0,0,0), 0.3))"
-          }}
+
           className="text-border opacity-100"
         />
 
