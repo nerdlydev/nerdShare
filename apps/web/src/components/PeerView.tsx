@@ -4,13 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  FileIcon,
-  DownloadIcon,
   Loading03Icon,
-  WifiConnected01Icon,
-  CheckmarkCircle02Icon,
-  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
+import { CircleCheckIcon } from "@/components/ui/circle-check";
+import { AttachFileIcon } from "@/components/ui/attach-file";
+import { DownloadIcon } from "@/components/ui/download";
+import { XIcon } from "@/components/ui/x";
+import { WifiIcon } from "@/components/ui/wifi";
 import type { ConnectionState } from "@/lib/webrtc-manager";
 import type { TransferProgress } from "@/lib/transfer-progress";
 import { formatBytes, formatTime } from "@/lib/transfer-progress";
@@ -148,7 +148,7 @@ export const PeerView = memo(function PeerView({
   // File info block (reused across states)
   const fileInfoBlock = fileMeta && (
     <div className="flex items-center gap-2 mb-4">
-      <HugeiconsIcon icon={FileIcon} size={16} className="text-primary" />
+      <AttachFileIcon size={18} className="text-primary" />
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">{fileMeta.name}</p>
         <p className="text-xs text-muted-foreground">
@@ -250,7 +250,7 @@ export const PeerView = memo(function PeerView({
                 </>
               ) : (
                 <>
-                  <HugeiconsIcon icon={DownloadIcon} size={20} className="mr-2" />
+                  <DownloadIcon size={20} className="mr-2" />
                   Accept Transfer
                 </>
               )}
@@ -273,20 +273,20 @@ export const PeerView = memo(function PeerView({
       case "done":
         return (
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={32} />
+            <div className="flex items-center justify-center text-primary mb-6">
+              <CircleCheckIcon size={48} />
             </div>
             
             <div className="mb-8 text-left">
-               <p className="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-4">Success</p>
+               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Success</p>
                {fileInfoBlock}
             </div>
 
             <Button 
-               className="w-full py-6 rounded-2xl text-lg font-bold bg-emerald-500 hover:bg-emerald-600 text-white border-none" 
+               className="w-full py-6 rounded-2xl text-lg font-bold" 
                onClick={triggerDownload}
             >
-              <HugeiconsIcon icon={DownloadIcon} size={20} className="mr-2" />
+              <DownloadIcon size={20} className="mr-2" />
               Save File
             </Button>
           </div>
@@ -317,7 +317,7 @@ export const PeerView = memo(function PeerView({
                 onClick={onLeave}
                 className="absolute top-6 right-6 p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer z-10"
               >
-                <HugeiconsIcon icon={Cancel01Icon} size={20} />
+                <XIcon size={20} />
               </button>
 
               {renderPanel()}
@@ -345,16 +345,16 @@ export const PeerView = memo(function PeerView({
             The file will be downloaded directly to your device once you accept.
           </p>
           
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6 opacity-60">
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6">
              <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
-                 <HugeiconsIcon icon={WifiConnected01Icon} size={20} />
+               <div className="flex items-center justify-center text-primary w-10">
+                 <WifiIcon size={24} />
                </div>
                <p className="text-sm font-medium">Direct Peer-to-Peer</p>
              </div>
              <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
-                 <HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} />
+               <div className="flex items-center justify-center text-primary w-10">
+                 <CircleCheckIcon size={24} />
                </div>
                <p className="text-sm font-medium">End-to-End Encrypted</p>
              </div>

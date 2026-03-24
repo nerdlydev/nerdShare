@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { Routes, Route, useNavigate, useParams, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { WebRTCManager, type ConnectionState } from "@/lib/webrtc-manager";
 import { LandingView } from "@/components/LandingView";
 import { HostView } from "@/components/HostView";
@@ -14,7 +14,10 @@ import { ContactPage } from "@/components/pages/ContactPage";
 import { PrivacyPage } from "@/components/pages/PrivacyPage";
 import ScrollToTop from "@/components/ScrollToTop";
 
-const SIGNALING_URL = "ws://localhost:8080";
+const SIGNALING_URL = 
+  window.location.hostname === "localhost"
+    ? "ws://localhost:8080"
+    : `ws://${window.location.hostname}:8080`;
 
 function generateId(): string {
   return crypto.randomUUID().split("-")[0];
@@ -165,11 +168,18 @@ export function App() {
     onIncomingRequest: handleIncomingNearby,
   });
 
-  const { roomId: urlRoomId } = useParams();
+  const location = useLocation();
+
+  // Extract roomId from URL path since App.tsx is outside the Routes context for useParams
+  const urlRoomId = useMemo(() => {
+    const match = location.pathname.match(/^\/r\/([^/]+)/);
+    return match ? match[1] : null;
+  }, [location.pathname]);
 
   // Auto-join if on /r/:roomId and no role set
   useEffect(() => {
     if (urlRoomId && !role) {
+      console.log(`[app] auto-joining room from URL: ${urlRoomId}`);
       joinRoom(urlRoomId);
     }
   }, [urlRoomId, role, joinRoom]);

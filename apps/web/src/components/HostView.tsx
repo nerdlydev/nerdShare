@@ -6,12 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Cancel01Icon,
-  FileIcon,
-  CheckmarkCircle02Icon,
   Alert02Icon,
   RepeatIcon,
 } from "@hugeicons/core-free-icons";
+import { CircleCheckIcon } from "@/components/ui/circle-check";
+import { AttachFileIcon } from "@/components/ui/attach-file";
+import { XIcon } from "@/components/ui/x";
 import type { ConnectionState } from "@/lib/webrtc-manager";
 import type { TransferProgress } from "@/lib/transfer-progress";
 import type { TransferState } from "@/lib/transfer-progress";
@@ -161,16 +161,16 @@ export const HostView = memo(function HostView({
                 onClick={onLeave}
                 className="absolute top-6 right-6 p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer z-10"
               >
-                <HugeiconsIcon icon={Cancel01Icon} size={20} />
+                <XIcon size={20} />
               </button>
 
               <div className="mb-8">
                 <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">
                   {isComplete ? "Success" : "Sharing File"}
                 </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <HugeiconsIcon icon={FileIcon} size={24} />
+                <div className="flex items-center gap-4">
+                  <div className="text-primary">
+                    <AttachFileIcon size={32} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-lg font-bold truncate">{file.name}</p>
@@ -274,17 +274,17 @@ export const HostView = memo(function HostView({
                     variant="ghost"
                     className="px-6 py-6 rounded-2xl text-destructive hover:text-destructive hover:bg-destructive/10"
                   >
-                    <HugeiconsIcon icon={Cancel01Icon} size={20} />
+                    <XIcon size={20} />
                   </Button>
                 </div>
               )}
 
               {isComplete && (
                 <div className="mt-4">
-                  <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-6 group-hover:scale-110 transition-transform">
-                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={32} />
+                  <div className="flex items-center justify-center text-primary mb-6">
+                    <CircleCheckIcon size={48} />
                   </div>
-                  <p className="text-emerald-500 font-bold text-lg mb-2">Transfer Successful!</p>
+                  <p className="text-primary font-bold text-lg mb-2">Transfer Successful!</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     The file has been successfully delivered and saved on the receiver's device.
                   </p>

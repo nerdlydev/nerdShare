@@ -6,9 +6,10 @@ import {
   SmartPhone01Icon,
   LaptopProgrammingIcon,
   Folder01Icon,
-  File01Icon,
-  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
+import { CircleCheckIcon } from "@/components/ui/circle-check";
+import { AttachFileIcon } from "@/components/ui/attach-file";
+import { XIcon } from "@/components/ui/x";
 import { type NearbyPeer } from "@nerdshare/shared";
 import {
   folderToZip,
@@ -211,15 +212,15 @@ export function NearbyDevicesPage({
                     className="flex flex-col items-center gap-4 p-8 rounded-[2.5rem] border border-border bg-card/40 backdrop-blur-xl hover:bg-card hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all text-center group relative overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                    <div className="text-primary mb-2">
                       <HugeiconsIcon icon={getDeviceIcon(peer.deviceType)} size={32} />
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-foreground mb-1 leading-tight">
                         {peer.displayName}
                       </h3>
-                      <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-wider">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary px-3 py-1 rounded-full uppercase tracking-wider">
+                        <CircleCheckIcon size={14} className="animate-pulse" />
                         Ready to receive
                       </div>
                     </div>
@@ -253,7 +254,7 @@ export function NearbyDevicesPage({
                 className="absolute top-6 right-8 p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors"
                 aria-label="Close modal"
               >
-                <HugeiconsIcon icon={Cancel01Icon} size={24} />
+                <XIcon size={24} />
               </button>
 
               <div className="text-center mb-10">
@@ -274,8 +275,8 @@ export function NearbyDevicesPage({
                   onClick={() => fileInputRef.current?.click()}
                   className="group flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <HugeiconsIcon icon={File01Icon} size={24} />
+                  <div className="text-primary group-hover:text-primary transition-colors">
+                    <AttachFileIcon size={32} />
                   </div>
                   <span className="font-bold text-lg">Select Files</span>
                 </button>
@@ -285,8 +286,8 @@ export function NearbyDevicesPage({
                   onClick={handleFolderClick}
                   className="group flex flex-col items-center justify-center gap-4 p-8 rounded-[2rem] border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <HugeiconsIcon icon={Folder01Icon} size={24} />
+                  <div className="text-primary group-hover:text-primary transition-colors">
+                    <HugeiconsIcon icon={Folder01Icon} size={32} />
                   </div>
                   <span className="font-bold text-lg">Select Folder</span>
                 </button>
