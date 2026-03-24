@@ -29,6 +29,7 @@ interface WebRTCManagerOptions {
   onDataChannelOpen?: (dc: RTCDataChannel) => void;
   onDataChannelMessage?: (event: MessageEvent) => void;
   onDataChannelClose?: () => void;
+  onLog?: (msg: string) => void;
   onError?: (error: string) => void;
 }
 
@@ -229,9 +230,10 @@ export class WebRTCManager {
         console.log(`[webrtc] peer left: ${msg.userId}`);
         this.peerKeys.delete(msg.userId);
         if (msg.userId === this.remotePeerId) {
-          this.cleanup();
-          this.setState("disconnected");
-          this.options.onError?.("Peer disconnected");
+          this.log(`signaling: peer ${msg.userId} left (signaling only)`);
+          // OPTIONAL: We don't cleanup() here anymore to allow P2P to continue
+          // this.cleanup();
+          // this.setState("disconnected");
         }
         break;
 
@@ -439,7 +441,17 @@ export class WebRTCManager {
     // ICE state logging
     this.pc.oniceconnectionstatechange = () => {
       if (!this.pc) return;
-      console.log(`[webrtc] ICE state: ${this.pc.iceConnectionState}`);
+      const state = this.pc.iceConnectionState;
+      this.log(`ICE state: ${state}`);
+      
+      if (state === "failed" || state === "disconnected") {
+        // Only trigger error if the connection state also fails
+        setTimeout(() => {
+          if (this.pc && (this.pc.iceConnectionState === "failed" || this.pc.iceConnectionState === "disconnected")) {
+            this.setState("failed");
+          }
+        }, 3000);
+      }
     };
 
     // Peer side: receive DataChannel
@@ -494,8 +506,13 @@ export class WebRTCManager {
 
   private setState(state: ConnectionState): void {
     if (this._state === state) return;
-    console.log(`[webrtc] state: ${this._state} → ${state}`);
+    this.log(`connection state: ${this._state} → ${state}`);
     this._state = state;
     this.options.onStateChange?.(state);
+  }
+
+  private log(msg: string): void {
+    console.log(`[webrtc] ${msg}`);
+    this.options.onLog?.(msg);
   }
 }

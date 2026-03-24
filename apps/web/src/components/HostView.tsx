@@ -101,13 +101,13 @@ export const HostView = memo(function HostView({
         wakeLockRelease();
       },
       onStateChange: (state) => {
-        if (state !== "error") {
-          setTransferState(state);
+        if ((state as string) === "failed" || (state as string) === "disconnected") {
+          setTransferState("error" as any);
         } else {
-          console.error("[HostView] State changed to error, failing silently.");
+          setTransferState(state);
         }
         if (state === "transferring") wakeLockAcquire();
-        if (state === "complete" || state === "error") wakeLockRelease();
+        if (state === "complete" || (state as string) === "failed" || (state as string) === "disconnected") wakeLockRelease();
       },
     });
     senderRef.current = sender;
@@ -288,6 +288,25 @@ export const HostView = memo(function HostView({
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     The file has been successfully delivered and saved on the receiver's device.
                   </p>
+                </div>
+              )}
+
+              {transferState === ("error" as any) && (
+                <div className="mt-4 text-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-destructive/10 flex items-center justify-center text-destructive">
+                    <HugeiconsIcon icon={Alert02Icon} size={32} />
+                  </div>
+                  <p className="text-destructive font-bold text-lg mb-2">Connection Lost</p>
+                  <p className="text-sm text-muted-foreground mb-8 text-balance">
+                    The connection was interrupted. This usually happens when a peer closes their tab or the network times out.
+                  </p>
+                  <Button 
+                     variant="outline" 
+                     className="w-full py-6 rounded-2xl font-bold" 
+                     onClick={onLeave}
+                  >
+                     Restart Sharing
+                  </Button>
                 </div>
               )}
             </motion.div>

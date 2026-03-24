@@ -87,20 +87,18 @@ export function App() {
         role: "host",
         roomId: newRoomId,
         userId,
-        onStateChange: (s) => {
-          setConnectionState(s);
-          addLog(`state → ${s}`);
-        },
+        onStateChange: setConnectionState,
+        onLog: addLog,
         onDataChannelOpen: (channel) => {
           setDc(channel);
-          addLog("  DataChannel open");
+          addLog("DataChannel open");
         },
         onDataChannelMessage: () => {},
         onDataChannelClose: () => {
           setDc(null);
           addLog("DataChannel closed");
         },
-        onError: (err) => addLog(`  ${err}`),
+        onError: (err) => addLog(`error: ${err}`),
       });
 
       managerRef.current = mgr;
@@ -124,20 +122,18 @@ export function App() {
         role: "peer",
         roomId: id,
         userId,
-        onStateChange: (s) => {
-          setConnectionState(s);
-          addLog(`state → ${s}`);
-        },
+        onStateChange: setConnectionState,
+        onLog: addLog,
         onDataChannelOpen: (channel) => {
           setDc(channel);
-          addLog("  DataChannel open");
+          addLog("DataChannel open");
         },
         onDataChannelMessage: () => {},
         onDataChannelClose: () => {
           setDc(null);
           addLog("DataChannel closed");
         },
-        onError: (err) => addLog(`  ${err}`),
+        onError: (err) => addLog(`error: ${err}`),
       });
 
       managerRef.current = mgr;

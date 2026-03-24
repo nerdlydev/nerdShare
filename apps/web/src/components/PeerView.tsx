@@ -5,6 +5,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Loading03Icon,
+  Alert02Icon,
 } from "@hugeicons/core-free-icons";
 import { CircleCheckIcon } from "@/components/ui/circle-check";
 import { AttachFileIcon } from "@/components/ui/attach-file";
@@ -72,14 +73,21 @@ export const PeerView = memo(function PeerView({
 
   const isConnected = connectionState === "connected";
 
+  const wasConnected = useRef(false);
+
   useEffect(() => {
-    if (isConnected) setPeerState("waiting");
-    if (connectionState === "disconnected" || connectionState === "failed") {
-      console.warn(
-        `[PeerView] Connection state: ${connectionState}. Failing silently.`,
-      );
+    if (isConnected) {
+      wasConnected.current = true;
+      if (peerState === "connecting") setPeerState("waiting");
     }
-  }, [isConnected, connectionState]);
+    
+    const isBroken = connectionState === "failed" || connectionState === "disconnected";
+    const isUnexpectedIdle = connectionState === "idle" && wasConnected.current && peerState !== "done";
+
+    if (isBroken || isUnexpectedIdle) {
+      setPeerState("error");
+    }
+  }, [isConnected, connectionState, peerState]);
 
   // Start receiver when DataChannel opens
   useEffect(() => {
@@ -122,8 +130,9 @@ export const PeerView = memo(function PeerView({
           wakeLockRelease();
         }
         if (state === "error") {
+          setPeerState("error");
+          addLog("Transfer error occurred");
           wakeLockRelease();
-          console.error("[PeerView] State changed to error, failing silently.");
         }
       },
     });
@@ -211,11 +220,7 @@ export const PeerView = memo(function PeerView({
         return (
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-primary/10 flex items-center justify-center text-primary">
-              <HugeiconsIcon
-                icon={WifiConnected01Icon}
-                size={32}
-                className="animate-float"
-              />
+               <WifiIcon size={32} className="animate-float" />
             </div>
             <p className="text-lg font-bold mb-2">Connected</p>
             <p className="text-sm text-muted-foreground">
@@ -293,7 +298,25 @@ export const PeerView = memo(function PeerView({
         );
 
       case "error":
-        return null; // Fail silently, maintain UI state where possible, but if forced into error state, render nothing new.
+        return (
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-destructive/10 flex items-center justify-center text-destructive">
+              <HugeiconsIcon icon={Alert02Icon} size={32} />
+            </div>
+            <p className="text-lg font-bold mb-2">Connection Timeout</p>
+            <p className="text-sm text-muted-foreground mb-8">
+              The connection was lost due to inactivity or network issues. 
+              Please ask the sender for a new link or refresh the page.
+            </p>
+            <Button 
+               variant="outline" 
+               className="w-full py-6 rounded-2xl font-bold" 
+               onClick={onLeave}
+            >
+               Try Again
+            </Button>
+          </div>
+        );
     }
   };
 

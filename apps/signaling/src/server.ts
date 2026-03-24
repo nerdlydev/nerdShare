@@ -490,9 +490,9 @@ console.log(`  └─ ready for WebSocket connections\n`);
 
 // ─── Heartbeat & Cleanup ───
 
-const BROKEN_CHECK_INTERVAL_MS = 1_000; // Check for dead sockets every second
-const PING_INTERVAL_MS = 5_000; // Ping every 5 seconds
-const ZOMBIE_TIMEOUT_MS = 15_000; // Disconnect if silent for 15 seconds
+const BROKEN_CHECK_INTERVAL_MS = 2_000; // Check for dead sockets every 2 seconds
+const PING_INTERVAL_MS = 10_000; // Ping every 10 seconds
+const ZOMBIE_TIMEOUT_MS = 60_000; // Disconnect if silent for 60 seconds
 
 // 1. Remove broken sockets (readyState != OPEN)
 setInterval(() => {
