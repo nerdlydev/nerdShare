@@ -232,8 +232,8 @@ export class WebRTCManager {
         if (msg.userId === this.remotePeerId) {
           this.log(`signaling: peer ${msg.userId} left (signaling only)`);
           // OPTIONAL: We don't cleanup() here anymore to allow P2P to continue
-          // this.cleanup();
-          // this.setState("disconnected");
+          this.cleanup();
+          this.setState("disconnected");
         }
         break;
 
@@ -443,11 +443,15 @@ export class WebRTCManager {
       if (!this.pc) return;
       const state = this.pc.iceConnectionState;
       this.log(`ICE state: ${state}`);
-      
+
       if (state === "failed" || state === "disconnected") {
         // Only trigger error if the connection state also fails
         setTimeout(() => {
-          if (this.pc && (this.pc.iceConnectionState === "failed" || this.pc.iceConnectionState === "disconnected")) {
+          if (
+            this.pc &&
+            (this.pc.iceConnectionState === "failed" ||
+              this.pc.iceConnectionState === "disconnected")
+          ) {
             this.setState("failed");
           }
         }, 3000);

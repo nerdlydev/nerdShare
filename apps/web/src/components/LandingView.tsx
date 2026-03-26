@@ -190,10 +190,10 @@ export function LandingView({
   };
 
   const staggerContainer: any = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.15 },
+      transition: { staggerChildren: 0.1 },
     },
   };
 

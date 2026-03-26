@@ -39,7 +39,12 @@ export function HeroSection({
   return (
     <section className="min-h-[92vh] flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-32 pb-20 relative group/hero">
       {/* Dynamic Flickering Grid Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+      <motion.div
+        variants={variants.fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+      >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background z-10" />
         <FlickeringGrid
           className="relative inset-0 z-0 h-full w-full"
@@ -49,7 +54,7 @@ export function HeroSection({
           maxOpacity={0.5}
           flickerChance={0.05}
         />
-      </div>
+      </motion.div>
       <motion.div
         initial="hidden"
         animate="visible"
@@ -64,6 +69,11 @@ export function HeroSection({
           >
             Hey, 👋 {displayName}
           </motion.h1>
+
+          {/* Dropzone (desktop) */}
+          <div className="hidden lg:block w-full relative lg:col-span-4 lg:col-start-1 lg:row-start-2 lg:-ml-8 xl:-ml-16 lg:mt-8 xl:mt-12">
+            {dropZoneChild}
+          </div>
 
           {/* Hero text (below greeting on mobile, right of dropzone on desktop) */}
           <div className="flex flex-col items-start text-left gap-6 lg:col-span-6 lg:col-start-6 lg:row-start-2 lg:ml-8 xl:ml-16 lg:mt-8 xl:mt-12">
@@ -93,11 +103,6 @@ export function HeroSection({
               <FeatureTag icon={Wifi01Icon} label="Peer-to-peer" />
               <FeatureTag icon={ShieldKeyIcon} label="End-to-end encrypted" />
             </motion.div>
-          </div>
-
-          {/* Dropzone (desktop) */}
-          <div className="hidden lg:block w-full relative lg:col-span-4 lg:col-start-1 lg:row-start-2 lg:-ml-8 xl:-ml-16 lg:mt-8 xl:mt-12">
-            {dropZoneChild}
           </div>
 
           {/* File selector button (mobile) */}
@@ -143,7 +148,13 @@ export function HeroSection({
         </motion.div>
       </motion.div>
 
-      <WaveDivider pathLength={pathLength} fillColor={fillColor} />
+      <motion.div
+        variants={variants.fadeInUp}
+        initial="hidden"
+        animate="visible"
+      >
+        <WaveDivider pathLength={pathLength} fillColor={fillColor} />
+      </motion.div>
     </section>
   );
 }
