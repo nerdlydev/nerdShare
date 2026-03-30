@@ -15,9 +15,14 @@ import { CircleHelpIcon } from "@/components/ui/circle-help";
 import { MenuIcon, type MenuIconHandle } from "@/components/ui/menu";
 import { useViteTheme } from "@space-man/react-theme-animation";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export type NavPage = "home" | "nearby" | "about" | "contact" | "privacy";
-
 
 const NAV_ITEMS: {
   path: string;
@@ -29,7 +34,12 @@ const NAV_ITEMS: {
   { path: "/nearby", page: "nearby", i18nKey: "nav.nearby", icon: WifiIcon },
   { path: "/contact", page: "contact", i18nKey: "nav.contact", icon: SendIcon },
   { path: "/about", page: "about", i18nKey: "nav.about", icon: CircleHelpIcon },
-  { path: "/privacy", page: "privacy", i18nKey: "nav.privacy", icon: LockKeyholeIcon },
+  {
+    path: "/privacy",
+    page: "privacy",
+    i18nKey: "nav.privacy",
+    icon: LockKeyholeIcon,
+  },
   { path: "/lang", page: "lang", i18nKey: "nav.lang", icon: LanguagesIcon },
 ];
 
@@ -86,7 +96,9 @@ function MobileNavItem({ item, isActive, onClick }: any) {
       `}
     >
       <div className="flex items-center gap-3">
-        <span className={`shrink-0 flex transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
+        <span
+          className={`shrink-0 flex transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}
+        >
           <Icon ref={iconRef} size={16} />
         </span>
         <span className="capitalize">{t(item.i18nKey)}</span>
@@ -129,7 +141,7 @@ function MobileGithubItem({ onClick }: any) {
         <span className="shrink-0 flex transition-opacity opacity-70 group-hover:opacity-100">
           <GithubIcon ref={iconRef} size={16} />
         </span>
-        <span>{t('nav.github')}</span>
+        <span>{t("nav.github")}</span>
       </div>
     </a>
   );
@@ -146,17 +158,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const path = location.pathname;
     if (path === "/") return "home";
     const p = path.slice(1);
-    if (["nearby", "about", "contact", "privacy"].includes(p)) return p as NavPage;
+    if (["nearby", "about", "contact", "privacy"].includes(p))
+      return p as NavPage;
     return "home";
   }, [location.pathname]);
 
-  const cycleLanguage = () => {
-    const langs = ["en", "es", "fr", "de", "hi", "zh"];
-    const currentLang = typeof i18n?.language === "string" ? i18n.language.split('-')[0] : "en";
-    const currentIndex = langs.indexOf(currentLang) !== -1 ? langs.indexOf(currentLang) : 0;
-    const nextIndex = (currentIndex + 1) % langs.length;
-    i18n.changeLanguage(langs[nextIndex]);
-  };
+  const LANGUAGES = [
+    { code: "en", label: "English" },
+    { code: "es", label: "Español" },
+    { code: "fr", label: "Français" },
+    { code: "de", label: "Deutsch" },
+    { code: "hi", label: "हिन्दी" },
+    { code: "zh", label: "中文" },
+  ];
+
+  const currentLang =
+    typeof i18n?.language === "string" ? i18n.language.substring(0, 2) : "en";
 
   useEffect(() => {
     if (sidebarOpen) {
@@ -166,146 +183,213 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [sidebarOpen]);
 
-
   return (
     <div className="min-h-screen flex flex-col bg-background relative">
       {/* ── Fixed top header (Floating Pill Style) ── */}
       <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
         <header className="w-full max-w-6xl bg-background/80 backdrop-blur-xl border-2 border-dashed border-border rounded-full pointer-events-auto">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6">
-          {/* LEFT: Logo */}
-          <div className="flex items-center gap-3 lg:w-[220px]">
-            <Link
-              to="/"
-              className="flex items-center gap-[10px] cursor-pointer"
-            >
-              <img
-                src="/logo-source.png"
-                alt="nerdShare"
-                className="w-8 h-8 object-contain"
-              />
-              <span className="hidden sm:inline-block lg:hidden xl:inline-block font-semibold text-[20px] tracking-tight text-foreground">
-                nerdShare
-              </span>
-            </Link>
-          </div>
-
-          {/* CENTER: Nav (Desktop) inside light gray rounded pill */}
-          <div className="hidden lg:flex flex-1 justify-center">
-            <div className="flex items-center rounded-lg bg-muted/60 p-1 border border-border/50">
-              {NAV_ITEMS.map((item) => {
-                if (item.page === "lang") return null;
-                const isActive = activePage === item.page;
-                return (
-                  <DesktopNavItem
-                    key={item.path}
-                    item={item}
-                    isActive={isActive}
-                    layoutId="nav-pill"
-                  />
-                );
-              })}
-            </div>
-          </div>
-
-          {/* RIGHT: Actions */}
-          <div className="flex items-center justify-end gap-2 lg:w-[220px]">
-            {/* Desktop Actions */}
-            <div className="hidden sm:flex items-center gap-2">
-              <DesktopGithubAction />
-
-              <button
-                ref={ref as React.RefObject<HTMLButtonElement>}
-                onClick={() => toggleTheme()}
-                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground"
-                aria-label="Toggle theme"
+            {/* LEFT: Logo */}
+            <div className="flex items-center gap-3 lg:w-[220px]">
+              <Link
+                to="/"
+                className="flex items-center gap-[10px] cursor-pointer"
               >
-                <div className="relative w-8 h-8 flex items-center justify-center overflow-hidden">
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={resolvedTheme}
-                      initial={{ scale: 0.5, opacity: 0, rotate: -45 }}
-                      animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                      exit={{ scale: 0.5, opacity: 0, rotate: 45 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="flex items-center justify-center"
-                    >
-                      {resolvedTheme === "dark" ? (
-                        <SunIcon size={14} />
-                      ) : (
-                        <MoonIcon size={14} />
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </button>
-
-              <button
-                onClick={cycleLanguage}
-                title={typeof i18n?.language === "string" ? i18n.language.toUpperCase() : "EN"}
-                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground group relative"
-                aria-label="Language"
-              >
-                <LanguagesIcon size={14} className="group-hover:-translate-y-0.5 transition-transform" />
-                <span className="absolute -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] uppercase font-bold text-muted-foreground/80 pointer-events-none whitespace-nowrap">
-                  {typeof i18n?.language === "string" ? i18n.language.substring(0,2) : "en"}
+                <img
+                  src="/logo-source.png"
+                  alt="nerdShare"
+                  className="w-8 h-8 object-contain"
+                />
+                <span className="hidden sm:inline-block lg:hidden xl:inline-block font-semibold text-[20px] tracking-tight text-foreground">
+                  nerdShare
                 </span>
-              </button>
+              </Link>
             </div>
 
+            {/* CENTER: Nav (Desktop) inside light gray rounded pill */}
+            <div className="hidden lg:flex flex-1 justify-center">
+              <div className="flex items-center rounded-lg bg-muted/60 p-1 border border-border/50">
+                {NAV_ITEMS.map((item) => {
+                  if (item.page === "lang") return null;
+                  const isActive = activePage === item.page;
+                  return (
+                    <DesktopNavItem
+                      key={item.path}
+                      item={item}
+                      isActive={isActive}
+                      layoutId="nav-pill"
+                    />
+                  );
+                })}
+              </div>
+            </div>
 
+            {/* RIGHT: Actions */}
+            <div className="flex items-center justify-end gap-2 lg:w-[220px]">
+              {/* Desktop Actions */}
+              <div className="hidden sm:flex items-center gap-2">
+                <DesktopGithubAction />
 
-            {/* Hamburger (Mobile/Tablet) */}
-            <div className="lg:hidden relative">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-foreground transition-colors relative z-50"
-                aria-label="Toggle menu"
-                aria-expanded={sidebarOpen}
-              >
-                <MenuIcon ref={menuIconRef} size={20} />
-              </button>
-
-              {sidebarOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 bg-transparent"
-                    onClick={() => setSidebarOpen(false)}
-                    aria-hidden="true"
-                  />
-                  <div className="absolute top-[calc(100%+0.5rem)] right-0 z-50 w-52 py-2 bg-background border border-border rounded-2xl shadow-xl flex flex-col">
-                     {NAV_ITEMS.map((item) => {
-                      if (item.page === "lang") return null;
-                      const isActive = activePage === item.page;
-                      return (
-                        <MobileNavItem
-                          key={item.path}
-                          item={item}
-                          isActive={isActive}
-                          onClick={() => setSidebarOpen(false)}
-                        />
-                      );
-                    })}
-                    
-                    <div className="h-px bg-border/40 mx-3 my-2" />
-
-                    <MobileGithubItem onClick={() => setSidebarOpen(false)} />
-                    
-                    <button
-                      onClick={() => {
-                        toggleTheme();
-                        setSidebarOpen(false);
-                      }}
-                      className="px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center justify-between"
-                    >
-                      <span>{resolvedTheme === "dark" ? t('nav.lightMode') : t('nav.darkMode')}</span>
-                      {resolvedTheme === "dark" ? <SunIcon size={14} /> : <MoonIcon size={14} />}
-                    </button>
+                <button
+                  ref={ref as React.RefObject<HTMLButtonElement>}
+                  onClick={() => toggleTheme()}
+                  className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground"
+                  aria-label="Toggle theme"
+                >
+                  <div className="relative w-8 h-8 flex items-center justify-center overflow-hidden">
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.div
+                        key={resolvedTheme}
+                        initial={{ scale: 0.5, opacity: 0, rotate: -45 }}
+                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                        exit={{ scale: 0.5, opacity: 0, rotate: 45 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="flex items-center justify-center"
+                      >
+                        {resolvedTheme === "dark" ? (
+                          <SunIcon size={14} />
+                        ) : (
+                          <MoonIcon size={14} />
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
                   </div>
-                </>
-              )}
+                </button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      title={
+                        LANGUAGES.find((l) => l.code === currentLang)?.label ||
+                        "English"
+                      }
+                      className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground group relative outline-none"
+                      aria-label="Language"
+                    >
+                      <LanguagesIcon
+                        size={14}
+                        className="transition-transform"
+                      />
+                      <span className="absolute -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] uppercase font-bold text-muted-foreground/80 pointer-events-none whitespace-nowrap">
+                        {currentLang}
+                      </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    sideOffset={24}
+                    className="w-[180px] p-2 bg-background border border-border rounded-2xl shadow-xl"
+                  >
+                    {LANGUAGES.map((lang) => (
+                      <DropdownMenuItem
+                        key={lang.code}
+                        onClick={() => i18n.changeLanguage(lang.code)}
+                        className={`
+                        group px-4 py-3 mx-1 mt-1 text-sm text-left flex items-center justify-between rounded-lg cursor-pointer outline-none transition-colors
+                        ${currentLang === lang.code ? "text-primary font-medium bg-primary/10 focus:bg-primary/20" : "text-muted-foreground hover:text-foreground hover:bg-muted/70 focus:bg-muted/70 focus:text-foreground"}
+                      `}
+                      >
+                        {lang.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Hamburger (Mobile/Tablet) */}
+              <div className="lg:hidden relative">
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted text-foreground transition-colors relative z-50"
+                  aria-label="Toggle menu"
+                  aria-expanded={sidebarOpen}
+                >
+                  <MenuIcon ref={menuIconRef} size={20} />
+                </button>
+
+                {sidebarOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 bg-transparent"
+                      onClick={() => setSidebarOpen(false)}
+                      aria-hidden="true"
+                    />
+                    <div className="absolute top-[calc(100%+0.5rem)] right-0 z-50 w-52 py-2 bg-background border border-border rounded-2xl shadow-xl flex flex-col">
+                      {NAV_ITEMS.map((item) => {
+                        if (item.page === "lang") return null;
+                        const isActive = activePage === item.page;
+                        return (
+                          <MobileNavItem
+                            key={item.path}
+                            item={item}
+                            isActive={isActive}
+                            onClick={() => setSidebarOpen(false)}
+                          />
+                        );
+                      })}
+
+                      <div className="h-px bg-border/40 mx-3 my-2" />
+
+                      <MobileGithubItem onClick={() => setSidebarOpen(false)} />
+
+                      <button
+                        onClick={() => {
+                          toggleTheme();
+                          setSidebarOpen(false);
+                        }}
+                        className="px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center justify-between"
+                      >
+                        <span>
+                          {resolvedTheme === "dark"
+                            ? t("nav.lightMode")
+                            : t("nav.darkMode")}
+                        </span>
+                        {resolvedTheme === "dark" ? (
+                          <SunIcon size={14} />
+                        ) : (
+                          <MoonIcon size={14} />
+                        )}
+                      </button>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center justify-between group outline-none w-full">
+                            <span className="flex items-center gap-2 uppercase">
+                              {currentLang}
+                              <span className="text-xs text-muted-foreground/60 capitalize font-normal">
+                                ({t("nav.lang")})
+                              </span>
+                            </span>
+                            <LanguagesIcon size={14} />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="center"
+                          sideOffset={12}
+                          className="w-[180px] p-2 bg-background border border-border rounded-2xl shadow-xl"
+                        >
+                          {LANGUAGES.map((lang) => (
+                            <DropdownMenuItem
+                              key={lang.code}
+                              onClick={() => {
+                                i18n.changeLanguage(lang.code);
+                                setSidebarOpen(false);
+                              }}
+                              className={`
+                              group px-4 py-3 mx-1 mt-1 text-sm text-left flex items-center justify-between rounded-lg cursor-pointer outline-none transition-colors
+                              ${currentLang === lang.code ? "text-primary font-medium bg-primary/10 focus:bg-primary/20" : "text-muted-foreground hover:text-foreground hover:bg-muted/70 focus:bg-muted/70 focus:text-foreground"}
+                            `}
+                            >
+                              {lang.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
           </div>
         </header>
       </div>
