@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { LockKeyholeIcon, type LockKeyholeIconHandle } from "@/components/ui/lock-keyhole";
+import { useTranslation, Trans } from "react-i18next";
 
 export function PrivacyPage() {
+  const { t } = useTranslation();
   const iconRef = useRef<LockKeyholeIconHandle>(null);
 
   useEffect(() => {
@@ -25,11 +27,10 @@ export function PrivacyPage() {
             <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl lg:rounded-3xl bg-primary/10 flex items-center justify-center text-primary shadow-inner overflow-hidden shrink-0">
               <LockKeyholeIcon ref={iconRef} size={32} className="scale-75 sm:scale-90 lg:scale-100" />
             </div>
-            <span>Your files stay yours.</span>
+            <span>{t('privacy.hero.title')}</span>
           </h1>
           <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance font-normal">
-            nerdShare never stores your files. All transfers happen directly
-            between your devices, keeping your data private and secure.
+            {t('privacy.hero.subtitle')}
           </p>
         </motion.section>
 
@@ -39,20 +40,16 @@ export function PrivacyPage() {
         >
             <div className="space-y-8">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">
-                Privacy by design
+                {t('privacy.section1.title')}
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                nerdShare is built with a simple idea:{" "}
-                <span className="text-foreground italic">
-                  "The server should help devices connect — but never see the
-                  files."
-                </span>
+                <Trans
+                  i18nKey="privacy.section1.desc1"
+                  components={{ highlight: <span className="text-foreground italic" /> }}
+                />
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Files are transferred through peer-to-peer connections and
-                encrypted in transit using industry-standard protocols. Even the
-                infrastructure helping devices connect cannot see the actual
-                content of your files.
+                {t('privacy.section1.desc2')}
               </p>
             </div>
         </motion.section>
@@ -61,19 +58,15 @@ export function PrivacyPage() {
         <motion.section
           className="mb-28 border-l-4 border-primary/20 pl-10 py-4"
         >
-          <h2 className="text-3xl font-bold tracking-tight mb-6">A small reminder</h2>
+          <h2 className="text-3xl font-bold tracking-tight mb-6">{t('privacy.section2.title')}</h2>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-            While nerdShare focuses on privacy, security is still partly{" "}
-            <span className="text-foreground font-medium">
-              your responsibility
-            </span>
-            . If you share a session link or room ID with someone, treat it like
-            a private message. Anyone with access to that session could
-            potentially receive the file. Keep your sharing sessions{" "}
-            <span className="text-foreground font-medium">
-              private and intentional
-            </span>
-            .
+            <Trans
+              i18nKey="privacy.section2.desc"
+              components={{
+                highlight1: <span className="text-foreground font-medium" />,
+                highlight2: <span className="text-foreground font-medium" />
+              }}
+            />
           </p>
         </motion.section>
 
@@ -81,14 +74,12 @@ export function PrivacyPage() {
         <motion.section
           className="text-center pt-24 border-t border-border/40"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-balance mb-6">Questions?</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-balance mb-6">{t('privacy.section3.title')}</h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
-            nerdShare is a solo-built project, and transparency about how it
-            works matters a lot. If you ever have questions or concerns about
-            privacy, feel free to reach out.
+            {t('privacy.section3.desc')}
           </p>
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 text-primary font-medium text-sm">
-            Built by a developer who cares about your data 🤙
+            {t('privacy.section3.tag')}
           </div>
         </motion.section>
       </motion.div>

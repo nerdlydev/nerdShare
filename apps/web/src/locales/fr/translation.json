@@ -1,12 +1,252 @@
 {
   "nav": {
-    "home": "accueil",
-    "nearby": "appareils à proximité",
-    "contact": "contact",
-    "about": "à propos",
-    "privacy": "confidentialité",
+    "home": "Accueil",
+    "nearby": "Appareils à proximité",
+    "contact": "Contact",
+    "about": "À propos",
+    "privacy": "Confidentialité",
     "github": "Dépôt GitHub",
-    "lightMode": "Mode Clair",
-    "darkMode": "Mode Sombre"
+    "lightMode": "Mode clair",
+    "darkMode": "Mode sombre"
+  },
+  "hero": {
+    "greeting": "Bonjour, 👋 {{name}}",
+    "headline": "Partagez des fichiers <highlight1>directement</highlight1> depuis<br/> votre appareil <highlight2>vers n'importe où</highlight2>.",
+    "subtitle": "Envoyez des fichiers de n'importe quelle taille directement depuis votre appareil sans rien stocker en ligne.",
+    "features": {
+      "noLimit": "Aucune limite de taille de fichier",
+      "fast": "Extrêmement rapide",
+      "p2p": "Pair-à-pair",
+      "e2ee": "Chiffrement de bout en bout"
+    },
+    "selectFiles": "Sélectionner des fichiers",
+    "selectFolder": "ou <action>cliquez ici</action> pour sélectionner un dossier",
+    "findNearby": "Trouver des appareils à proximité"
+  },
+  "dropzone": {
+    "preparing": "Préparation du fichier zip...",
+    "zippingProgress": "Zipper... {{processed}} / {{total}} fichiers",
+    "title": "Cliquez pour parcourir ou glissez-déposez des fichiers",
+    "folderOption": "ou <action>cliquez ici</action> pour sélectionner un dossier",
+    "footer": "N'importe quel fichier. N'importe quelle taille."
+  },
+  "features": {
+    "built_for_humans": {
+      "title": "Conçu pour les humains, pas pour les entreprises.",
+      "desc": "nerdShare est gratuit, indépendant et ne contient aucun traqueur. Pas de comptes, pas de publicités, pas de murs payants – juste vous et la personne à qui vous envoyez des fichiers. L'internet tel qu'il était censé être."
+    },
+    "ephemeral": {
+      "title": "Se ferme quand vous fermez.",
+      "desc": "Vos fichiers restent strictement sur votre appareil. Une fois qu'une connexion est établie, les données circulent directement vers votre pair. Fermez l'onglet et pouf – la connexion est interrompue. Aucun téléchargement persistant sur des serveurs tiers, aucun surpartage accidentel."
+    },
+    "no_limits": {
+      "title": "Limite de taille de fichier :",
+      "value": "Aucune."
+    },
+    "e2ee": {
+      "title": "Chiffrement de bout en bout.",
+      "desc1": "L'utilisation du routage WebRTC + DTLS standard de l'industrie signifie que vos données sont chiffrées en transit. Seul votre destinataire peut déchiffrer le fichier. Nous ne pouvons pas voir vos données, et nous n'en avons pas envie. Promis. 🤙",
+      "desc2": "Et parce que nous n'hébergeons pas vos fichiers, nous n'avons aucun coût d'infrastructure pour le stockage. Envie d'envoyer un film 4K totalement non compressé ? Ou peut-être un dossier de projet entier ? Allez-y. Cela ne nous dérange vraiment pas."
+    }
+  },
+  "cta": {
+    "title": "Découvrez la magie par vous-même.",
+    "desc": "Glissez simplement un fichier dans la zone, ou parcourez pour commencer un partage direct.",
+    "button": "Choisir un fichier maintenant"
+  },
+  "landing": {
+    "upload_folder_title": "Téléverser le dossier ?",
+    "upload_folder_desc": "{{count}} fichier(s) seront zippés et envoyés au destinataire.",
+    "cancel": "Annuler",
+    "zip_send": "Zipper & Envoyer"
+  },
+  "nearby": {
+    "title": "Appareils à proximité",
+    "subtitle": "Recherche d'appareils sur votre réseau...",
+    "no_devices": "Aucun appareil trouvé pour le moment",
+    "no_devices_desc": "Assurez-vous que l'autre appareil a nerdShare ouvert et est connecté au même réseau Wi-Fi.",
+    "ready": "Prêt à recevoir",
+    "send_to": "Envoyer des fichiers à {{name}}",
+    "choose": "Choisissez ce que vous voulez envoyer",
+    "select_files": "Sélectionner des fichiers",
+    "select_folder": "Sélectionner un dossier",
+    "preparing_files": "Préparation des fichiers... {{processed}} / {{total}}",
+    "preparing_folder": "Préparation du dossier...",
+    "cancel": "Annuler"
+  },
+  "about": {
+    "hero": {
+      "title": "Pourquoi nerdShare existe",
+      "subtitle": "Tout a commencé avec une simple frustration : envoyer un fichier ne devrait pas nécessiter de se connecter à cinq outils différents."
+    },
+    "section1": {
+      "title": "Le moment où tout a commencé",
+      "p1": "Un jour au bureau, j'avais besoin d'envoyer un fichier à quelqu'un assis pas très loin de moi. Rien d'inhabituel.",
+      "p2": "Mais les options étaient étonnamment ennuyeuses : télécharger sur Teams, se connecter à un site de partage, attendre le téléchargement, envoyer un lien, et attendre le téléchargement.",
+      "quote": "\"Pourquoi l'envoi d'un fichier nécessite-t-il toujours de le télécharger d'abord sur un serveur ?\""
+    },
+    "section2": {
+      "title": "Découverte d'une idée simple",
+      "p1": "En cherchant des alternatives, je suis tombé sur ToffeeShare. Cela s'est immédiatement démarqué : Pas de comptes. Pas de téléchargements vers le stockage cloud. Pas d'attente pour un serveur.",
+      "p2_highlight": "Il suffit d'ouvrir une page et d'envoyer le fichier directement d'un appareil à l'autre.",
+      "p3": "Cette simplicité m'a rendu curieux. Pas seulement pour l'utiliser – mais pour comprendre comment cela fonctionne réellement."
+    },
+    "section3": {
+      "title": "La spirale de la curiosité",
+      "p1": "À l'époque, je travaillais déjà beaucoup avec des technologies en temps réel comme WebRTC et des systèmes de réseaux.",
+      "p2": "Comment les appareils se découvrent-ils ? Comment la connexion se produit-elle ? Comment le fichier circule-t-il directement entre les pairs ?",
+      "p3": "Plus j'explorais, plus cela devenait intéressant. Cela a en quelque sorte titillé mon cerveau d'ingénieur."
+    },
+    "section4": {
+      "title": "J'ai donc conçu nerdShare",
+      "subtitle": "nerdShare a commencé comme une expérience d'apprentissage. Je voulais comprendre chaque élément du système tout en poussant les idées de base plus loin."
+    },
+    "grid": {
+      "direct": "Direct",
+      "direct_desc": "D'appareil à appareil",
+      "no_acc": "Pas de comptes",
+      "no_acc_desc": "Zéro friction",
+      "no_storage": "Pas de stockage",
+      "no_storage_desc": "Éphémère",
+      "privacy": "Confidentialité",
+      "privacy_desc": "Dès la conception"
+    },
+    "footer": {
+      "tag": "La Philosophie",
+      "title": "Les fichiers devraient circuler entre les personnes, pas entre les serveurs.",
+      "desc": "nerdShare est un projet solo conçu pendant le temps libre. En partie par curiosité, en partie pour une expérience d'ingénierie, en partie pour essayer de rendre le partage de fichiers plus simple.",
+      "evolving": "Toujours en évolution 🤙"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Une question ou une idée ?",
+      "subtitle": "nerdShare est conçu par un développeur solo — n'hésitez pas à nous contacter. Je suis toujours à l'écoute des moyens de rendre le Web un peu plus simple."
+    },
+    "section1": {
+      "p1": "nerdShare n'est pas une entreprise ou une grande équipe. C'est juste quelqu'un qui aime construire des choses et explorer le fonctionnement des technologies en temps réel.",
+      "list1": "Questions & Bugs",
+      "list2": "Idées de fonctionnalités",
+      "list3": "Retours généraux",
+      "list4": "Juste pour dire bonjour !"
+    },
+    "section2": {
+      "title": "Le meilleur moyen de nous joindre",
+      "desc": "Au lieu d'un formulaire de contact traditionnel, le moyen le plus simple d'entrer en contact est via <highlight>Discord</highlight>. C'est plus rapide et cela permet de discuter de technologie sans les habituels e-mails de va-et-vient.",
+      "button": "Rejoindre le Discord nerdShare",
+      "note": "* Puisqu'il s'agit d'un projet parallèle, les réponses peuvent ne pas être instantanées, mais je lis tout."
+    },
+    "section3": {
+      "title": "Vous aimez nerdShare ?",
+      "desc": "Si vous avez trouvé nerdShare utile, vous pouvez soutenir le projet en m'achetant un café. Cela aide à faire fonctionner les serveurs et me donne d'autres excuses pour continuer à construire.",
+      "button": "M'acheter un café ☕"
+    },
+    "footer": {
+      "title": "Conçu pour les gens, pas pour les profils.",
+      "evolving": "Toujours en évolution 🤙"
+    }
+  },
+  "privacy": {
+    "hero": {
+      "title": "Vos fichiers restent les vôtres.",
+      "subtitle": "nerdShare ne stocke jamais vos fichiers. Tous les transferts se font directement entre vos appareils, en gardant vos données privées et sécurisées."
+    },
+    "section1": {
+      "title": "Confidentialité dès la conception",
+      "desc1": "nerdShare est conçu avec une idée simple : <highlight>\"Le serveur devrait aider les appareils à se connecter — mais ne jamais voir les fichiers.\"</highlight>",
+      "desc2": "Les fichiers sont transférés via des connexions peer-to-peer et chiffrés en transit en utilisant des protocoles conformes aux normes de l'industrie. Même l'infrastructure aidant les appareils à se connecter ne peut pas voir le contenu réel de vos fichiers."
+    },
+    "section2": {
+      "title": "Un petit rappel",
+      "desc": "Bien que nerdShare se concentre sur la confidentialité, la sécurité relève toujours en partie de <highlight1>votre responsabilité</highlight1>. Si vous partagez un lien de session ou un identifiant de salle avec quelqu'un, traitez-le comme un message privé. Toute personne ayant accès à cette session pourrait potentiellement recevoir le fichier. Gardez vos sessions de partage <highlight2>privées et intentionnelles</highlight2>."
+    },
+    "section3": {
+      "title": "Des questions ?",
+      "desc": "nerdShare est un projet conçu en solo, et la transparence sur son fonctionnement est primordiale. Si vous avez des questions ou des inquiétudes concernant la confidentialité, n'hésitez pas à nous contacter.",
+      "tag": "Conçu par un développeur qui se soucie de vos données 🤙"
+    }
+  },
+  "host": {
+    "status": {
+      "paused": "En pause",
+      "failed": "Le transfert a échoué",
+      "complete": "Transfert terminé !",
+      "remaining": "{{time}} restants"
+    },
+    "panel": {
+      "success": "Succès",
+      "sharing": "Partage de fichier",
+      "paused": "EN PAUSE",
+      "button": {
+        "pause": "Suspendre le transfert",
+        "resume": "Reprendre le transfert"
+      },
+      "complete": {
+        "title": "Transfert réussi !",
+        "desc": "Le fichier a été livré avec succès et enregistré sur l'appareil du destinataire."
+      },
+      "error": {
+        "title": "Connexion perdue",
+        "desc": "La connexion a été interrompue. Cela se produit généralement lorsqu'un pair ferme son onglet ou que le réseau expire.",
+        "button": "Redémarrer le partage"
+      }
+    },
+    "hero": {
+      "tag": "Hôte Actif",
+      "title": {
+        "success": "Partage réussi",
+        "connected": "Connecté & en partage",
+        "waiting": "En attente du récepteur"
+      },
+      "desc": {
+        "success": "Vos fichiers ont été livrés en toute sécurité. Vous pouvez maintenant fermer cet onglet ou partager un autre fichier.",
+        "waiting": "Gardez cette page ouverte pendant que le transfert est en cours. La fermer terminera la connexion immédiatement."
+      },
+      "button": "Partager un autre fichier",
+      "note": {
+        "title": "Note sur le partage",
+        "desc": "nerdShare est un service direct d'appareil à appareil. Nous ne stockons pas vos fichiers sur un cloud. Pour que le transfert s'achève, ne fermez pas cet onglet de navigateur."
+      }
+    }
+  },
+  "peer": {
+    "panel": {
+      "connecting": {
+        "title": "Connexion...",
+        "desc": "Établissement d'une connexion sécurisée peer-to-peer"
+      },
+      "waiting": {
+        "title": "Connecté",
+        "desc": "En attente que l'expéditeur commence le transfert…"
+      },
+      "ready": {
+        "tag": "Fichier à recevoir",
+        "button": "Accepter le transfert",
+        "negotiating": "Négociation..."
+      },
+      "downloading": {
+        "tag": "Téléchargement"
+      },
+      "paused": {
+        "desc": "L'expéditeur a mis le transfert en pause"
+      },
+      "remaining": "{{time}} restants",
+      "done": {
+        "tag": "Succès",
+        "button": "Enregistrer le fichier"
+      },
+      "error": {
+        "title": "Délai de connexion",
+        "desc": "La connexion a été perdue en raison de l'inactivité ou de problèmes de réseau. Veuillez demander à l'expéditeur un nouveau lien ou rafraîchir la page.",
+        "button": "Réessayer"
+      }
+    },
+    "hero": {
+      "tag": "Transfert sécurisé",
+      "title": "Recevoir des fichiers <highlight>avec nerdShare</highlight>",
+      "desc": "Vous êtes sur le point de commencer un transfert sécurisé directement depuis l'expéditeur. Le fichier sera téléchargé directement sur votre appareil une fois que vous l'aurez accepté.",
+      "feature1": "Directement d'appariel à apparent",
+      "feature2": "Chiffrement de bout en bout"
+    }
   }
 }

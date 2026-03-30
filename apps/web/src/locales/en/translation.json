@@ -165,7 +165,91 @@
       "desc": "nerdShare is a solo-built project, and transparency about how it works matters a lot. If you ever have questions or concerns about privacy, feel free to reach out.",
       "tag": "Built by a developer who cares about your data 🤙"
     }
+  },
+  "host": {
+    "status": {
+      "paused": "Paused",
+      "failed": "Transfer failed",
+      "complete": "Transfer complete!",
+      "remaining": "{{time}} remaining"
+    },
+    "panel": {
+      "success": "Success",
+      "sharing": "Sharing File",
+      "paused": "PAUSED",
+      "button": {
+        "pause": "Pause Transfer",
+        "resume": "Resume Transfer"
+      },
+      "complete": {
+        "title": "Transfer Successful!",
+        "desc": "The file has been successfully delivered and saved on the receiver's device."
+      },
+      "error": {
+        "title": "Connection Lost",
+        "desc": "The connection was interrupted. This usually happens when a peer closes their tab or the network times out.",
+        "button": "Restart Sharing"
+      }
+    },
+    "hero": {
+      "tag": "Active Host",
+      "title": {
+        "success": "Sharing successful",
+        "connected": "Connected & Sharing",
+        "waiting": "Waiting for receiver"
+      },
+      "desc": {
+        "success": "Your files have been safely delivered. You can now close this tab or share another file.",
+        "waiting": "Keep this page open while the transfer is in progress. Closing it will terminate the connection immediately."
+      },
+      "button": "Share Another File",
+      "note": {
+        "title": "Sharing Note",
+        "desc": "nerdShare is a direct device-to-device service. We don't store your files on any cloud. To ensure the transfer completes, do not close this browser tab."
+      }
+    }
+  },
+  "peer": {
+    "panel": {
+      "connecting": {
+        "title": "Connecting...",
+        "desc": "Establishing a secure peer-to-peer connection"
+      },
+      "waiting": {
+        "title": "Connected",
+        "desc": "Waiting for the sender to start the transfer…"
+      },
+      "ready": {
+        "tag": "File to Receive",
+        "button": "Accept Transfer",
+        "negotiating": "Negotiating..."
+      },
+      "downloading": {
+        "tag": "Downloading"
+      },
+      "paused": {
+        "desc": "Sender paused the transfer"
+      },
+      "remaining": "{{time}} remaining",
+      "done": {
+        "tag": "Success",
+        "button": "Save File"
+      },
+      "error": {
+        "title": "Connection Timeout",
+        "desc": "The connection was lost due to inactivity or network issues. Please ask the sender for a new link or refresh the page.",
+        "button": "Try Again"
+      }
+    },
+    "hero": {
+      "tag": "Secure Transfer",
+      "title": "Receiving files <highlight>with nerdShare</highlight>",
+      "desc": "You are about to start a secure transfer directly from the sender. The file will be downloaded directly to your device once you accept.",
+      "feature1": "Direct Peer-to-Peer",
+      "feature2": "End-to-End Encrypted"
+    }
   }
 }
+
 
 

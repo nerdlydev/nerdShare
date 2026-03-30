@@ -1,12 +1,252 @@
 {
   "nav": {
-    "home": "inicio",
-    "nearby": "dispositivos cercanos",
-    "contact": "contacto",
-    "about": "sobre nosotros",
-    "privacy": "privacidad",
-    "github": "Repositorio GitHub",
-    "lightMode": "Modo Claro",
-    "darkMode": "Modo Oscuro"
+    "home": "Inicio",
+    "nearby": "Dispositivos cercanos",
+    "contact": "Contacto",
+    "about": "Acerca de",
+    "privacy": "Privacidad",
+    "github": "Repositorio de GitHub",
+    "lightMode": "Modo claro",
+    "darkMode": "Modo oscuro"
+  },
+  "hero": {
+    "greeting": "Hola, 👋 {{name}}",
+    "headline": "Comparte archivos <highlight1>directamente</highlight1> desde<br/> tu dispositivo <highlight2>a cualquier lugar</highlight2>.",
+    "subtitle": "Envía archivos de cualquier tamaño directamente desde tu dispositivo sin guardar nada en línea.",
+    "features": {
+      "noLimit": "Sin límite de tamaño",
+      "fast": "Increíblemente rápido",
+      "p2p": "Peer-to-peer",
+      "e2ee": "Cifrado de extremo a extremo"
+    },
+    "selectFiles": "Seleccionar archivos",
+    "selectFolder": "o <action>haz clic aquí</action> para seleccionar una carpeta",
+    "findNearby": "Buscar dispositivos cercanos"
+  },
+  "dropzone": {
+    "preparing": "Preparando archivo zip...",
+    "zippingProgress": "Comprimiendo... {{processed}} / {{total}} archivos",
+    "title": "Haz clic para buscar o arrastra y suelta archivos",
+    "folderOption": "o <action>haz clic aquí</action> para seleccionar una carpeta",
+    "footer": "Cualquier archivo. Cualquier tamaño."
+  },
+  "features": {
+    "built_for_humans": {
+      "title": "Creado para humanos, no para corporaciones.",
+      "desc": "nerdShare es gratuito, independiente y tiene cero rastreadores. Sin cuentas, sin anuncios, sin muros de pago, solo tú y la persona a la que le estás enviando archivos. Así es como debería ser Internet."
+    },
+    "ephemeral": {
+      "title": "Se cierra cuando tú cierras.",
+      "desc": "Tus archivos viven estrictamente en tu dispositivo. Una vez establecida la conexión, los datos fluyen directamente a tu contacto. Cierra la pestaña y listo, la conexión finaliza. Nada de cargas persistentes en servidores de terceros."
+    },
+    "no_limits": {
+      "title": "Límite de tamaño de archivo:",
+      "value": "Ninguno."
+    },
+    "e2ee": {
+      "title": "Cifrado de extremo a extremo.",
+      "desc1": "El uso del enrutamiento estándar WebRTC + DTLS de la industria significa que tus datos están cifrados en tránsito. Solo tu receptor puede descifrar el archivo. No podemos ver tus datos y no queremos. Prometido. 🤙",
+      "desc2": "Y debido a que no alojamos tus archivos, tenemos cero gastos de infraestructura por almacenamiento. ¿Tienes ganas de enviar una película 4K totalmente sin comprimir? ¿O tal vez la carpeta de un proyecto completo? Hazlo, de verdad. No nos molesta en absoluto."
+    }
+  },
+  "cta": {
+    "title": "Experimenta la magia tú mismo.",
+    "desc": "Simplemente suelta un archivo en la zona o búscalo para comenzar un envío directo.",
+    "button": "Elegir archivo ahora"
+  },
+  "landing": {
+    "upload_folder_title": "¿Cargar carpeta?",
+    "upload_folder_desc": "{{count}} archivo(s) serán comprimidos y enviados al destinatario.",
+    "cancel": "Cancelar",
+    "zip_send": "Comprimir y enviar"
+  },
+  "nearby": {
+    "title": "Dispositivos cercanos",
+    "subtitle": "Buscando dispositivos en su red...",
+    "no_devices": "Aún no se han encontrado dispositivos",
+    "no_devices_desc": "Asegúrese de que el otro dispositivo tenga abierto nerdShare y esté conectado a la misma red Wi-Fi.",
+    "ready": "Listo para recibir",
+    "send_to": "Enviar archivos a {{name}}",
+    "choose": "Elige lo que quieres enviar",
+    "select_files": "Seleccionar archivos",
+    "select_folder": "Seleccionar carpeta",
+    "preparing_files": "Preparando archivos... {{processed}} / {{total}}",
+    "preparing_folder": "Preparando carpeta...",
+    "cancel": "Cancelar"
+  },
+  "about": {
+    "hero": {
+      "title": "Por qué existe nerdShare",
+      "subtitle": "Todo comenzó con una simple frustración: enviar un archivo no debería requerir iniciar sesión en cinco herramientas diferentes."
+    },
+    "section1": {
+      "title": "El momento en que todo empezó",
+      "p1": "Un día en la oficina necesité enviar un archivo a alguien sentado no muy lejos de mí. Nada inusual.",
+      "p2": "Pero las opciones eran sorprendentemente molestas: cargarlo en Teams, iniciar sesión en un sitio para compartir, esperar a la carga, enviar un enlace y esperar la descarga.",
+      "quote": "\"¿Por qué enviar un archivo todavía requiere que se suba a un servidor primero?\""
+    },
+    "section2": {
+      "title": "Descubriendo una idea simple",
+      "p1": "Mientras buscaba alternativas, encontré ToffeeShare. Desató curiosidad de inmediato: Sin cuentas. Sin cargas en almacenamiento en la nube. Sin esperar a un servidor.",
+      "p2_highlight": "Simplemente abre una página y envía el archivo directamente de un dispositivo a otro.",
+      "p3": "Esa simplicidad me dio curiosidad. No solo para usarlo, sino para entender cómo funciona realmente."
+    },
+    "section3": {
+      "title": "La espiral de la curiosidad",
+      "p1": "En ese momento ya estaba trabajando mucho con tecnologías en tiempo real como WebRTC y redes.",
+      "p2": "¿Cómo se descubren los dispositivos entre sí? ¿Cómo ocurre la conexión? ¿Cómo se mueve el archivo directamente entre pares?",
+      "p3": "Cuanto más exploraba, más interesante se volvía. Definitivamente llamó bastante la atención a mi mente de desarrollador."
+    },
+    "section4": {
+      "title": "Así que creé nerdShare",
+      "subtitle": "nerdShare empezó como un experimento de aprendizaje. Quería entender cada parte del sistema a la vez de impulsar aún más las ideas principales."
+    },
+    "grid": {
+      "direct": "Directo",
+      "direct_desc": "Dispositivo a dispositivo",
+      "no_acc": "Sin cuentas",
+      "no_acc_desc": "Cero fricción",
+      "no_storage": "Sin almacenamiento",
+      "no_storage_desc": "Efímero",
+      "privacy": "Privacidad",
+      "privacy_desc": "Por su diseño"
+    },
+    "footer": {
+      "tag": "La Filosofía",
+      "title": "Los archivos deberían fluir entre las personas, no los servidores.",
+      "desc": "nerdShare es un proyecto en solitario creado en el tiempo libre. Mitad curiosidad, mitad experimento, es simplemente probar que el compartimiento de archivos se puede sentir simple de usar.",
+      "evolving": "Aún evolucionando 🤙"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "¿Tienes una pregunta o idea?",
+      "subtitle": "nerdShare fue construido por un desarrollador solo, así que siéntete libre de opinar. Siempre escucho nuevas formas de simplificar y mejorar la web."
+    },
+    "section1": {
+      "p1": "nerdShare no es una empresa ni un gran equipo. Es solo alguien que disfruta construyendo cosas y explorando cómo funcionan las tecnologías.",
+      "list1": "Problemas y errores",
+      "list2": "Ideas y mejoras",
+      "list3": "Feedback general",
+      "list4": "O simplemente, ¡Un saludo!"
+    },
+    "section2": {
+      "title": "La mejor manera de contactar",
+      "desc": "En lugar de un formulario de contacto tradicional, la forma más fácil es través de <highlight>Discord</highlight>. Es más rápido y facilita temas técnicos sin tener que lidiar con emails.",
+      "button": "Únete a nerdShare en Discord",
+      "note": "* Aparte porque esto es un proyecto adicional, las respuestas pueden demorar a veces, pero leo todos los mensajes siempre."
+    },
+    "section3": {
+      "title": "¿Estás disfrutando de nerdShare?",
+      "desc": "Si encontraste algo útil en nerdShare, puedes permitirte soportar el proyecto apoyándome invitándome un café. Esto hace que los servidores puedan funcionar además de mantener mis ansias por seguir dando mantenimiento y agregar más funcionalidades al proyecto.",
+      "button": "Cómprame un café ☕"
+    },
+    "footer": {
+      "title": "Construido para las personas, no tus métricas.",
+      "evolving": "Aún evolucionando 🤙"
+    }
+  },
+  "privacy": {
+    "hero": {
+      "title": "Tus archivos son solo tuyos.",
+      "subtitle": "nerdShare jamás guarda ni almacena tus archivos. Todas tus transferencias son localmente entre par y dispositivo asegurando que siempre estén privados y a salvo."
+    },
+    "section1": {
+      "title": "Privacidad desde su inicio",
+      "desc1": "nerdShare fue pensado como una manera sencilla donde: <highlight>\"El servidor ayuda, conecta y enlaza a dispositivos — pero jamás podrá ver los de tus archivos para ver quien interactúa con ellos.\"</highlight>",
+      "desc2": "Los archivos se transmiten desde el dispositivo directo al de su receptor de forma cifrada mediante protocolos de seguridad aprobados mediante entidades a nivel de industria comercial. Inclusive que ayuden interconecten entre pares pueden visualizar una diminuta parte de todo la data en lo que viajan directo en tu transferencia o compartir tus archivos."
+    },
+    "section2": {
+      "title": "Un pequeño recordatorio",
+      "desc": "Mismo de lo que se te brinda un esquema blindando al usuario tu también <highlight1>juegas tu parte en esta protección y anonimidad en tus acciones y lo cual significa esto a que es bajo propia responsabilidad.</highlight1> Cada que pasas un link ID al usuario que no conoces el cual le has proporcionado este link ID se lo pasas tal a esa persona si tiene conexión un intruso podría inclusive hacerse como un tercero receptor por si la forma original expira antes de llegar y se haga con la copia u originales como de sus derivados. Es ideal siempre tratar o evitar que esos detalles mantén a cabo lo mas oculto así se garantiza tus transferencias serias e intercambios algo <highlight2>privado e intencionales</highlight2>."
+    },
+    "section3": {
+      "title": "¿Hay Dudas o Preguntas?",
+      "desc": "Pues nerdShare se basa de forma simple, segura pero si ves de como un ser una aplicación solitaria si o si para su correcto funcionamiento al usarla de lo cual su transparencia como herramienta influye. Te damos toda facilidad y aclaraciones sea donde o dudas te preocupen si es sobre a quienes pueden ver como envían datos en estos no te reserves dudar a consultar sin compromiso.",
+      "tag": "Elaborado como desarrollador donde quien valora su data importante como si lo fueran mías también🤙"
+    }
+  },
+  "host": {
+    "status": {
+      "paused": "Pausado",
+      "failed": "Fallo en transferencia",
+      "complete": "¡Transferencia exitosa!",
+      "remaining": "{{time}} Restantes"
+    },
+    "panel": {
+      "success": "Éxito",
+      "sharing": "Compartiendo",
+      "paused": "PAUSADO",
+      "button": {
+        "pause": "Pausar",
+        "resume": "Continuar"
+      },
+      "complete": {
+        "title": "¡Completado con Éxito!",
+        "desc": "El archivo se entregó en las condiciones aptas de destino, este ya se encuentra listo y es accesible desde su dispositivo emulante a un éxito ininterrumpido."
+      },
+      "error": {
+        "title": "Se Finalizó Enlace y Se Corto",
+        "desc": "Conexión pérdida temporalmente o cerrada de pronto por causas directas (cerro esta ventanilla o tal y como perdió una línea con alcance seguro donde red se perdía a este estado.)",
+        "button": "Volver a compartir uno."
+      }
+    },
+    "hero": {
+      "tag": "Pestaña Anfitriona de Compartido Activa",
+      "title": {
+        "success": "Compartido a la Excelencia",
+        "connected": "Compartiendo Actualmente Vía",
+        "waiting": "Cargando… A la Espera."
+      },
+      "desc": {
+        "success": "Se transfirieron esos documentos bajo unas altas proporciones optimas así las descargas completadas satisfactoriamente puede ya mismo dar cierre aquí a si va por uno tras uno compartidos uno tras cada los logres con estos mismos.",
+        "waiting": "Tome las previsiones a esta su sección dejándola activa (no cambie de pestaña u minimice para acelerarla) si es posible sin cortes para evitar fallas que pueden conllevarte comenzar."
+      },
+      "button": "¿Un Archivo Tras Este Ahora?",
+      "note": {
+        "title": "Un Vistazo Recordatorio ",
+        "desc": "nerdShare jamás va de pasar directo la data la envía desde aquí sin nubes ni hospedadoras lo cual es fundamental una línea a esto a evitar el cerrar u apagar su web sin terminar o todo su descargas terminan interrumpidos en progreso fallido tras terminar sin estar en conexión mutua."
+      }
+    }
+  },
+  "peer": {
+    "panel": {
+      "connecting": {
+        "title": "Abriendo Su Conexión...",
+        "desc": "Su pasarela criptográfica privada o P2P es validada."
+      },
+      "waiting": {
+        "title": "Receptor Establecido.",
+        "desc": "Al que envía aguardando confirmar enviar ya pronto a punto"
+      },
+      "ready": {
+        "tag": "Archivo Aceptable Dispuesto:",
+        "button": "Descarga de Este Archivo",
+        "negotiating": "Revisando Petición…"
+      },
+      "downloading": {
+        "tag": "Transmitiendo Data Aquí:"
+      },
+      "paused": {
+        "desc": "Remoto se encuentra pospuesto con su archivo momentáneamente sin pasar."
+      },
+      "remaining": "Restándole: {{time}} Segundos Aproximados.",
+      "done": {
+        "tag": "Resultados Favorables,",
+        "button": "¡Lo tienes ya guárdalo ahora acá!"
+      },
+      "error": {
+        "title": "Timeout Superado (Caducado)!",
+        "desc": "Conexión terminada o sucia tal por cortes o tiempo por encima (tiempo mayor límite), le pido pida volver mandar el enlace desde su orígenes para su posterior enlace (o darle F5 para reenganchar al igual su mismo)",
+        "button": "Toque Volver Hacer Carga"
+      }
+    },
+    "hero": {
+      "tag": "Cámara de Transmisiones Blindadas Activo",
+      "title": "Recepcionando Datos Privados <highlight> Por Medio A Una App nerdShare Cuyo Fin es Servir.</highlight>",
+      "desc": "Comenzaras la extracción directa e imparable para guardar el material adjunto que un destinatario envié de antemano el se te avisara descargándose y procesando y todo acabaras de alojarse así le confirmes.",
+      "feature1": "P2P Par Por Cada Entidad Sin Centralizaciones.",
+      "feature2": "Encriptamiento Continuó A Su Ruta Por Ambas Vías y Segura."
+    }
   }
 }

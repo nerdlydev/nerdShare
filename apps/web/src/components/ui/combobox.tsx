@@ -45,7 +45,9 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
       render={<InputGroupButton variant="ghost" size="icon-xs" />}
       className={cn(className)}
       {...props}
+    >
       <XIcon size={16} className="pointer-events-none" />
+    </ComboboxPrimitive.Clear>
   )
 }
 

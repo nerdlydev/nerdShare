@@ -21,6 +21,7 @@ import QRCode from "qrcode";
 import { useLogs } from "@/lib/logs-context";
 import { useWakeLock } from "@/lib/use-wake-lock";
 import { useViteTheme } from "@space-man/react-theme-animation";
+import { useTranslation } from "react-i18next";
 
 // ── Isolated debug log reads from context ──
 const DebugLog = memo(function DebugLog() {
@@ -63,6 +64,7 @@ export const HostView = memo(function HostView({
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const { acquire: wakeLockAcquire, release: wakeLockRelease } = useWakeLock();
+  const { t } = useTranslation();
 
   const isConnected = connectionState === "connected";
   const isTransferring = transferState === "transferring";
@@ -135,12 +137,12 @@ export const HostView = memo(function HostView({
 
   // Status label for the progress section
   const statusLabel = isPaused
-    ? "Paused"
+    ? t('host.status.paused')
     : isError
-      ? "Transfer failed"
+      ? t('host.status.failed')
       : isComplete
-        ? "Transfer complete!"
-        : `${formatTime(progress?.timeRemaining ?? 0)} remaining`;
+        ? t('host.status.complete')
+        : t('host.status.remaining', { time: formatTime(progress?.timeRemaining ?? 0) });
 
   return (
     <PageLayout
@@ -166,7 +168,7 @@ export const HostView = memo(function HostView({
 
               <div className="mb-8">
                 <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">
-                  {isComplete ? "Success" : "Sharing File"}
+                  {isComplete ? t('host.panel.success') : t('host.panel.sharing')}
                 </p>
                 <div className="flex items-center gap-4">
                   <div className="text-primary">
@@ -241,7 +243,7 @@ export const HostView = memo(function HostView({
                   <div className="flex justify-between text-sm font-bold">
                     <span className="text-primary">{Math.round(progress.progress * 100)}%</span>
                     <span className="text-muted-foreground font-mono">
-                      {isPaused ? "PAUSED" : `${formatBytes(progress.speed)}/s`}
+                      {isPaused ? t('host.panel.paused') : `${formatBytes(progress.speed)}/s`}
                     </span>
                   </div>
                   <div className="h-3 rounded-full bg-muted overflow-hidden relative">
@@ -267,7 +269,7 @@ export const HostView = memo(function HostView({
                     variant="outline"
                     className="flex-1 py-6 rounded-2xl text-base font-bold"
                   >
-                    {isTransferring ? "Pause Transfer" : "Resume Transfer"}
+                    {isTransferring ? t('host.panel.button.pause') : t('host.panel.button.resume')}
                   </Button>
                   <Button
                     onClick={handleCancel}
@@ -284,9 +286,9 @@ export const HostView = memo(function HostView({
                   <div className="flex items-center justify-center text-primary mb-6">
                     <CircleCheckIcon size={48} />
                   </div>
-                  <p className="text-primary font-bold text-lg mb-2">Transfer Successful!</p>
+                  <p className="text-primary font-bold text-lg mb-2">{t('host.panel.complete.title')}</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    The file has been successfully delivered and saved on the receiver's device.
+                    {t('host.panel.complete.desc')}
                   </p>
                 </div>
               )}
@@ -296,16 +298,16 @@ export const HostView = memo(function HostView({
                   <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-destructive/10 flex items-center justify-center text-destructive">
                     <HugeiconsIcon icon={Alert02Icon} size={32} />
                   </div>
-                  <p className="text-destructive font-bold text-lg mb-2">Connection Lost</p>
+                  <p className="text-destructive font-bold text-lg mb-2">{t('host.panel.error.title')}</p>
                   <p className="text-sm text-muted-foreground mb-8 text-balance">
-                    The connection was interrupted. This usually happens when a peer closes their tab or the network times out.
+                    {t('host.panel.error.desc')}
                   </p>
                   <Button 
                      variant="outline" 
                      className="w-full py-6 rounded-2xl font-bold" 
                      onClick={onLeave}
                   >
-                     Restart Sharing
+                     {t('host.panel.error.button')}
                   </Button>
                 </div>
               )}
@@ -322,33 +324,32 @@ export const HostView = memo(function HostView({
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-6">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Active Host
+            {t('host.hero.tag')}
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-6 text-balance">
-            {isComplete ? "Sharing successful" : (isConnected ? "Connected & Sharing" : "Waiting for receiver")}
+            {isComplete ? t('host.hero.title.success') : (isConnected ? t('host.hero.title.connected') : t('host.hero.title.waiting'))}
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed text-balance">
             {isComplete 
-              ? "Your files have been safely delivered. You can now close this tab or share another file."
-              : "Keep this page open while the transfer is in progress. Closing it will terminate the connection immediately."}
+              ? t('host.hero.desc.success')
+              : t('host.hero.desc.waiting')}
           </p>
           
           {isComplete && (
              <Button variant="outline" onClick={onLeave} className="mt-8 py-6 px-8 rounded-2xl font-bold gap-2">
                <HugeiconsIcon icon={RepeatIcon} size={20} />
-               Share Another File
+               {t('host.hero.button')}
              </Button>
           )}
 
           {!isComplete && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-3xl p-6 mt-12">
+             <div className="bg-destructive/10 border border-destructive/20 rounded-3xl p-6 mt-12">
                <div className="flex items-center gap-2 text-sm font-bold text-destructive mb-2 uppercase tracking-wide">
                  <HugeiconsIcon icon={Alert02Icon} size={18} />
-                 Sharing Note
+                 {t('host.hero.note.title')}
                </div>
                <p className="text-sm text-muted-foreground/80 leading-relaxed">
-                 nerdShare is a direct device-to-device service. We don't store your files on any cloud. 
-                 To ensure the transfer completes, do not close this browser tab.
+                 {t('host.hero.note.desc')}
                </p>
             </div>
           )}

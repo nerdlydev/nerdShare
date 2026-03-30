@@ -19,6 +19,7 @@ import { TransferReceiver } from "@/lib/transfer-receiver";
 import type { FileMeta } from "@nerdshare/shared";
 import { useLogs } from "@/lib/logs-context";
 import { useWakeLock } from "@/lib/use-wake-lock";
+import { useTranslation, Trans } from "react-i18next";
 
 type PeerState =
   | "connecting"
@@ -70,6 +71,7 @@ export const PeerView = memo(function PeerView({
 
   const receiverRef = useRef<TransferReceiver | null>(null);
   const { acquire: wakeLockAcquire, release: wakeLockRelease } = useWakeLock();
+  const { t } = useTranslation();
 
   const isConnected = connectionState === "connected";
 
@@ -190,8 +192,8 @@ export const PeerView = memo(function PeerView({
         className={`text-xs ${peerState === "paused" ? "text-yellow-500" : "text-muted-foreground"}`}
       >
         {peerState === "paused"
-          ? "Sender paused the transfer"
-          : `${formatTime(progress.timeRemaining)} remaining`}
+          ? t('peer.panel.paused.desc')
+          : t('peer.panel.remaining', { time: formatTime(progress.timeRemaining) })}
       </p>
     </div>
   );
@@ -209,9 +211,9 @@ export const PeerView = memo(function PeerView({
                 className="text-primary animate-spin-slow relative z-10"
               />
             </div>
-            <p className="text-lg font-bold mb-2">Connecting...</p>
+            <p className="text-lg font-bold mb-2">{t('peer.panel.connecting.title')}</p>
             <p className="text-sm text-muted-foreground">
-              Establishing a secure peer-to-peer connection
+              {t('peer.panel.connecting.desc')}
             </p>
           </div>
         );
@@ -222,9 +224,9 @@ export const PeerView = memo(function PeerView({
             <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-primary/10 flex items-center justify-center text-primary">
                <WifiIcon size={32} className="animate-float" />
             </div>
-            <p className="text-lg font-bold mb-2">Connected</p>
+            <p className="text-lg font-bold mb-2">{t('peer.panel.waiting.title')}</p>
             <p className="text-sm text-muted-foreground">
-              Waiting for the sender to start the transfer…
+              {t('peer.panel.waiting.desc')}
             </p>
           </div>
         );
@@ -233,7 +235,7 @@ export const PeerView = memo(function PeerView({
         return (
           <div>
             <div className="mb-8">
-               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">File to Receive</p>
+               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">{t('peer.panel.ready.tag')}</p>
                {fileInfoBlock}
             </div>
             <Button
@@ -251,12 +253,12 @@ export const PeerView = memo(function PeerView({
                     size={20}
                     className="animate-spin-slow mr-2"
                   />
-                  Negotiating...
+                  {t('peer.panel.ready.negotiating')}
                 </>
               ) : (
                 <>
                   <DownloadIcon size={20} className="mr-2" />
-                  Accept Transfer
+                  {t('peer.panel.ready.button')}
                 </>
               )}
             </Button>
@@ -268,7 +270,7 @@ export const PeerView = memo(function PeerView({
         return (
           <div>
             <div className="mb-8">
-               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Downloading</p>
+               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">{t('peer.panel.downloading.tag')}</p>
                {fileInfoBlock}
             </div>
             {progressBlock}
@@ -283,7 +285,7 @@ export const PeerView = memo(function PeerView({
             </div>
             
             <div className="mb-8 text-left">
-               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Success</p>
+               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">{t('peer.panel.done.tag')}</p>
                {fileInfoBlock}
             </div>
 
@@ -292,7 +294,7 @@ export const PeerView = memo(function PeerView({
                onClick={triggerDownload}
             >
               <DownloadIcon size={20} className="mr-2" />
-              Save File
+              {t('peer.panel.done.button')}
             </Button>
           </div>
         );
@@ -303,17 +305,16 @@ export const PeerView = memo(function PeerView({
             <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-destructive/10 flex items-center justify-center text-destructive">
               <HugeiconsIcon icon={Alert02Icon} size={32} />
             </div>
-            <p className="text-lg font-bold mb-2">Connection Timeout</p>
+            <p className="text-lg font-bold mb-2">{t('peer.panel.error.title')}</p>
             <p className="text-sm text-muted-foreground mb-8">
-              The connection was lost due to inactivity or network issues. 
-              Please ask the sender for a new link or refresh the page.
+              {t('peer.panel.error.desc')}
             </p>
             <Button 
                variant="outline" 
                className="w-full py-6 rounded-2xl font-bold" 
                onClick={onLeave}
             >
-               Try Again
+               {t('peer.panel.error.button')}
             </Button>
           </div>
         );
@@ -358,14 +359,16 @@ export const PeerView = memo(function PeerView({
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-6">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Secure Transfer
+            {t('peer.hero.tag')}
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-6 text-balance">
-            Receiving files <span className="text-primary">with nerdShare</span>
+            <Trans
+              i18nKey="peer.hero.title"
+              components={{ highlight: <span className="text-primary" /> }}
+            />
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed text-balance">
-            You are about to start a secure transfer directly from the sender. 
-            The file will be downloaded directly to your device once you accept.
+            {t('peer.hero.desc')}
           </p>
           
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -373,13 +376,13 @@ export const PeerView = memo(function PeerView({
                <div className="flex items-center justify-center text-primary w-10">
                  <WifiIcon size={24} />
                </div>
-               <p className="text-sm font-medium">Direct Peer-to-Peer</p>
+               <p className="text-sm font-medium">{t('peer.hero.feature1')}</p>
              </div>
              <div className="flex items-center gap-3">
                <div className="flex items-center justify-center text-primary w-10">
                  <CircleCheckIcon size={24} />
                </div>
-               <p className="text-sm font-medium">End-to-End Encrypted</p>
+               <p className="text-sm font-medium">{t('peer.hero.feature2')}</p>
              </div>
           </div>
         </motion.div>
