@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { HomeIcon } from "@/components/ui/home";
 import { WifiIcon } from "@/components/ui/wifi";
@@ -21,18 +22,19 @@ export type NavPage = "home" | "nearby" | "about" | "contact" | "privacy";
 const NAV_ITEMS: {
   path: string;
   page: NavPage | "lang";
-  name: string;
+  i18nKey: string;
   icon: any;
 }[] = [
-  { path: "/", page: "home", name: "home", icon: HomeIcon },
-  { path: "/nearby", page: "nearby", name: "nearby devices", icon: WifiIcon },
-  { path: "/contact", page: "contact", name: "contact", icon: SendIcon },
-  { path: "/about", page: "about", name: "about us", icon: CircleHelpIcon },
-  { path: "/privacy", page: "privacy", name: "privacy", icon: LockKeyholeIcon },
-  { path: "/lang", page: "lang", name: "eng", icon: LanguagesIcon },
+  { path: "/", page: "home", i18nKey: "nav.home", icon: HomeIcon },
+  { path: "/nearby", page: "nearby", i18nKey: "nav.nearby", icon: WifiIcon },
+  { path: "/contact", page: "contact", i18nKey: "nav.contact", icon: SendIcon },
+  { path: "/about", page: "about", i18nKey: "nav.about", icon: CircleHelpIcon },
+  { path: "/privacy", page: "privacy", i18nKey: "nav.privacy", icon: LockKeyholeIcon },
+  { path: "/lang", page: "lang", i18nKey: "nav.lang", icon: LanguagesIcon },
 ];
 
 function DesktopNavItem({ item, isActive, layoutId }: any) {
+  const { t } = useTranslation();
   const iconRef = useRef<any>(null);
   const Icon = item.icon;
   const path = item.page === "home" ? "/" : `/${item.page}`;
@@ -59,7 +61,7 @@ function DesktopNavItem({ item, isActive, layoutId }: any) {
           <Icon ref={iconRef} size={16} />
         </span>
         <span className="capitalize hidden xl:inline-block truncate max-w-[100px]">
-          {item.name}
+          {t(item.i18nKey)}
         </span>
       </span>
     </Link>
@@ -67,6 +69,7 @@ function DesktopNavItem({ item, isActive, layoutId }: any) {
 }
 
 function MobileNavItem({ item, isActive, onClick }: any) {
+  const { t } = useTranslation();
   const iconRef = useRef<any>(null);
   const Icon = item.icon;
   const path = item.page === "home" ? "/" : `/${item.page}`;
@@ -86,7 +89,7 @@ function MobileNavItem({ item, isActive, onClick }: any) {
         <span className={`shrink-0 flex transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
           <Icon ref={iconRef} size={16} />
         </span>
-        <span className="capitalize">{item.name}</span>
+        <span className="capitalize">{t(item.i18nKey)}</span>
       </div>
     </Link>
   );
@@ -110,6 +113,7 @@ function DesktopGithubAction() {
 }
 
 function MobileGithubItem({ onClick }: any) {
+  const { t } = useTranslation();
   const iconRef = useRef<any>(null);
   return (
     <a
@@ -125,13 +129,14 @@ function MobileGithubItem({ onClick }: any) {
         <span className="shrink-0 flex transition-opacity opacity-70 group-hover:opacity-100">
           <GithubIcon ref={iconRef} size={16} />
         </span>
-        <span>GitHub Repo</span>
+        <span>{t('nav.github')}</span>
       </div>
     </a>
   );
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { t, i18n } = useTranslation();
   const { resolvedTheme, toggleTheme, ref } = useViteTheme();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -144,6 +149,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (["nearby", "about", "contact", "privacy"].includes(p)) return p as NavPage;
     return "home";
   }, [location.pathname]);
+
+  const cycleLanguage = () => {
+    const langs = ["en", "es", "fr", "de", "hi", "zh"];
+    const currentLang = typeof i18n?.language === "string" ? i18n.language.split('-')[0] : "en";
+    const currentIndex = langs.indexOf(currentLang) !== -1 ? langs.indexOf(currentLang) : 0;
+    const nextIndex = (currentIndex + 1) % langs.length;
+    i18n.changeLanguage(langs[nextIndex]);
+  };
 
   useEffect(() => {
     if (sidebarOpen) {
@@ -228,10 +241,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
 
               <button
-                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground"
+                onClick={cycleLanguage}
+                title={typeof i18n?.language === "string" ? i18n.language.toUpperCase() : "EN"}
+                className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-transparent hover:bg-muted text-muted-foreground group relative"
                 aria-label="Language"
               >
-                <LanguagesIcon size={14} />
+                <LanguagesIcon size={14} className="group-hover:-translate-y-0.5 transition-transform" />
+                <span className="absolute -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] uppercase font-bold text-muted-foreground/80 pointer-events-none whitespace-nowrap">
+                  {typeof i18n?.language === "string" ? i18n.language.substring(0,2) : "en"}
+                </span>
               </button>
             </div>
 
@@ -280,7 +298,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       }}
                       className="px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center justify-between"
                     >
-                      <span>{resolvedTheme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                      <span>{resolvedTheme === "dark" ? t('nav.lightMode') : t('nav.darkMode')}</span>
                       {resolvedTheme === "dark" ? <SunIcon size={14} /> : <MoonIcon size={14} />}
                     </button>
                   </div>

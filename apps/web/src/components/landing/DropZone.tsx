@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { PlusIcon } from "@/components/ui/plus-icon";
+import { useTranslation, Trans } from "react-i18next";
 
 interface DropZoneProps {
   isDragOver: boolean;
@@ -29,6 +30,8 @@ export function DropZone({
   variants,
   className = "",
 }: DropZoneProps) {
+  const { t } = useTranslation();
+
   return (
     <motion.div
       variants={variants}
@@ -58,8 +61,8 @@ export function DropZone({
             <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
             <p className="text-base text-muted-foreground font-medium">
               {zipProgress && zipProgress.totalFiles > 0
-                ? `Zipping… ${zipProgress.filesProcessed} / ${zipProgress.totalFiles} files`
-                : "Preparing zip…"}
+                ? t('dropzone.zippingProgress', { processed: zipProgress.filesProcessed, total: zipProgress.totalFiles })
+                : t('dropzone.preparing')}
             </p>
           </div>
         ) : (
@@ -69,20 +72,23 @@ export function DropZone({
             </div>
             <div className="text-center space-y-1">
               <p className="text-lg font-medium text-foreground">
-                Click to browse or drag & drop files
+                {t('dropzone.title')}
               </p>
               <p className="text-base text-muted-foreground mt-1">
-                or{" "}
-                <span
-                  onClick={onFolderClick}
-                  className="text-primary hover:underline cursor-pointer font-medium relative top-[-1px]"
-                >
-                  click here
-                </span>{" "}
-                to select a folder
+                <Trans 
+                  i18nKey="dropzone.folderOption"
+                  components={{
+                    action: (
+                      <span
+                        onClick={onFolderClick}
+                        className="text-primary hover:underline cursor-pointer font-medium relative top-[-1px]"
+                      />
+                    )
+                  }}
+                />
               </p>
               <p className="text-sm text-muted-foreground/70 pt-2 font-medium">
-                Any file. Any size.
+                {t('dropzone.footer')}
               </p>
             </div>
           </>

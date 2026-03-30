@@ -1,0 +1,171 @@
+{
+  "nav": {
+    "home": "home",
+    "nearby": "nearby devices",
+    "contact": "contact",
+    "about": "about us",
+    "privacy": "privacy",
+    "github": "GitHub Repo",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode"
+  },
+  "hero": {
+    "greeting": "Hey, 👋 {{name}}",
+    "headline": "Share files <highlight1>directly</highlight1> from<br/> your device <highlight2>to anywhere</highlight2>.",
+    "subtitle": "Send files of any size directly from your device without ever storing anything online.",
+    "features": {
+      "noLimit": "No file size limit",
+      "fast": "Blazingly fast",
+      "p2p": "Peer-to-peer",
+      "e2ee": "End-to-end encrypted"
+    },
+    "selectFiles": "Select files",
+    "selectFolder": "or <action>click here</action> to select a folder",
+    "findNearby": "Find Nearby Devices"
+  },
+  "dropzone": {
+    "preparing": "Preparing zip…",
+    "zippingProgress": "Zipping… {{processed}} / {{total}} files",
+    "title": "Click to browse or drag & drop files",
+    "folderOption": "or <action>click here</action> to select a folder",
+    "footer": "Any file. Any size."
+  },
+  "features": {
+    "built_for_humans": {
+      "title": "Built for humans, not corporations.",
+      "desc": "nerdShare is free, independent, and has zero trackers. No accounts, no ads, no paywalls — just you and whoever you're sending files to. The internet the way it was meant to be."
+    },
+    "ephemeral": {
+      "title": "Closes when you close.",
+      "desc": "Your files live strictly on your device. Once a connection is established, data flows directly to your peer. Shut the tab and poof — the connection drops. No lingering uploads on third-party servers, no accidental oversharing."
+    },
+    "no_limits": {
+      "title": "File size limit:",
+      "value": "None."
+    },
+    "e2ee": {
+      "title": "End-to-end encrypted.",
+      "desc1": "Using industry-standard WebRTC + DTLS routing means your data is encrypted in transit. Only your receiver can decrypt the file. We can't see your data, and we don't want to. Pinky promise. 🤙",
+      "desc2": "And because we don't host your files, we have zero infra costs for storage. Feel like sending a completely uncompressed 4K movie? Or perhaps an entire project folder? Please do. We genuinely don't mind."
+    }
+  },
+  "cta": {
+    "title": "Experience the magic yourself.",
+    "desc": "Just drop a file into the zone, or browse to start a direct share.",
+    "button": "Choose File Now"
+  },
+  "landing": {
+    "upload_folder_title": "Upload folder?",
+    "upload_folder_desc": "{{count}} file(s) will be zipped and sent to the receiver.",
+    "cancel": "Cancel",
+    "zip_send": "Zip & Send"
+  },
+  "nearby": {
+    "title": "Nearby Devices",
+    "subtitle": "Looking for devices on your network…",
+    "no_devices": "No devices found yet",
+    "no_devices_desc": "Make sure the other device has nerdShare open and is connected to the same Wi-Fi network.",
+    "ready": "Ready to receive",
+    "send_to": "Send files to {{name}}",
+    "choose": "Choose what you want to send",
+    "select_files": "Select Files",
+    "select_folder": "Select Folder",
+    "preparing_files": "Preparing files… {{processed}} / {{total}}",
+    "preparing_folder": "Preparing folder…",
+    "cancel": "Cancel"
+  },
+  "about": {
+    "hero": {
+      "title": "Why nerdShare exists",
+      "subtitle": "It started with a simple frustration: sending a file shouldn’t require logging into five different tools."
+    },
+    "section1": {
+      "title": "The moment that started it",
+      "p1": "One day at the office I needed to send a file to someone sitting not very far from me. Nothing unusual.",
+      "p2": "But the options were surprisingly annoying: upload to Teams, log in to a sharing site, wait for the upload, send a link, and wait for the download.",
+      "quote": "\"Why does sending a file still require uploading it to some server first?\""
+    },
+    "section2": {
+      "title": "Discovering a simple idea",
+      "p1": "While searching for alternatives, I came across ToffeeShare. It immediately stood out: No accounts. No uploads to cloud storage. No waiting for a server.",
+      "p2_highlight": "Just open a page and send the file directly from one device to another.",
+      "p3": "That simplicity made me curious. Not just to use it — but to understand how it actually works."
+    },
+    "section3": {
+      "title": "The curiosity spiral",
+      "p1": "At the time I was already working a lot with real-time technologies like WebRTC and networking systems.",
+      "p2": "How do the devices discover each other? How does the connection happen? How does the file move directly between peers?",
+      "p3": "The more I explored it, the more interesting it became. It kind of tickled my engineer brain."
+    },
+    "section4": {
+      "title": "So I built nerdShare",
+      "subtitle": "nerdShare started as a learning experiment. I wanted to understand every piece of the system while pushing the core ideas further."
+    },
+    "grid": {
+      "direct": "Direct",
+      "direct_desc": "Device to Device",
+      "no_acc": "No accounts",
+      "no_acc_desc": "Zero friction",
+      "no_storage": "No storage",
+      "no_storage_desc": "Ephemeral",
+      "privacy": "Privacy",
+      "privacy_desc": "By Design"
+    },
+    "footer": {
+      "tag": "The Philosophy",
+      "title": "Files should move between people, not servers.",
+      "desc": "nerdShare is a solo project built in spare time. Part curiosity, part engineering experiment, part attempt to make file sharing feel simpler.",
+      "evolving": "Still evolving 🤙"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Got a question or idea?",
+      "subtitle": "nerdShare is built by a solo developer — feel free to reach out. I’m always listening for ways to make the web feel a little simpler."
+    },
+    "section1": {
+      "p1": "nerdShare isn't a company or a big team. It's just someone who enjoys building things and exploring how real-time technologies work.",
+      "list1": "Questions & Bugs",
+      "list2": "Feature Ideas",
+      "list3": "General Feedback",
+      "list4": "Just saying hi!"
+    },
+    "section2": {
+      "title": "The best way to reach out",
+      "desc": "Instead of a traditional contact form, the easiest way to get in touch is through <highlight>Discord</highlight>. It's faster and makes it possible to discuss tech without the usual email back-and-forth.",
+      "button": "Join the nerdShare Discord",
+      "note": "* Since this is a side project, replies might not be instant, but I read everything."
+    },
+    "section3": {
+      "title": "Enjoying nerdShare?",
+      "desc": "If you found nerdShare useful, you can support the project by buying me a coffee. It helps keep the servers running and gives me more excuses to keep building.",
+      "button": "Buy me a coffee ☕"
+    },
+    "footer": {
+      "title": "Built for people, not for profiles.",
+      "evolving": "Still evolving 🤙"
+    }
+  },
+  "privacy": {
+    "hero": {
+      "title": "Your files stay yours.",
+      "subtitle": "nerdShare never stores your files. All transfers happen directly between your devices, keeping your data private and secure."
+    },
+    "section1": {
+      "title": "Privacy by design",
+      "desc1": "nerdShare is built with a simple idea: <highlight>\"The server should help devices connect — but never see the files.\"</highlight>",
+      "desc2": "Files are transferred through peer-to-peer connections and encrypted in transit using industry-standard protocols. Even the infrastructure helping devices connect cannot see the actual content of your files."
+    },
+    "section2": {
+      "title": "A small reminder",
+      "desc": "While nerdShare focuses on privacy, security is still partly <highlight1>your responsibility</highlight1>. If you share a session link or room ID with someone, treat it like a private message. Anyone with access to that session could potentially receive the file. Keep your sharing sessions <highlight2>private and intentional</highlight2>."
+    },
+    "section3": {
+      "title": "Questions?",
+      "desc": "nerdShare is a solo-built project, and transparency about how it works matters a lot. If you ever have questions or concerns about privacy, feel free to reach out.",
+      "tag": "Built by a developer who cares about your data 🤙"
+    }
+  }
+}
+
+

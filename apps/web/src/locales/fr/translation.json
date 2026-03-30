@@ -1,0 +1,12 @@
+{
+  "nav": {
+    "home": "accueil",
+    "nearby": "appareils à proximité",
+    "contact": "contact",
+    "about": "à propos",
+    "privacy": "confidentialité",
+    "github": "Dépôt GitHub",
+    "lightMode": "Mode Clair",
+    "darkMode": "Mode Sombre"
+  }
+}

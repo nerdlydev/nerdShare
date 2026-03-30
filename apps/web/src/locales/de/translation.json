@@ -1,0 +1,12 @@
+{
+  "nav": {
+    "home": "startseite",
+    "nearby": "geräte in der nähe",
+    "contact": "kontakt",
+    "about": "über uns",
+    "privacy": "datenschutz",
+    "github": "GitHub-Repository",
+    "lightMode": "Helles Design",
+    "darkMode": "Dunkles Design"
+  }
+}

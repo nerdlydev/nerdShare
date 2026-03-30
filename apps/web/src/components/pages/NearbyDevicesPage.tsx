@@ -16,6 +16,7 @@ import {
   fileListToZip,
   dirHandleToZip,
 } from "@/lib/folder-to-zip";
+import { useTranslation } from "react-i18next";
 interface NearbyDevicesPageProps {
   userId: string;
   peers: NearbyPeer[];
@@ -27,6 +28,7 @@ export function NearbyDevicesPage({
   peers,
   onConnect,
 }: NearbyDevicesPageProps) {
+  const { t } = useTranslation();
   const iconRef = useRef<WifiIconHandle>(null);
 
   useEffect(() => {
@@ -176,10 +178,10 @@ export function NearbyDevicesPage({
                 <WifiIcon ref={iconRef} size={32} className="scale-75 sm:scale-100" />
               </div>
             </div>
-            <span>Nearby Devices</span>
+            <span>{t('nearby.title')}</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance">
-            Looking for devices on your network…
+            {t('nearby.subtitle')}
           </p>
         </motion.section>
 
@@ -190,10 +192,9 @@ export function NearbyDevicesPage({
               <div className="w-12 h-12 mb-6 rounded-full bg-muted/50 flex items-center justify-center">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">No devices found yet</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('nearby.no_devices')}</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Make sure the other device has nerdShare open and is connected
-                to the same Wi-Fi network.
+                {t('nearby.no_devices_desc')}
               </p>
             </div>
           ) : (
@@ -221,7 +222,7 @@ export function NearbyDevicesPage({
                       </h3>
                       <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary px-3 py-1 rounded-full uppercase tracking-wider">
                         <CircleCheckIcon size={14} className="animate-pulse" />
-                        Ready to receive
+                        {t('nearby.ready')}
                       </div>
                     </div>
                   </motion.button>
@@ -262,10 +263,10 @@ export function NearbyDevicesPage({
                   <HugeiconsIcon icon={getDeviceIcon(selectedPeer.deviceType)} size={32} />
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                  Send files to {selectedPeer.displayName}
+                  {t('nearby.send_to', { name: selectedPeer.displayName })}
                 </h2>
                 <p className="text-muted-foreground text-sm uppercase tracking-widest font-semibold opacity-60">
-                  Choose what you want to send
+                  {t('nearby.choose')}
                 </p>
               </div>
 
@@ -278,7 +279,7 @@ export function NearbyDevicesPage({
                   <div className="text-primary group-hover:text-primary transition-colors">
                     <AttachFileIcon size={32} />
                   </div>
-                  <span className="font-bold text-lg">Select Files</span>
+                  <span className="font-bold text-lg">{t('nearby.select_files')}</span>
                 </button>
 
                 <button
@@ -289,7 +290,7 @@ export function NearbyDevicesPage({
                   <div className="text-primary group-hover:text-primary transition-colors">
                     <HugeiconsIcon icon={Folder01Icon} size={32} />
                   </div>
-                  <span className="font-bold text-lg">Select Folder</span>
+                  <span className="font-bold text-lg">{t('nearby.select_folder')}</span>
                 </button>
               </div>
 
@@ -298,8 +299,8 @@ export function NearbyDevicesPage({
                   <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
                   <p className="text-sm font-medium text-muted-foreground">
                     {zipProgress && zipProgress.totalFiles > 0
-                      ? `Preparing files… ${zipProgress.filesProcessed} / ${zipProgress.totalFiles}`
-                      : "Preparing folder…"}
+                      ? t('nearby.preparing_files', { processed: zipProgress.filesProcessed, total: zipProgress.totalFiles })
+                      : t('nearby.preparing_folder')}
                   </p>
                 </div>
               )}
@@ -308,7 +309,7 @@ export function NearbyDevicesPage({
                 onClick={() => setSelectedPeer(null)}
                 className="mt-10 w-full py-4 text-muted-foreground hover:text-foreground font-medium transition-colors"
               >
-                Cancel
+                {t('nearby.cancel')}
               </button>
             </motion.div>
           </div>

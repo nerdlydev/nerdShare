@@ -1,0 +1,12 @@
+{
+  "nav": {
+    "home": "首页",
+    "nearby": "附近设备",
+    "contact": "联系我们",
+    "about": "关于我们",
+    "privacy": "隐私",
+    "github": "GitHub 仓库",
+    "lightMode": "浅色模式",
+    "darkMode": "深色模式"
+  }
+}

@@ -6,6 +6,7 @@ import { registerSW } from "virtual:pwa-register";
 import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
+import "./i18n";
 import { ClickSpark } from "@/components/ClickSpark";
 
 registerSW({ immediate: true });

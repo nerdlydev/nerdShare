@@ -20,6 +20,7 @@ import {
 
 import { type NearbyPeer } from "@nerdshare/shared";
 import type { NavPage } from "@/components/AppShell";
+import { useTranslation } from "react-i18next";
 
 import { HeroSection } from "./landing/HeroSection";
 import { DropZone } from "./landing/DropZone";
@@ -41,6 +42,7 @@ export function LandingView({
   onFileSelected,
   onNavigate,
 }: LandingViewProps) {
+  const { t } = useTranslation();
   const displayName = useClientName();
   const { scrollYProgress } = useScroll();
   const smoothProgress = useSpring(scrollYProgress, {
@@ -211,19 +213,17 @@ export function LandingView({
       <AlertDialog open={pendingFiles !== null}>
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
-            <AlertDialogTitle>Upload folder?</AlertDialogTitle>
+            <AlertDialogTitle>{t('landing.upload_folder_title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingFiles?.length ?? 0} file
-              {(pendingFiles?.length ?? 0) !== 1 ? "s" : ""} will be zipped and
-              sent to the receiver.
+              {t('landing.upload_folder_desc', { count: pendingFiles?.length ?? 0 })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelUpload}>
-              Cancel
+              {t('landing.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmUpload}>
-              Zip & Send
+              {t('landing.zip_send')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

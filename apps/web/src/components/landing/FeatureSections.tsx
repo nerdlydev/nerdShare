@@ -6,6 +6,7 @@ import {
   EarthIcon,
   Globe02Icon,
 } from "@hugeicons/core-free-icons";
+import { useTranslation } from "react-i18next";
 
 interface FeatureSectionsProps {
   variants: {
@@ -15,6 +16,7 @@ interface FeatureSectionsProps {
 }
 
 export function FeatureSections({ variants }: FeatureSectionsProps) {
+  const { t } = useTranslation();
   return (
     <>
       {/* ── Feature: Built for humans ── */}
@@ -36,15 +38,13 @@ export function FeatureSections({ variants }: FeatureSectionsProps) {
             variants={variants.fadeInUp}
             className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance"
           >
-            Built for humans, not corporations.
+            {t('features.built_for_humans.title')}
           </motion.h2>
           <motion.p
             variants={variants.fadeInUp}
             className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl text-balance"
           >
-            nerdShare is free, independent, and has zero trackers. No accounts,
-            no ads, no paywalls — just you and whoever you're sending files to.
-            The internet the way it was meant to be.
+            {t('features.built_for_humans.desc')}
           </motion.p>
         </motion.div>
       </section>
@@ -69,16 +69,13 @@ export function FeatureSections({ variants }: FeatureSectionsProps) {
               variants={variants.fadeInUp}
               className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
             >
-              Closes when you close.
+              {t('features.ephemeral.title')}
             </motion.h2>
             <motion.p
               variants={variants.fadeInUp}
               className="text-lg text-muted-foreground leading-relaxed"
             >
-              Your files live strictly on your device. Once a connection is
-              established, data flows directly to your peer. Shut the tab and
-              poof — the connection drops. No lingering uploads on third-party
-              servers, no accidental oversharing.
+              {t('features.ephemeral.desc')}
             </motion.p>
           </motion.div>
 
@@ -146,10 +143,10 @@ export function FeatureSections({ variants }: FeatureSectionsProps) {
             </div>
             <div className="text-center relative z-10">
               <p className="text-xl sm:text-2xl font-medium text-muted-foreground">
-                File size limit:
+                {t('features.no_limits.title')}
               </p>
               <p className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/70 mt-2">
-                None.
+                {t('features.no_limits.value')}
               </p>
             </div>
           </motion.div>
@@ -171,24 +168,19 @@ export function FeatureSections({ variants }: FeatureSectionsProps) {
               variants={variants.fadeInUp}
               className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight"
             >
-              End-to-end encrypted.
+              {t('features.e2ee.title')}
             </motion.h2>
             <motion.p
               variants={variants.fadeInUp}
               className="text-lg text-muted-foreground leading-relaxed"
             >
-              Using industry-standard WebRTC + DTLS routing means your data is
-              encrypted in transit. Only your receiver can decrypt the file. We
-              can't see your data, and we don't want to. Pinky promise. 🤙
+              {t('features.e2ee.desc1')}
             </motion.p>
             <motion.p
               variants={variants.fadeInUp}
               className="text-lg text-muted-foreground leading-relaxed"
             >
-              And because we don't host your files, we have zero infra costs for
-              storage. Feel like sending a completely uncompressed 4K movie? Or
-              perhaps an entire project folder? Please do. We genuinely don't
-              mind.
+              {t('features.e2ee.desc2')}
             </motion.p>
           </motion.div>
         </div>

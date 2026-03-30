@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { PlusIcon } from "@/components/ui/plus-icon";
+import { useTranslation } from "react-i18next";
 
 interface CTASectionProps {
   onCTAButtonClick: () => void;
@@ -10,6 +11,7 @@ interface CTASectionProps {
 }
 
 export function CTASection({ onCTAButtonClick, variants }: CTASectionProps) {
+  const { t } = useTranslation();
   return (
     <section className="py-32 px-4 sm:px-8 text-center relative overflow-hidden z-10">
       <motion.div
@@ -23,13 +25,13 @@ export function CTASection({ onCTAButtonClick, variants }: CTASectionProps) {
           variants={variants.fadeInUp}
           className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance"
         >
-          Experience the magic yourself.
+          {t('cta.title')}
         </motion.h2>
         <motion.p
           variants={variants.fadeInUp}
           className="text-xl text-muted-foreground text-balance"
         >
-          Just drop a file into the zone, or browse to start a direct share.
+          {t('cta.desc')}
         </motion.p>
         <motion.div variants={variants.fadeInUp} className="pt-4">
           <button
@@ -41,7 +43,7 @@ export function CTASection({ onCTAButtonClick, variants }: CTASectionProps) {
               size={20}
               className="group-hover:rotate-90 transition-transform duration-300"
             />
-            Choose File Now
+            {t('cta.button')}
           </button>
         </motion.div>
       </motion.div>

@@ -11,6 +11,7 @@ import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import type { NavPage } from "@/components/AppShell";
 
 import { WaveDivider } from "./WaveDivider";
+import { useTranslation, Trans } from "react-i18next";
 
 interface HeroSectionProps {
   displayName: string;
@@ -36,6 +37,8 @@ export function HeroSection({
   pathLength,
   fillColor,
 }: HeroSectionProps) {
+  const { t } = useTranslation();
+
   return (
     <section className="min-h-[92vh] flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-32 pb-20 relative group/hero">
       {/* Dynamic Flickering Grid Background */}
@@ -67,7 +70,7 @@ export function HeroSection({
             variants={variants.fadeInUp}
             className="lg:col-span-12 text-center text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] w-full text-foreground drop-shadow-sm"
           >
-            Hey, 👋 {displayName}
+            {t('hero.greeting', { name: displayName })}
           </motion.h1>
 
           {/* Dropzone (desktop) */}
@@ -81,27 +84,30 @@ export function HeroSection({
               variants={variants.fadeInUp}
               className="text-3xl sm:text-5xl lg:text-[2.6rem] font-black tracking-tight leading-[1.1] sm:leading-[1.05] text-foreground"
             >
-              Share files <span className="text-primary">directly</span>{" "}
-              from
-              <br className="hidden lg:block" /> your device{" "}
-              <span className="text-primary">to anywhere</span>.
+              <Trans
+                i18nKey="hero.headline"
+                components={{
+                  highlight1: <span className="text-primary" />,
+                  br: <br className="hidden lg:block" />,
+                  highlight2: <span className="text-primary" />
+                }}
+              />
             </motion.h2>
             <motion.p
               variants={variants.fadeInUp}
               className="text-foreground text-base sm:text-lg lg:text-lg leading-relaxed max-w-2xl text-balance font-medium"
             >
-              Send files of any size directly from your device without ever
-              storing anything online.
+              {t('hero.subtitle')}
             </motion.p>
 
             <motion.div
               variants={variants.fadeInUp}
               className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mt-2"
             >
-              <FeatureTag icon={InfinityCircleIcon} label="No file size limit" />
-              <FeatureTag icon={FlashIcon} label="Blazingly fast" />
-              <FeatureTag icon={Wifi01Icon} label="Peer-to-peer" />
-              <FeatureTag icon={ShieldKeyIcon} label="End-to-end encrypted" />
+              <FeatureTag icon={InfinityCircleIcon} label={t('hero.features.noLimit')} />
+              <FeatureTag icon={FlashIcon} label={t('hero.features.fast')} />
+              <FeatureTag icon={Wifi01Icon} label={t('hero.features.p2p')} />
+              <FeatureTag icon={ShieldKeyIcon} label={t('hero.features.e2ee')} />
             </motion.div>
           </div>
 
@@ -116,17 +122,20 @@ export function HeroSection({
               className="w-full flex items-center justify-center gap-2 rounded-full border-2 border-dashed border-border bg-background hover:bg-muted/50 py-4 px-6 text-lg font-medium text-foreground transition-all"
             >
               <PlusIcon size={22} className="text-primary" />
-              Select files
+              {t('hero.selectFiles')}
             </button>
             <p className="mt-3 text-sm text-muted-foreground text-center">
-              or{" "}
-              <span
-                onClick={onFolderClick}
-                className="text-primary hover:underline cursor-pointer font-medium relative top-[-1px]"
-              >
-                click here
-              </span>{" "}
-              to select a folder
+              <Trans
+                i18nKey="hero.selectFolder"
+                components={{
+                  action: (
+                    <span
+                      onClick={onFolderClick}
+                      className="text-primary hover:underline cursor-pointer font-medium relative top-[-1px]"
+                    />
+                  )
+                }}
+              />
             </p>
           </motion.div>
         </div>
@@ -143,7 +152,7 @@ export function HeroSection({
               size={16}
               className="shrink-0 text-primary"
             />
-            Find Nearby Devices
+            {t('hero.findNearby')}
           </button>
         </motion.div>
       </motion.div>
