@@ -1,6 +1,5 @@
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useMemo, useLayoutEffect } from "react";
 import { useClientName } from "@/lib/use-client-name";
-import { useScroll, useSpring, useTransform } from "framer-motion";
 import {
   folderToZip,
   fileListToZip,
@@ -44,14 +43,6 @@ export function LandingView({
 }: LandingViewProps) {
   const { t } = useTranslation();
   const displayName = useClientName();
-  const { scrollYProgress } = useScroll();
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
-  const pathLength = useTransform(smoothProgress, [0, 0.4], [1, 0]); // Starts full, disappears by 40% scroll
-
   const [isDragOver, setIsDragOver] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [zipProgress, setZipProgress] = useState<{
@@ -61,6 +52,15 @@ export function LandingView({
 
   // Firefox fallback state — holds the snapshotted files awaiting confirmation
   const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
+  const [scrollReady, setScrollReady] = useState(false);
+
+  useLayoutEffect(() => {
+    // Let browser restore scroll first, then show content
+    const id = requestAnimationFrame(() => {
+      setScrollReady(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -182,30 +182,30 @@ export function LandingView({
     setPendingFiles(null);
   }, []);
 
-  const fadeInUp: any = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.8, ease: "easeOut" as const },
-    },
-  };
-
-  const staggerContainer: any = {
-    hidden: {},
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const variants = { fadeInUp, staggerContainer };
-
   const handleCTAButtonClick = useCallback(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     // Slight delay avoids opening the picker while the page is fast-scrolling playfully
     setTimeout(() => fileInputRef.current?.click(), 400);
   }, []);
+
+  const handleBrowseClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const dropZoneChild = useMemo(() => (
+    <DropZone
+      isDragOver={isDragOver}
+      zipping={zipping}
+      zipProgress={zipProgress}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onClick={handleBrowseClick}
+      onFolderClick={handleFolderClick}
+    />
+  ), [
+    isDragOver, zipping, zipProgress, handleDrop, handleDragOver, handleDragLeave, handleBrowseClick, handleFolderClick
+  ]);
 
   return (
     <>
@@ -230,37 +230,25 @@ export function LandingView({
       </AlertDialog>
 
       {/* Full-page layout */}
-      <div className="min-h-screen flex flex-col bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-20">
+      <div 
+        className={`min-h-screen flex flex-col bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-20 transition-opacity duration-150 ${
+          scrollReady ? "opacity-100" : "opacity-0"
+        }`}
+      >
         {/* We use a specific less-dark tone for the rest of the page */}
         <HeroSection
           displayName={displayName}
           onNavigate={onNavigate}
-          onBrowseClick={() => fileInputRef.current?.click()}
+          onBrowseClick={handleBrowseClick}
           onFolderClick={handleFolderClick}
-          variants={variants}
-          pathLength={pathLength}
-          fillColor="var(--content-bg)"
-          dropZoneChild={
-            <DropZone
-              isDragOver={isDragOver}
-              zipping={zipping}
-              zipProgress={zipProgress}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onClick={() => fileInputRef.current?.click()}
-              onFolderClick={handleFolderClick}
-              variants={variants.fadeInUp}
-            />
-          }
+          dropZoneChild={dropZoneChild}
         />
 
         <main className="relative z-10 bg-[var(--content-bg)]">
-          <FeatureSections variants={variants} />
+          <FeatureSections />
 
           <CTASection
             onCTAButtonClick={handleCTAButtonClick}
-            variants={variants}
           />
         </main>
       </div>

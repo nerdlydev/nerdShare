@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo, Suspense } from "react";
 import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { WebRTCManager, type ConnectionState } from "@/lib/webrtc-manager";
 import { LandingView } from "@/components/LandingView";
@@ -9,6 +9,7 @@ import { LogsContext } from "@/lib/logs-context";
 import { useNearbyPeers } from "@/lib/use-nearby-peers";
 import { useClientName } from "@/lib/use-client-name";
 import { AppShell } from "@/components/AppShell";
+import { LoaderSpinner } from "@/components/ui/loader-spinner";
 import { AboutPage } from "@/components/pages/AboutPage";
 import { ContactPage } from "@/components/pages/ContactPage";
 import { PrivacyPage } from "@/components/pages/PrivacyPage";
@@ -180,71 +181,77 @@ export function App() {
     }
   }, [urlRoomId, role, joinRoom]);
 
+  const handleNavigate = useCallback((page: string) => {
+    navigate(`/${page}`);
+  }, [navigate]);
+
   return (
     <AppShell>
       <ScrollToTop />
-      <Routes>
-        <Route 
-          path="/" 
-          element={
-            <LandingView
-              peers={peers}
-              onFileSelected={handleFileSelected}
-              onNavigate={(page) => navigate(`/${page}`)}
-            />
-          } 
-        />
-        <Route 
-          path="/nearby" 
-          element={
-            <NearbyDevicesPage
-              userId={userId}
-              peers={peers}
-              onConnect={(_, roomId, file) => {
-                handleFileSelected(file, roomId, true);
-              }}
-            />
-          } 
-        />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        
-        {/* Active Transfer Route */}
-        <Route 
-          path="/r/:roomId" 
-          element={
-            role === "host" && selectedFile ? (
-              <LogsContext.Provider value={logs}>
-                <HostView
-                  file={selectedFile}
-                  shareUrl={`${window.location.origin}/r/${roomId}`}
-                  isNearby={isNearby}
-                  connectionState={connectionState}
-                  dc={dc}
-                  onLeave={leave}
-                />
-              </LogsContext.Provider>
-            ) : role === "peer" ? (
-              <LogsContext.Provider value={logs}>
-                <PeerView
-                  connectionState={connectionState}
-                  dc={dc}
-                  addLog={addLog}
-                  onLeave={leave}
-                />
-              </LogsContext.Provider>
-            ) : (
-              <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-pulse text-muted-foreground">Connecting to room...</div>
-              </div>
-            )
-          } 
-        />
-        
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<LoaderSpinner fullScreen label="Loading..." />}>
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <LandingView
+                peers={peers}
+                onFileSelected={handleFileSelected}
+                onNavigate={handleNavigate}
+              />
+            } 
+          />
+          <Route 
+            path="/nearby" 
+            element={
+              <NearbyDevicesPage
+                userId={userId}
+                peers={peers}
+                onConnect={(_, roomId, file) => {
+                  handleFileSelected(file, roomId, true);
+                }}
+              />
+            } 
+          />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          
+          {/* Active Transfer Route */}
+          <Route 
+            path="/r/:roomId" 
+            element={
+              role === "host" && selectedFile ? (
+                <LogsContext.Provider value={logs}>
+                  <HostView
+                    file={selectedFile}
+                    shareUrl={`${window.location.origin}/r/${roomId}`}
+                    isNearby={isNearby}
+                    connectionState={connectionState}
+                    dc={dc}
+                    onLeave={leave}
+                  />
+                </LogsContext.Provider>
+              ) : role === "peer" ? (
+                <LogsContext.Provider value={logs}>
+                  <PeerView
+                    connectionState={connectionState}
+                    dc={dc}
+                    addLog={addLog}
+                    onLeave={leave}
+                  />
+                </LogsContext.Provider>
+              ) : (
+                <div className="flex items-center justify-center min-h-[60vh]">
+                  <LoaderSpinner size="lg" label="Connecting..." />
+                </div>
+              )
+            } 
+          />
+          
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </AppShell>
   );
 }

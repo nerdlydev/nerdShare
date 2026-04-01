@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { PlusIcon } from "@/components/ui/plus-icon";
 import { useTranslation, Trans } from "react-i18next";
 
@@ -14,7 +13,6 @@ interface DropZoneProps {
   onDragLeave: () => void;
   onClick: () => void;
   onFolderClick: (e: React.MouseEvent) => void;
-  variants?: any;
   className?: string;
 }
 
@@ -27,14 +25,12 @@ export function DropZone({
   onDragLeave,
   onClick,
   onFolderClick,
-  variants,
   className = "",
 }: DropZoneProps) {
   const { t } = useTranslation();
 
   return (
-    <motion.div
-      variants={variants}
+    <div
       className={`relative w-full ${className}`}
     >
       <div
@@ -94,6 +90,6 @@ export function DropZone({
           </>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

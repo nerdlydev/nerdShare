@@ -9,6 +9,10 @@ import App from "./App.tsx";
 import "./i18n";
 import { ClickSpark } from "@/components/ClickSpark";
 
+if (typeof window !== "undefined") {
+  window.history.scrollRestoration = "manual";
+}
+
 registerSW({ immediate: true });
 
 createRoot(document.getElementById("root")!).render(

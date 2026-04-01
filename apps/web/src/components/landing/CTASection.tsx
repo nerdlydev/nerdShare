@@ -1,39 +1,23 @@
-import { motion } from "framer-motion";
+
 import { PlusIcon } from "@/components/ui/plus-icon";
 import { useTranslation } from "react-i18next";
 
 interface CTASectionProps {
   onCTAButtonClick: () => void;
-  variants: {
-    fadeInUp: any;
-    staggerContainer: any;
-  };
 }
 
-export function CTASection({ onCTAButtonClick, variants }: CTASectionProps) {
+export function CTASection({ onCTAButtonClick }: CTASectionProps) {
   const { t } = useTranslation();
   return (
     <section className="py-32 px-4 sm:px-8 text-center relative overflow-hidden z-10">
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={variants.staggerContainer}
-        className="max-w-2xl mx-auto flex flex-col items-center gap-8 relative z-10"
-      >
-        <motion.h2
-          variants={variants.fadeInUp}
-          className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance"
-        >
+      <div className="max-w-2xl mx-auto flex flex-col items-center gap-8 relative z-10">
+        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
           {t('cta.title')}
-        </motion.h2>
-        <motion.p
-          variants={variants.fadeInUp}
-          className="text-xl text-muted-foreground text-balance"
-        >
+        </h2>
+        <p className="text-xl text-muted-foreground text-balance">
           {t('cta.desc')}
-        </motion.p>
-        <motion.div variants={variants.fadeInUp} className="pt-4">
+        </p>
+        <div className="pt-4">
           <button
             type="button"
             onClick={onCTAButtonClick}
@@ -45,8 +29,8 @@ export function CTASection({ onCTAButtonClick, variants }: CTASectionProps) {
             />
             {t('cta.button')}
           </button>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </section>
   );
 }
