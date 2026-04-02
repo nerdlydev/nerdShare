@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState, useMemo, useLayoutEffect } from "react";
+import { useRef, useCallback, useState, useMemo } from "react";
 import { useClientName } from "@/lib/use-client-name";
 import {
   folderToZip,
@@ -52,15 +52,6 @@ export function LandingView({
 
   // Firefox fallback state — holds the snapshotted files awaiting confirmation
   const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
-  const [scrollReady, setScrollReady] = useState(false);
-
-  useLayoutEffect(() => {
-    // Let browser restore scroll first, then show content
-    const id = requestAnimationFrame(() => {
-      setScrollReady(true);
-    });
-    return () => cancelAnimationFrame(id);
-  }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -230,11 +221,7 @@ export function LandingView({
       </AlertDialog>
 
       {/* Full-page layout */}
-      <div 
-        className={`min-h-screen flex flex-col bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-20 transition-opacity duration-150 ${
-          scrollReady ? "opacity-100" : "opacity-0"
-        }`}
-      >
+      <div className="min-h-screen flex flex-col bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-20">
         {/* We use a specific less-dark tone for the rest of the page */}
         <HeroSection
           displayName={displayName}

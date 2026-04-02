@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useScroll, useSpring, useTransform } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InfinityCircleIcon,
@@ -8,6 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { PlusIcon } from "@/components/ui/plus-icon";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
+import { WaveDivider } from "@/components/landing/WaveDivider";
 import type { NavPage } from "@/components/AppShell";
 
 import { useTranslation, Trans } from "react-i18next";
@@ -44,6 +46,14 @@ export const HeroSection = memo(function HeroSection({
   dropZoneChild,
 }: HeroSectionProps) {
   const { t } = useTranslation();
+
+  const { scrollYProgress } = useScroll();
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+  const pathLength = useTransform(smoothProgress, [0, 0.4], [1, 0]);
 
   return (
     <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-32 pb-20 relative group/hero">
@@ -131,6 +141,7 @@ export const HeroSection = memo(function HeroSection({
         </div>
       </div>
 
+      <WaveDivider pathLength={pathLength} fillColor="var(--content-bg)" />
     </section>
   );
 });
