@@ -47,7 +47,7 @@ export function DropZone({
             zipping
               ? "border-primary/50 cursor-wait"
               : isDragOver
-                ? "border-primary bg-primary/10 cursor-copy scale-[1.02]"
+                ? "border-primary bg-primary/10 cursor-copy"
                 : "border-border hover:border-primary/50 hover:bg-card/80"
           }
         `}
@@ -63,7 +63,7 @@ export function DropZone({
           </div>
         ) : (
           <>
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-all shadow-sm">
               <PlusIcon size={32} />
             </div>
             <div className="text-center space-y-2 max-w-sm mx-auto">

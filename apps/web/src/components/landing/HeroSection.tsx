@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InfinityCircleIcon,
@@ -8,9 +8,8 @@ import {
   FlashIcon,
 } from "@hugeicons/core-free-icons";
 import { PlusIcon } from "@/components/ui/plus-icon";
-import { FlickeringGrid } from "@/components/ui/flickering-grid";
-import { WaveDivider } from "@/components/landing/WaveDivider";
 import type { NavPage } from "@/components/AppShell";
+import { TextEffect } from "@/components/ui/text-effect";
 
 import { useTranslation, Trans } from "react-i18next";
 
@@ -22,22 +21,6 @@ interface HeroSectionProps {
   dropZoneChild: React.ReactNode;
 }
 
-const StableBackground = memo(function StableBackground() {
-  return (
-    <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden min-h-screen">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background z-10" />
-      <FlickeringGrid
-        className="relative inset-0 z-0 h-full w-full"
-        squareSize={4}
-        gridGap={6}
-        color="var(--primary)"
-        maxOpacity={0.5}
-        flickerChance={0.05}
-      />
-    </div>
-  );
-});
-
 export const HeroSection = memo(function HeroSection({
   displayName,
   onNavigate,
@@ -47,34 +30,36 @@ export const HeroSection = memo(function HeroSection({
 }: HeroSectionProps) {
   const { t } = useTranslation();
 
-  const { scrollYProgress } = useScroll();
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
-  const pathLength = useTransform(smoothProgress, [0, 0.4], [1, 0]);
-
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-32 pb-20 relative group/hero">
-      {/* Dynamic Flickering Grid Background */}
-      <StableBackground />
-      <div className="w-full max-w-7xl mx-auto flex flex-col items-center text-center gap-12 sm:gap-16 relative z-20">
+    <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-32 pb-20 relative z-10">
+      <div className="w-full max-w-7xl mx-auto flex flex-col items-center text-center gap-12 sm:gap-16 relative">
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-x-24 items-start">
-          {/* Greeting (top-left) */}
-          <h1 className="lg:col-span-12 text-center text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] w-full text-foreground drop-shadow-sm">
-            {displayName
-              ? t('hero.greeting', { name: displayName })
-              : <span className="invisible">{t('hero.greeting', { name: 'Placeholder' })}</span>
-            }
-          </h1>
+          {/* Greeting */}
+          <div className="lg:col-span-12 text-center text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] w-full text-foreground min-h-[1.2em]">
+            <AnimatePresence mode="wait">
+              {displayName ? (
+                <TextEffect
+                  key="greeting"
+                  preset="fade-in-blur"
+                  per="word"
+                  as="h1"
+                >
+                  {t('hero.greeting', { name: displayName })}
+                </TextEffect>
+              ) : (
+                <div key="placeholder" className="invisible">
+                  {t('hero.greeting', { name: 'Placeholder' })}
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Dropzone (desktop) */}
           <div className="hidden lg:block w-full relative lg:col-span-4 lg:col-start-1 lg:row-start-2 lg:-ml-8 xl:-ml-16 lg:mt-8 xl:mt-12">
             {dropZoneChild}
           </div>
 
-          {/* Hero text (below greeting on mobile, right of dropzone on desktop) */}
+          {/* Hero text */}
           <div className="flex flex-col items-start text-left gap-6 lg:col-span-6 lg:col-start-6 lg:row-start-2 lg:ml-8 xl:ml-16 lg:mt-8 xl:mt-12">
             <h2 className="text-3xl sm:text-5xl lg:text-[2.6rem] font-black tracking-tight leading-[1.1] sm:leading-[1.05] text-foreground">
               <Trans
@@ -86,6 +71,7 @@ export const HeroSection = memo(function HeroSection({
                 }}
               />
             </h2>
+            
             <p className="text-foreground text-base sm:text-lg lg:text-lg leading-relaxed max-w-2xl text-balance font-medium">
               {t('hero.subtitle')}
             </p>
@@ -124,7 +110,7 @@ export const HeroSection = memo(function HeroSection({
           </div>
         </div>
 
-        {/* Nearby Devices button (moved below hero for flow) */}
+        {/* Nearby Devices button */}
         <div className="mt-4">
           <button
             type="button"
@@ -140,8 +126,6 @@ export const HeroSection = memo(function HeroSection({
           </button>
         </div>
       </div>
-
-      <WaveDivider pathLength={pathLength} fillColor="var(--content-bg)" />
     </section>
   );
 });

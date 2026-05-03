@@ -23,8 +23,7 @@ import { useTranslation } from "react-i18next";
 
 import { HeroSection } from "./landing/HeroSection";
 import { DropZone } from "./landing/DropZone";
-import { FeatureSections } from "./landing/FeatureSections";
-import { CTASection } from "./landing/CTASection";
+
 
 interface LandingViewProps {
   peers: NearbyPeer[];
@@ -173,11 +172,7 @@ export function LandingView({
     setPendingFiles(null);
   }, []);
 
-  const handleCTAButtonClick = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    // Slight delay avoids opening the picker while the page is fast-scrolling playfully
-    setTimeout(() => fileInputRef.current?.click(), 400);
-  }, []);
+
 
   const handleBrowseClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -221,8 +216,7 @@ export function LandingView({
       </AlertDialog>
 
       {/* Full-page layout */}
-      <div className="min-h-screen flex flex-col bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-20">
-        {/* We use a specific less-dark tone for the rest of the page */}
+      <div className="midnight-mist min-h-screen flex flex-col relative overflow-x-hidden selection:bg-primary/20 selection:text-primary">
         <HeroSection
           displayName={displayName}
           onNavigate={onNavigate}
@@ -230,14 +224,6 @@ export function LandingView({
           onFolderClick={handleFolderClick}
           dropZoneChild={dropZoneChild}
         />
-
-        <main className="relative z-10 bg-[var(--content-bg)]">
-          <FeatureSections />
-
-          <CTASection
-            onCTAButtonClick={handleCTAButtonClick}
-          />
-        </main>
       </div>
 
       {/* Hidden inputs */}
