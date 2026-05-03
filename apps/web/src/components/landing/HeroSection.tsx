@@ -33,9 +33,9 @@ export const HeroSection = memo(function HeroSection({
   return (
     <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-24 pt-32 pb-20 relative z-10">
       <div className="w-full max-w-7xl mx-auto flex flex-col items-center text-center gap-12 sm:gap-16 relative">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-x-24 items-start">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-x-24 lg:items-center items-start">
           {/* Greeting */}
-          <div className="lg:col-span-12 text-center text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] w-full text-foreground min-h-[1.2em]">
+          <div className="lg:col-span-12 text-center text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] w-full text-foreground min-h-[1.2em] mb-12 lg:mb-16">
             <AnimatePresence mode="wait">
               {displayName ? (
                 <TextEffect
@@ -55,12 +55,12 @@ export const HeroSection = memo(function HeroSection({
           </div>
 
           {/* Dropzone (desktop) */}
-          <div className="hidden lg:block w-full relative lg:col-span-4 lg:col-start-1 lg:row-start-2 lg:-ml-8 xl:-ml-16 lg:mt-8 xl:mt-12">
+          <div className="hidden lg:block w-full relative lg:col-span-4 lg:col-start-1 lg:row-start-2 lg:-ml-8 xl:-ml-16">
             {dropZoneChild}
           </div>
 
           {/* Hero text */}
-          <div className="flex flex-col items-start text-left gap-6 lg:col-span-6 lg:col-start-6 lg:row-start-2 lg:ml-8 xl:ml-16 lg:mt-8 xl:mt-12">
+          <div className="flex flex-col items-start text-left gap-6 lg:col-span-6 lg:col-start-6 lg:row-start-2 lg:ml-8 xl:ml-16">
             <h2 className="text-3xl sm:text-5xl lg:text-[2.6rem] font-black tracking-tight leading-[1.1] sm:leading-[1.05] text-foreground">
               <Trans
                 i18nKey="hero.headline"
