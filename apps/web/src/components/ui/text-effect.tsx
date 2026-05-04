@@ -119,7 +119,7 @@ const AnimationComponent: React.FC<{
 }> = React.memo(({ segment, variants, per, segmentWrapperClassName }) => {
   const content =
     per === 'line' ? (
-      <motion.span variants={variants} className='block'>
+      <motion.span variants={variants} className='block' data-segment={segment}>
         {segment}
       </motion.span>
     ) : per === 'word' ? (
@@ -127,6 +127,7 @@ const AnimationComponent: React.FC<{
         aria-hidden='true'
         variants={variants}
         className='inline-block whitespace-pre'
+        data-segment={segment}
       >
         {segment}
       </motion.span>
@@ -138,6 +139,7 @@ const AnimationComponent: React.FC<{
             aria-hidden='true'
             variants={variants}
             className='inline-block whitespace-pre'
+            data-segment={char}
           >
             {char}
           </motion.span>
