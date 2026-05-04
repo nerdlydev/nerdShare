@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { WifiIcon, type WifiIconHandle } from "@/components/ui/wifi";
+import { motion, AnimatePresence } from "motion/react";
+import { SearchIcon, type SearchIconHandle } from "@/components/ui/search";
+import { TextShimmer } from "@/components/ui/text-shimmer";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SmartPhone01Icon,
@@ -17,6 +18,7 @@ import {
   dirHandleToZip,
 } from "@/lib/folder-to-zip";
 import { useTranslation } from "react-i18next";
+
 interface NearbyDevicesPageProps {
   userId: string;
   peers: NearbyPeer[];
@@ -29,7 +31,9 @@ export function NearbyDevicesPage({
   onConnect,
 }: NearbyDevicesPageProps) {
   const { t } = useTranslation();
-  const iconRef = useRef<WifiIconHandle>(null);
+  const iconRef = useRef<SearchIconHandle>(null);
+
+  const [selectedPeer, setSelectedPeer] = useState<NearbyPeer | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -37,7 +41,7 @@ export function NearbyDevicesPage({
     }, 500);
     return () => clearTimeout(timer);
   }, []);
-  const [selectedPeer, setSelectedPeer] = useState<NearbyPeer | null>(null);
+
   const [zipping, setZipping] = useState(false);
   const [zipProgress, setZipProgress] = useState<{
     filesProcessed: number;
@@ -64,7 +68,7 @@ export function NearbyDevicesPage({
             fromUserId: userId,
             toUserId: targetUserId,
             roomId,
-          })
+          }),
         );
         setTimeout(() => socket.close(), 500);
       };
@@ -72,15 +76,19 @@ export function NearbyDevicesPage({
       onConnect(targetUserId, roomId, file);
       setSelectedPeer(null);
     },
-    [userId, onConnect]
+    [userId, onConnect],
   );
 
   const runZip = useCallback(
     async (
-      source: FileSystemDirectoryHandle | FileSystemDirectoryEntry | File[] | File
+      source:
+        | FileSystemDirectoryHandle
+        | FileSystemDirectoryEntry
+        | File[]
+        | File,
     ) => {
       if (!selectedPeer) return;
-      
+
       setZipping(true);
       setZipProgress({ filesProcessed: 0, totalFiles: 0 });
       try {
@@ -94,11 +102,11 @@ export function NearbyDevicesPage({
         } else if (source instanceof FileSystemDirectoryHandle) {
           zipFile = await dirHandleToZip(
             source as FileSystemDirectoryHandle,
-            (p) => setZipProgress(p)
+            (p) => setZipProgress(p),
           );
         } else {
           zipFile = await folderToZip(source as FileSystemDirectoryEntry, (p) =>
-            setZipProgress(p)
+            setZipProgress(p),
           );
         }
 
@@ -110,7 +118,7 @@ export function NearbyDevicesPage({
         setZipProgress(null);
       }
     },
-    [selectedPeer, handleConnect]
+    [selectedPeer, handleConnect],
   );
 
   const handleFileChange = useCallback(
@@ -119,7 +127,7 @@ export function NearbyDevicesPage({
       if (file) runZip(file);
       e.target.value = "";
     },
-    [runZip]
+    [runZip],
   );
 
   const handleFolderClick = useCallback(async () => {
@@ -140,49 +148,27 @@ export function NearbyDevicesPage({
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-primary/20 selection:text-primary pb-32">
-
-      <motion.div
-        className="max-w-6xl mx-auto px-6 pt-32 relative z-10"
-      >
+      <motion.div className="max-w-6xl mx-auto px-6 pt-32 relative z-10">
         {/* HERO SECTION */}
-        <motion.section className="text-center mb-16 px-4">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6 flex items-center justify-center gap-4 sm:gap-6">
+        <motion.section className="text-center mb-8 px-4">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-8 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
             <div className="relative inline-block shrink-0">
-              {/* Radar Animation */}
-              <motion.div
-                animate={{
-                  scale: [1, 1.8],
-                  opacity: [0.6, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeOut",
-                }}
-                className="absolute inset-0 rounded-full bg-primary/20"
-              />
-              <motion.div
-                animate={{
-                  scale: [1, 1.5],
-                  opacity: [0.4, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeOut",
-                  delay: 0.6,
-                }}
-                className="absolute inset-0 rounded-full bg-primary/20"
-              />
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary relative z-10 shadow-sm overflow-hidden">
-                <WifiIcon ref={iconRef} size={32} className="scale-75 sm:scale-100" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl lg:rounded-3xl bg-primary/10 flex items-center justify-center text-primary relative z-10 shadow-inner overflow-hidden shrink-0">
+                <SearchIcon
+                  ref={iconRef}
+                  size={32}
+                  className="scale-75 sm:scale-90 lg:scale-100"
+                />
               </div>
             </div>
-            <span>{t('nearby.title')}</span>
+            <span>{t("nearby.title")}</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance">
-            {t('nearby.subtitle')}
-          </p>
+          <TextShimmer
+            className="text-xl max-w-2xl mx-auto leading-relaxed text-balance mb-8"
+            duration={2}
+          >
+            {t("nearby.subtitle")}
+          </TextShimmer>
         </motion.section>
 
         {/* DEVICE LIST */}
@@ -192,9 +178,8 @@ export function NearbyDevicesPage({
               <div className="w-12 h-12 mb-6 rounded-full bg-muted/50 flex items-center justify-center">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">{t('nearby.no_devices')}</h3>
               <p className="text-muted-foreground leading-relaxed">
-                {t('nearby.no_devices_desc')}
+                {t("nearby.no_devices_desc")}
               </p>
             </div>
           ) : (
@@ -204,25 +189,33 @@ export function NearbyDevicesPage({
                   <motion.button
                     key={peer.userId}
                     layout
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    initial={{ opacity: 0, scale: 0.96, y: 12 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                    whileHover={{ scale: 1.02, y: -4 }}
+                    exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                    whileHover={{ scale: 1.01, y: -2 }}
                     whileTap={{ scale: 0.98 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30,
+                    }}
                     onClick={() => setSelectedPeer(peer)}
-                    className="flex flex-col items-center gap-4 p-8 rounded-[2.5rem] border border-border bg-card/40 backdrop-blur-xl hover:bg-card hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all text-center group relative overflow-hidden"
+                    className="flex flex-col items-center gap-4 p-8 rounded-[2.5rem] border border-border bg-card/40 backdrop-blur-xl hover:bg-card hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 text-center group relative overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="text-primary mb-2">
-                      <HugeiconsIcon icon={getDeviceIcon(peer.deviceType)} size={32} />
+                      <HugeiconsIcon
+                        icon={getDeviceIcon(peer.deviceType)}
+                        size={32}
+                      />
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-foreground mb-1 leading-tight">
                         {peer.displayName}
                       </h3>
                       <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-primary px-3 py-1 rounded-full uppercase tracking-wider">
-                        <CircleCheckIcon size={14} className="animate-pulse" />
-                        {t('nearby.ready')}
+                        <CircleCheckIcon size={14} />
+                        {t("nearby.ready")}
                       </div>
                     </div>
                   </motion.button>
@@ -260,13 +253,16 @@ export function NearbyDevicesPage({
 
               <div className="text-center mb-10">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
-                  <HugeiconsIcon icon={getDeviceIcon(selectedPeer.deviceType)} size={32} />
+                  <HugeiconsIcon
+                    icon={getDeviceIcon(selectedPeer.deviceType)}
+                    size={32}
+                  />
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                  {t('nearby.send_to', { name: selectedPeer.displayName })}
+                  {t("nearby.send_to", { name: selectedPeer.displayName })}
                 </h2>
                 <p className="text-muted-foreground text-sm uppercase tracking-widest font-semibold opacity-60">
-                  {t('nearby.choose')}
+                  {t("nearby.choose")}
                 </p>
               </div>
 
@@ -279,7 +275,9 @@ export function NearbyDevicesPage({
                   <div className="text-primary group-hover:text-primary transition-colors">
                     <AttachFileIcon size={32} />
                   </div>
-                  <span className="font-bold text-lg">{t('nearby.select_files')}</span>
+                  <span className="font-bold text-lg">
+                    {t("nearby.select_files")}
+                  </span>
                 </button>
 
                 <button
@@ -290,7 +288,9 @@ export function NearbyDevicesPage({
                   <div className="text-primary group-hover:text-primary transition-colors">
                     <HugeiconsIcon icon={Folder01Icon} size={32} />
                   </div>
-                  <span className="font-bold text-lg">{t('nearby.select_folder')}</span>
+                  <span className="font-bold text-lg">
+                    {t("nearby.select_folder")}
+                  </span>
                 </button>
               </div>
 
@@ -299,8 +299,11 @@ export function NearbyDevicesPage({
                   <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
                   <p className="text-sm font-medium text-muted-foreground">
                     {zipProgress && zipProgress.totalFiles > 0
-                      ? t('nearby.preparing_files', { processed: zipProgress.filesProcessed, total: zipProgress.totalFiles })
-                      : t('nearby.preparing_folder')}
+                      ? t("nearby.preparing_files", {
+                          processed: zipProgress.filesProcessed,
+                          total: zipProgress.totalFiles,
+                        })
+                      : t("nearby.preparing_folder")}
                   </p>
                 </div>
               )}
@@ -309,7 +312,7 @@ export function NearbyDevicesPage({
                 onClick={() => setSelectedPeer(null)}
                 className="mt-10 w-full py-4 text-muted-foreground hover:text-foreground font-medium transition-colors"
               >
-                {t('nearby.cancel')}
+                {t("nearby.cancel")}
               </button>
             </motion.div>
           </div>

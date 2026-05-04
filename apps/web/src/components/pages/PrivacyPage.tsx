@@ -23,7 +23,7 @@ export function PrivacyPage() {
       >
         {/* HERO SECTION */}
         <motion.section className="text-center mb-28">
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-balance mb-8 flex items-center justify-center gap-4 sm:gap-6">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-balance mb-8 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
             <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl lg:rounded-3xl bg-primary/10 flex items-center justify-center text-primary shadow-inner overflow-hidden shrink-0">
               <LockKeyholeIcon ref={iconRef} size={32} className="scale-75 sm:scale-90 lg:scale-100" />
             </div>
