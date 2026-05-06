@@ -173,18 +173,8 @@ export function NearbyDevicesPage({
 
         {/* DEVICE LIST */}
         <motion.section className="w-full">
-          {peers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 sm:p-20 text-center rounded-[2.5rem] border border-dashed border-border bg-card/20 backdrop-blur-sm max-w-2xl mx-auto">
-              <div className="w-12 h-12 mb-6 rounded-full bg-muted/50 flex items-center justify-center">
-                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                {t("nearby.no_devices_desc")}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <AnimatePresence mode="popLayout">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence mode="popLayout">
                 {peers.map((peer: NearbyPeer) => (
                   <motion.button
                     key={peer.userId}
@@ -222,7 +212,6 @@ export function NearbyDevicesPage({
                 ))}
               </AnimatePresence>
             </div>
-          )}
         </motion.section>
       </motion.div>
 
