@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 
 import { HeroSection } from "./landing/HeroSection";
 import { DropZone } from "./landing/DropZone";
+import { FeaturesSection } from "./landing/FeaturesSection";
 
 
 interface LandingViewProps {
@@ -224,6 +225,7 @@ export function LandingView({
           onFolderClick={handleFolderClick}
           dropZoneChild={dropZoneChild}
         />
+        <FeaturesSection />
       </div>
 
       {/* Hidden inputs */}

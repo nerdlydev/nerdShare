@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InfinityCircleIcon,
@@ -136,6 +136,23 @@ export const HeroSection = memo(function HeroSection({
           </button>
         </div>
       </div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground/40 hidden sm:flex"
+      >
+        <span className="text-[10px] uppercase tracking-[0.2em] font-bold">
+          Scroll
+        </span>
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          className="w-1 h-12 rounded-full bg-gradient-to-b from-primary/20 to-transparent"
+        />
+      </motion.div>
     </section>
   );
 });
