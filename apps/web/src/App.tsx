@@ -47,6 +47,7 @@ export function App() {
   const [dc, setDc] = useState<RTCDataChannel | null>(null);
 
   const managerRef = useRef<WebRTCManager | null>(null);
+  const hasLeftRef = useRef(false);
 
   const addLog = useCallback((msg: string) => {
     const ts = new Date().toLocaleTimeString();
@@ -62,6 +63,7 @@ export function App() {
   useEffect(() => () => cleanup(), [cleanup]);
 
   const leave = useCallback(() => {
+    hasLeftRef.current = true;
     cleanup();
     setRole(null);
     setRoomId("");
@@ -69,7 +71,7 @@ export function App() {
     setSelectedFile(null);
     setConnectionState("idle");
     setLogs([]);
-    navigate("/");
+    navigate("/", { replace: true });
   }, [cleanup, navigate]);
 
   // ── Sender: file selected → create room ──
@@ -140,8 +142,9 @@ export function App() {
       managerRef.current = mgr;
       mgr.start();
       addLog(`joining room: ${id}`);
+      navigate(`/r/${id}`);
     },
-    [userId, addLog, cleanup],
+    [userId, addLog, cleanup, navigate],
   );
 
   // ── Listen for Incoming Nearby Connections & Announce Presence ──
@@ -175,11 +178,18 @@ export function App() {
 
   // Auto-join if on /r/:roomId and no role set
   useEffect(() => {
-    if (urlRoomId && !role) {
+    if (urlRoomId && !role && !hasLeftRef.current) {
       console.log(`[app] auto-joining room from URL: ${urlRoomId}`);
       joinRoom(urlRoomId);
     }
   }, [urlRoomId, role, joinRoom]);
+
+  // Reset hasLeft when navigating to a new room or home
+  useEffect(() => {
+    if (location.pathname === "/" || (urlRoomId && role)) {
+      hasLeftRef.current = false;
+    }
+  }, [location.pathname, urlRoomId, role]);
 
   const handleNavigate = useCallback((page: string) => {
     navigate(`/${page}`);

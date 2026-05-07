@@ -220,8 +220,8 @@ export class TransferSender {
           this.dc.send(JSON.stringify({ type: "FILE_META", ...meta }));
         }
         attempts++;
-        if (attempts > 20) {
-          // 10 seconds total
+        if (attempts > 120) {
+          // 1 minute total (120 * 500ms)
           clearInterval(pingInterval);
           this.dc.removeEventListener("message", onMessage);
           reject(new Error("Timeout waiting for HELLO_ACK"));

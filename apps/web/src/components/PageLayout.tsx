@@ -11,7 +11,7 @@ export function PageLayout({ panel, hero }: PageLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col lg:grid lg:grid-cols-[minmax(500px,700px)_1fr] relative">
       {/* Left panel */}
-      <div className="flex items-center justify-center p-8 lg:p-12">
+      <div className="flex items-center justify-center pt-16 pb-8 px-4 sm:p-8 lg:p-12">
         <div className="w-full max-w-md">{panel}</div>
       </div>
 

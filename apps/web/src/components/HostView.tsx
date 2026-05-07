@@ -98,8 +98,7 @@ export const HostView = memo(function HostView({
       onProgress: (p) => setProgress(p),
       onComplete: () => {},
       onError: (err) => {
-        console.error(`[HostView] Transfer error: ${err} - Failing silently.`);
-        hasStartedRef.current = false;
+        console.error(`[HostView] Transfer error: ${err}`);
         wakeLockRelease();
       },
       onStateChange: (state) => {

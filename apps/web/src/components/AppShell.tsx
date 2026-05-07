@@ -157,6 +157,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const activePage = useMemo(() => {
     const path = location.pathname;
     if (path === "/") return "home";
+    if (path.startsWith("/r/")) return "room";
     const p = path.slice(1);
     if (["nearby", "about", "contact", "privacy"].includes(p))
       return p as NavPage;
@@ -395,7 +396,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Page content */}
-      <main className={cn("flex-1", activePage !== "home" && "pt-20")}>
+      <main className={cn("flex-1", location.pathname !== "/" && "pt-20")}>
         {children}
       </main>
     </div>

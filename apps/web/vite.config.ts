@@ -25,11 +25,14 @@ export default defineConfig({
         "pwa-512x512.png",
       ],
       workbox: {
-        navigateFallbackAllowlist: [/^\/$/], // Default for root
-        // We can add more or just let VitePWA handle it.
-        // But for dynamic routes in SPA, we usually want it to handle all.
-        // Actually, let's just use the default and see.
-        // The error was specifically about /r/ not being in it.
+        navigateFallbackAllowlist: [
+          /^\/$/, // Home
+          /^\/nearby/, // Nearby
+          /^\/about/, // About
+          /^\/contact/, // Contact
+          /^\/privacy/, // Privacy
+          /^\/r\/.*/, // Room routes
+        ],
       },
       manifest: {
         name: "nerdShare",
